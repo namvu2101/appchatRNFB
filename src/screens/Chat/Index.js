@@ -8,22 +8,25 @@ import {Avatar, TextInput} from 'react-native-paper';
 import {FONTS, SIZES, images} from '../../constants';
 import UITextInput from '../../components/UITextInput';
 import List_Message from './List_Message';
-import {db, timestamp} from '../../firebase/firebaseConfig';
+import {db, storage, timestamp} from '../../firebase/firebaseConfig';
 import {authStore, profileStore} from '../../store';
 import {firebase} from '@react-native-firebase/firestore';
-import {UserType} from '../../../UserContext';
+import uuid from 'react-native-uuid';
+import {handlePickImage} from '../../components/ImagePicker';
 
 export default function Index({route}) {
   const navigation = useNavigation();
   const [input, setInput] = useState('');
-  const {setUserConversation, userConversation} = useContext(UserType);
   const [conversation_exists, setConversation_exists] = useState(false);
   const [submit, setSubmit] = useState(false);
   const [messages, setMessages] = useState([]);
   const recipient = route.params.item;
+  const recipientId = route.params.recipientId;
   const type = route.params.type;
+  const conversation_id = route.params.conversation_id;
   const {profile} = profileStore();
   const {userId} = authStore();
+
   useEffect(() => {
     if (input.length > 0) {
       setSubmit(true);
@@ -37,7 +40,7 @@ export default function Index({route}) {
       headerTitleAlign: 'left',
       headerTitle: () => (
         <View style={styles.header}>
-          <Avatar.Image size={49} source={{uri: recipient.image}} />
+          <Avatar.Image size={49} source={{uri: recipient?.image}} />
           <Text numberOfLines={1} style={{...FONTS.h3, marginHorizontal: 10}}>
             {recipient.name}
           </Text>
@@ -71,22 +74,19 @@ export default function Index({route}) {
     });
   }, [route]);
   useEffect(() => {
-    const conversation_id = `${userId}-${recipient.id}`;
     db.collection('Conversations')
       .doc(conversation_id)
       .get()
       .then(doc => {
         setConversation_exists(doc.exists);
-
-        if (doc.exists && doc.data().avatar != recipient.image) {
+        if (doc.exists && doc.data().image != recipient.image) {
           db.collection('Conversations').doc(conversation_id).update({
-            avatar: recipient.image,
+            image: recipient.image,
           });
         }
       });
   }, []);
   useLayoutEffect(() => {
-    const conversation_id = `${userId}-${recipient.id}`;
     const unsubscribe = db
       .collection('Conversations')
       .doc(conversation_id)
@@ -107,30 +107,25 @@ export default function Index({route}) {
 
     return () => unsubscribe();
   }, []);
-  const checkConversation = id => {
-    const check = userConversation.find(id => id == item.id);
-    const copylist = [...userConversation];
-    if (!check) {
-      copylist.push(id);
-      setUserConversation(copylist);
-    }
-  };
+
   const onSendMessage = async (messageType, imageUri) => {
     setInput('');
     const formData = {
       timeSend: timestamp,
       senderId: userId,
-      recipientId: recipient.id,
+      recipientId: recipientId,
       senderImage: profile.image,
       name: profile.name,
       messageType: messageType === 'image' ? 'image' : 'text',
       messageText: messageType === 'image' ? 'send photo' : input,
     };
-
+    if (messageType === 'image') {
+      formData.photo = imageUri;
+    }
     if (type === 'Person') {
       const conversationIds = [
-        `${userId}-${recipient.id}`,
-        `${recipient.id}-${userId}`,
+        `${userId}-${recipientId}`,
+        `${recipientId}-${userId}`,
       ];
       conversationIds.forEach(conversationId => {
         updateUserConversation(conversationId);
@@ -149,12 +144,12 @@ export default function Index({route}) {
     } else {
       const collectionRef = db
         .collection('Conversations')
-        .doc(item.id)
+        .doc(conversation_id)
         .collection('messages');
       await collectionRef.add(formData);
       await db
         .collection('Conversations')
-        .doc(item.id)
+        .doc(conversation_id)
         .update({
           last_message: timestamp,
           messageText: messageType === 'image' ? 'send photo' : input,
@@ -173,21 +168,39 @@ export default function Index({route}) {
         type: 'Person',
         last_message: timestamp,
         messageText: input,
-        senderID: id === `${userId}-${recipient.id}` ? userId : recipient.id,
-        name:
-          id === `${userId}-${recipient.id}` ? recipient.name : profile.name,
-        avatar:
-          id === `${userId}-${recipient.id}` ? recipient.image : profile.image,
+        recipientId: recipientId,
+        senderID: id === `${userId}-${recipientId}` ? userId : recipientId,
+        name: id === `${userId}-${recipientId}` ? recipient.name : profile.name,
+        image:
+          id === `${userId}-${recipientId}` ? recipient.image : profile.image,
       });
   };
 
   const updateUserConversation = id => {
-    const user = id === `${userId}-${recipient.id}` ? userId : recipient.id;
+    const user = id === `${userId}-${recipientId}` ? userId : recipientId;
     db.collection('conversations')
       .doc(user)
-      .update({
-        list_conversations: firebase.firestore.FieldValue.arrayUnion(id),
-      });
+      .set(
+        {
+          list_conversations: firebase.firestore.FieldValue.arrayUnion(id),
+        },
+        {merge: true},
+      );
+  };
+
+  const sendImage = async () => {
+    const id = uuid.v4();
+    try {
+      const newImagePath = await handlePickImage();
+      const reference = storage().ref(
+        `Coversations/${conversation_id}/Files/${id}`,
+      );
+      await reference.putFile(newImagePath);
+      const downloadURL = await reference.getDownloadURL();
+      await onSendMessage('image', downloadURL);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -228,7 +241,7 @@ export default function Index({route}) {
               </TouchableOpacity>
             ) : (
               <>
-                <TouchableOpacity style={{marginRight: 10}}>
+                <TouchableOpacity style={{marginRight: 10}} onPress={sendImage}>
                   <MaterialCommunityIcons
                     name="camera-outline"
                     size={25}

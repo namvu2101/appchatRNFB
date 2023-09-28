@@ -7,23 +7,7 @@ import UIButton from '../components/UIButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Welcome({navigation}) {
-  React.useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem('authToken');
-
-        if (token) {
-          navigation.replace('BottomTabs');
-        } else {
-          // token not found , show the login screen itself
-        }
-      } catch (error) {
-        console.log('error', error);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
+  
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>

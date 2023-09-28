@@ -41,7 +41,7 @@ export default function Message_Items({item, index, onPress}) {
               zIndex: 1000,
             }}></View>
         )}
-        <Avatar.Image source={{uri: item?.avatar}} size={55} />
+        <Avatar.Image source={{uri: item?.image}} size={55} />
       </View>
       <View
         style={{

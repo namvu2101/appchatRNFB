@@ -1,7 +1,8 @@
 import {launchImageLibrary} from 'react-native-image-picker';
 
 
-export const handlePickImage = async (setImage) => {
+export const handlePickImage = () => {
+  return new Promise((resolve, reject) => {
     const options = {
       mediaType: 'photo',
       includeBase64: false,
@@ -11,11 +12,15 @@ export const handlePickImage = async (setImage) => {
     launchImageLibrary(options, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
+        reject('User cancelled image picker');
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
+        reject('ImagePicker Error');
       } else {
         const pathToFile = response.assets[0].uri;
-        setImage(pathToFile);
+        resolve(pathToFile); // Trả về đường dẫn của hình ảnh đã chọn
       }
     });
-  };
+  });
+};
+

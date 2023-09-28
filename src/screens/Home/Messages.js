@@ -134,25 +134,6 @@ const Messages = ({navigation}) => {
             marginLeft: 22,
             marginBottom: 10,
           }}>
-          {/* <View
-            style={{
-              alignItems: 'center',
-              marginRight: 4,
-            }}>
-            <TouchableOpacity
-                style={{
-                  height: 50,
-                  width: 50,
-                  borderRadius: 25,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#e6edff',
-                  marginBottom: 4,
-                }}>
-                <MaterialCommunityIcons name="plus" size={24} color={COLORS.black} />
-              </TouchableOpacity>
-          </View> */}
-
           <FlatList
             showsHorizontalScrollIndicator={false}
             horizontal={true}
@@ -161,7 +142,12 @@ const Messages = ({navigation}) => {
             renderItem={({item}) => (
               <TouchableOpacity
                 onPress={() =>
-                  navigation.navigate('Chats', {item, type: 'Person'})
+                  navigation.navigate('Chats', {
+                    item,
+                    type: item?.type || 'Person',
+                    conversation_id: `${userId}-${item.id}`,
+                    recipientId: item.id,
+                  })
                 }
                 style={{
                   alignItems: 'center',
@@ -186,7 +172,18 @@ const Messages = ({navigation}) => {
           showsVerticalScrollIndicator={false}
           data={message}
           renderItem={({item, index}) => (
-            <Message_Items item={item.data} index={index} onPress={() => {}} />
+            <Message_Items
+              item={item.data}
+              index={index}
+              onPress={() => {
+                navigation.navigate('Chats', {
+                  item: item.data,
+                  type: item?.data?.type,
+                  conversation_id: item.id,
+                  recipientId: item?.data?.recipientId,
+                });
+              }}
+            />
           )}
           keyExtractor={item => item.id.toString()}
         />

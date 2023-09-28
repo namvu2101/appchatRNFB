@@ -89,7 +89,7 @@ export default function Login() {
               autoFocus={true}
               title="Account/Phone number"
               value={account}
-              inputMode='numeric'
+              inputMode="numeric"
               onChangeText={setAccount}
             />
             <UITextInput
@@ -174,7 +174,11 @@ export default function Login() {
             </>
           )}
 
-          <UIButton title="Login" onPress={() => checkValue()} />
+          <UIButton
+            title="Login"
+            disabled={isdisable}
+            onPress={() => checkValue()}
+          />
           <Button
             textColor={COLORS.red}
             onPress={() => navigation.navigate('PhoneNumber')}>

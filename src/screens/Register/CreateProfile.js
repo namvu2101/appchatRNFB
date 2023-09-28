@@ -6,13 +6,15 @@ import {COLORS, SIZES, FONTS} from '../../constants';
 import Icon from 'react-native-vector-icons/Ionicons';
 import UIButton from '../../components/UIButton';
 import UITextInput from '../../components/UITextInput';
-import {Avatar, TextInput} from 'react-native-paper';
+import {Avatar, Button, TextInput} from 'react-native-paper';
 import {handlePickImage} from '../../components/ImagePicker';
 import uuid from 'react-native-uuid';
 import storage from '@react-native-firebase/storage';
 import {db, timestamp} from '../../firebase/firebaseConfig';
 import {validatePassword} from '../../constants/validate';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import UIModals from '../../components/UIModals';
+import ListAvatar from '../../components/ListAvatar';
 
 const CreateProfile = ({navigation, route}) => {
   const phoneNumber = route.params;
@@ -23,19 +25,24 @@ const CreateProfile = ({navigation, route}) => {
   const [secure, setSecure] = useState(true);
   const [submit, setsubmit] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-
+  const [isVisible, setIsVisible] = useState(false);
   const handleRegister = async () => {
     const idImage = uuid.v4();
     const usersCollection = db.collection('users');
     const reference = storage().ref(`users/Avatar/${idImage}`);
-    const avatar = await uploadImage(reference, image);
+    const avatarUrl = image.includes('http')
+      ? image
+      : await uploadImage(reference, image);
     const user = {
       name: userName,
       phone: phoneNumber,
       password: password,
-      image: avatar,
+      image: avatarUrl,
       status: true,
       last_active_at: timestamp,
+      add: '',
+      email: '',
+      date: timestamp,
     };
 
     usersCollection
@@ -70,11 +77,21 @@ const CreateProfile = ({navigation, route}) => {
     await reference.putFile(image);
     return await reference.getDownloadURL();
   };
+  const onClose = () => {
+    setIsVisible(false);
+  };
+  const ChangeAvatar = async () => {
+    const avatar = await handlePickImage();
+    setIsVisible(false);
+    setImage(avatar);
+  };
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer style={{justifyContent: 'center'}}>
         <Pressable
-          onPress={() => handlePickImage(setImage)}
+          onPress={() => {
+            setIsVisible(true);
+          }}
           style={{
             width: 100,
             height: 100,
@@ -139,6 +156,24 @@ const CreateProfile = ({navigation, route}) => {
           style={{marginVertical: 44}}
           onPress={() => CheckValue()}
         />
+        <UIModals isVisible={isVisible} onClose={onClose}>
+          <View
+            style={{
+              height: 300,
+              backgroundColor: 'white',
+              alignItems: 'center',
+              paddingVertical: 10,
+            }}>
+            <Button mode="contained" onPress={ChangeAvatar}>
+              Chọn từ thư viện
+            </Button>
+            <ListAvatar
+              isVisible={isVisible}
+              onClose={onClose}
+              setImage={setImage}
+            />
+          </View>
+        </UIModals>
       </PageContainer>
     </SafeAreaView>
   );

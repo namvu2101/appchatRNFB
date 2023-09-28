@@ -25,6 +25,7 @@ export default function Chat_Message({route}) {
   const [messages, setMessages] = useState([]);
   const item = route.params;
   const {data} = useProfileStore();
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitleAlign: 'left',
