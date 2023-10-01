@@ -16,12 +16,12 @@ import {COLORS, SIZES, images} from '../constants';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {profileStore} from '../store';
+import {conversationStore, profileStore} from '../store';
 
 export default function More() {
   const navigation = useNavigation();
-  const {profile} = profileStore();
-
+  const {profile, setFriends} = profileStore();
+  const {setConversations} = conversationStore();
   const listItem = [
     {
       icon: 'account-outline',
@@ -79,6 +79,8 @@ export default function More() {
           text: 'Ok',
           onPress: () => {
             AsyncStorage.setItem('userId', '');
+            setConversations([])
+            setFriends([])
             navigation.replace('Login');
           },
         },

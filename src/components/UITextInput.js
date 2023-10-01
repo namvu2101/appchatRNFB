@@ -15,13 +15,13 @@ export default function UITextInput(props) {
       autoFocus={props.autoFocus}
       textColor={COLORS.black}
       cursorColor={COLORS.black}
-      activeUnderlineColor={COLORS.black}
-      activeOutlineColor={COLORS.black}
+      activeUnderlineColor={COLORS.secondaryBlack}
       secureTextEntry={props.secure}
       inputMode={props.inputMode}
       placeholder={props.placeholder}
       placeholderTextColor={props.placeholderTextColor}
       right={props.right}
+      onSubmitEditing={props.onSubmit}
     />
   );
 }

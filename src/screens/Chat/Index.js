@@ -26,7 +26,6 @@ export default function Index({route}) {
   const conversation_id = route.params.conversation_id;
   const {profile} = profileStore();
   const {userId} = authStore();
-
   useEffect(() => {
     if (input.length > 0) {
       setSubmit(true);
@@ -62,7 +61,10 @@ export default function Index({route}) {
               style={{backgroundColor: '#fff'}}
             />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('ChatSettings')}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('ChatSettings', (item = recipient))
+            }>
             <Avatar.Icon
               size={40}
               icon="information"
@@ -113,14 +115,13 @@ export default function Index({route}) {
     const formData = {
       timeSend: timestamp,
       senderId: userId,
-      recipientId: recipientId,
       senderImage: profile.image,
       name: profile.name,
       messageType: messageType === 'image' ? 'image' : 'text',
       messageText: messageType === 'image' ? 'send photo' : input,
     };
     if (messageType === 'image') {
-      formData.photo = imageUri;
+      (formData.recipientId = recipientId), (formData.photo = imageUri);
     }
     if (type === 'Person') {
       const conversationIds = [
@@ -168,7 +169,7 @@ export default function Index({route}) {
         type: 'Person',
         last_message: timestamp,
         messageText: input,
-        recipientId: recipientId,
+        recipientId: id === `${userId}-${recipientId}` ? recipientId : userId,
         senderID: id === `${userId}-${recipientId}` ? userId : recipientId,
         name: id === `${userId}-${recipientId}` ? recipient.name : profile.name,
         image:
@@ -193,7 +194,7 @@ export default function Index({route}) {
     try {
       const newImagePath = await handlePickImage();
       const reference = storage().ref(
-        `Coversations/${conversation_id}/Files/${id}`,
+        `Conversations/${conversation_id}/Files/${id}`,
       );
       await reference.putFile(newImagePath);
       const downloadURL = await reference.getDownloadURL();

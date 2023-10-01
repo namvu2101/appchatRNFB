@@ -7,8 +7,10 @@ import {COLORS} from '../constants';
 export default function UIModals(props) {
   return (
     <Modal
+      style={{margin: 0}}
       isVisible={props.isVisible}
       onBackdropPress={props.onClose}
+      onBackButtonPress={props.onClose}
       animationIn={props.animationIn}
       animationOut={props.animationOut}
       animationInTiming={props.InTiming}

@@ -8,17 +8,21 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import {Avatar, TextInput} from 'react-native-paper';
+import {Avatar, Button, TextInput} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Modal_Profile from './Modal_Avatar';
-import uuid from 'react-native-uuid';
 import {SIZES, images, FONTS, COLORS} from '../../constants';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {profileStore} from '../../store';
-import axios from 'axios';
-import { url } from '../../components/configURL';
+import {db, storage} from '../../firebase/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import UIModals from '../../components/UIModals';
+import ListAvatar from '../../components/ListAvatar';
+import {handlePickImage} from '../../components/ImagePicker';
+import uuid from 'react-native-uuid';
+import Loading from '../../components/Loading';
+import DatePicker from 'react-native-date-picker';
 
 export default function UserProfile() {
   const navigation = useNavigation();
@@ -26,9 +30,11 @@ export default function UserProfile() {
   const [isVisible, setisVisible] = React.useState(false);
   const [image, setImage] = useState(profile.image);
   const [type, setType] = useState('');
-  const [dec, setdec] = useState(profile.phone);
-  const [date, setDate] = useState('Ngay sinh');
-
+  const [date, setDate] = useState(new Date());
+  const [newDate, setnewDate] = useState(
+    profile.date.lenght > 0 ? profile.date : 'Thêm ngày sinh',
+  );
+  const [isLoading, setIsLoading] = useState(false);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -43,13 +49,13 @@ export default function UserProfile() {
     },
     {
       name: 'Email Address',
-      value: 'Email',
+      value: profile?.email || 'Thêm email mới',
       editable: false,
       inputMode: 'email',
     },
     {
       name: 'Address',
-      value: 'Address',
+      value: profile?.add || 'Thêm địa chỉ',
       editable: false,
       inputMode: 'text',
     },
@@ -76,15 +82,66 @@ export default function UserProfile() {
     setProfileFields(updatedFields);
   };
   const handleUpdate = async () => {
+    const idImage = uuid.v4();
+    const userId = await AsyncStorage.getItem('userId');
+    const docRef = db.collection('users').doc(userId);
     try {
-      const response = axios.post(`${url}/users/update/${userId}`)
+      setIsLoading(true);
+      const reference = storage().ref(`users/Avatar/${idImage}`);
+      const avatarUrl = image.includes('http')
+        ? image
+        : await uploadImage(reference, image);
+      docRef
+        .update({
+          image: avatarUrl,
+          name: profileFields[0].value,
+          email: profileFields[1].value,
+          add: profileFields[2].value,
+          phone: profileFields[3].value,
+          date: newDate,
+        })
+        .then(() => {
+          setIsLoading(false);
+          Alert.alert('Thông báo', 'Cập nhật thành công');
+        });
     } catch (error) {
-      
+      console.log(error);
     }
   };
   const uploadImage = async (reference, image) => {
     await reference.putFile(image);
     return await reference.getDownloadURL();
+  };
+
+  const onBackButton = () => {
+    if (list.forEach((i, index) => i.value != profileFields[index].value)) {
+      Alert.alert('Thông báo!', 'Bạn có muốn lưu thay đổi ?', [
+        {
+          text: 'Lưu',
+          onPress: () => {
+            handleUpdate();
+            navigation.goBack();
+          },
+        },
+        {
+          text: 'Hủy',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } else {
+      navigation.goBack();
+    }
+  };
+  const ChangeAvatar = async () => {
+    const avatar = await handlePickImage();
+    setisVisible(false);
+    setImage(avatar);
+  };
+
+  const updateDateofBirth = () => {
+    const dateFormat = `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+    setnewDate(dateFormat);
+    onClose();
   };
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -98,23 +155,7 @@ export default function UserProfile() {
             resizeMode="cover"
           />
           <View style={styles.header}>
-            <Pressable
-              onPress={() => {
-                if (list !== profileFields) {
-                  Alert.alert('Message', 'You want save your change ?', [
-                    {
-                      text: 'Save',
-                      onPress: () => handleUpdate(),
-                    },
-                    {
-                      text: 'Cancel',
-                      onPress: () => navigation.goBack(),
-                    },
-                  ]);
-                } else {
-                  navigation.goBack();
-                }
-              }}>
+            <Pressable onPress={onBackButton}>
               <MaterialCommunityIcons
                 name="arrow-left"
                 size={26}
@@ -137,12 +178,8 @@ export default function UserProfile() {
             style={styles.profileSection}>
             <Avatar.Image source={{uri: image}} size={80} />
           </Pressable>
-          <Text style={{...FONTS.h3, color: COLORS.white, textAlign: 'center'}}>
-            {profile.name}
-          </Text>
-          <Text style={{...FONTS.h3, color: COLORS.white, textAlign: 'center'}}>
-            {profile.phone}
-          </Text>
+          <Text style={styles.text}>{profile.name}</Text>
+          <Text style={styles.text}>{profile.email}</Text>
           <View style={styles.profileForm}>
             <ScrollView style={styles.formScroll}>
               {profileFields.map((field, index) => (
@@ -152,7 +189,6 @@ export default function UserProfile() {
                   </Text>
                   <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     <TextInput
-                      autoFocus={field.editable}
                       disabled={!field.editable}
                       value={field.value}
                       mode="outlined"
@@ -184,48 +220,96 @@ export default function UserProfile() {
                   </View>
                 </View>
               ))}
-              <View>
-                <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
-                  Date of Birth
+              <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
+                Date of Birth
+              </Text>
+              <Pressable
+                style={{
+                  height: 44,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+                onPress={() => {
+                  setType('Date_of_birth');
+                  setisVisible(true);
+                }}>
+                <Text
+                  style={{
+                    ...FONTS.h4,
+                    paddingHorizontal: 15,
+                    borderColor: '#000',
+                    height: '100%',
+                    borderWidth: 1,
+                    textAlignVertical: 'center',
+                  }}>
+                  {newDate}
                 </Text>
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <TextInput
-                    value={date}
-                    mode="outlined"
-                    disabled
-                    onChangeText={setDate}
-                    style={{
-                      flex: 1,
-                      backgroundColor: '#FAFAFA',
-                    }}
-                    textColor="#000000"
-                  />
+                <MaterialCommunityIcons
+                  name={'calendar'}
+                  size={30}
+                  color="black"
+                />
+              </Pressable>
 
-                  <Pressable
-                    onPress={() => {
-                      setType('Date_of_birth');
-                      setisVisible(true);
-                    }}>
-                    <MaterialCommunityIcons
-                      name={'pencil-outline'}
-                      size={30}
-                      color="red"
-                    />
-                  </Pressable>
-                </View>
-              </View>
               <View style={styles.mediaShared}>
                 <Text>Media Shared</Text>
               </View>
             </ScrollView>
           </View>
         </View>
-        <Modal_Profile
-          isVisible={isVisible}
-          onClose={onClose}
-          setImage={setImage}
-          type={type}
-        />
+        <Loading isVisible={isLoading} />
+        <UIModals isVisible={isVisible} onClose={onClose}>
+          {type === 'Date_of_birth' ? (
+            <View
+              style={{
+                backgroundColor: '#fff',
+                alignItems: 'center',
+                paddingVertical: 20,
+              }}>
+              <DatePicker
+                textColor="black"
+                mode="date"
+                locale="vn"
+                date={date}
+                onDateChange={setDate}
+                androidVariant="nativeAndroid"
+                onConfirm={date => {
+                  setDate(date);
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  width: '100%',
+                  justifyContent: 'flex-end',
+                }}>
+                <Button textColor="#2C6BED" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button textColor="#2C6BED" onPress={updateDateofBirth}>
+                  Ok
+                </Button>
+              </View>
+            </View>
+          ) : (
+            <View
+              style={{
+                height: 300,
+                backgroundColor: 'white',
+                alignItems: 'center',
+                paddingVertical: 10,
+              }}>
+              <Button mode="contained" onPress={ChangeAvatar}>
+                Chọn từ thư viện
+              </Button>
+              <ListAvatar
+                isVisible={isVisible}
+                onClose={onClose}
+                setImage={setImage}
+              />
+            </View>
+          )}
+        </UIModals>
       </PageContainer>
     </SafeAreaView>
   );
@@ -271,4 +355,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 22,
     justifyContent: 'space-between',
   },
+  text: {...FONTS.h3, color: COLORS.white, textAlign: 'center'},
 });

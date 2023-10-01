@@ -12,10 +12,8 @@ export const handlePickImage = () => {
     launchImageLibrary(options, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
-        reject('User cancelled image picker');
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
-        reject('ImagePicker Error');
       } else {
         const pathToFile = response.assets[0].uri;
         resolve(pathToFile); // Trả về đường dẫn của hình ảnh đã chọn

@@ -88,8 +88,8 @@ const Messages = ({navigation}) => {
             justifyContent: 'space-between',
             alignItems: 'center',
             paddingHorizontal: 22,
-            marginTop: 22,
             width: SIZES.width,
+            marginTop: 10,
           }}>
           <Avatar.Image
             source={{
@@ -97,8 +97,9 @@ const Messages = ({navigation}) => {
                 profile?.image ||
                 'https://th.bing.com/th/id/R.7264dc52a5fed9616a2687dd8b040b05?rik=cOkUXWXWe4k2eQ&pid=ImgRaw&r=0',
             }}
-            size={42}
+            size={44}
           />
+          <Text style={{...FONTS.h3}}>Đoạn Chat</Text>
           <View
             style={{
               flexDirection: 'row',
@@ -112,9 +113,9 @@ const Messages = ({navigation}) => {
                 color={COLORS.secondaryBlack}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => console.log('Add contacts')}>
+            <TouchableOpacity onPress={() => navigation.navigate('AddChat')}>
               <MaterialCommunityIcons
-                name="playlist-check"
+                name="pencil"
                 size={25}
                 color={COLORS.secondaryBlack}
               />

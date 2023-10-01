@@ -29,7 +29,7 @@ export default function Index() {
     };
 
     getData();
-  }, [friendRequests]);
+  }, []);
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
