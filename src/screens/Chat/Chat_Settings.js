@@ -14,20 +14,21 @@ import {Avatar, Button, TextInput} from 'react-native-paper';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {useNavigation} from '@react-navigation/native';
-import {COLORS, FONTS, SIZES} from '../../constants';
+import {COLORS, FONTS, SIZES, images} from '../../constants';
 import {getInitialItems, getGroupItems, getIconItems} from './SettingItems';
 import {handlePickImage} from '../../components/ImagePicker';
 import {db, storage} from '../../firebase/firebaseConfig';
 import UIModals from '../../components/UIModals';
 import uuid from 'react-native-uuid';
-import UITextInput from '../../components/UITextInput';
 import Setting_modals from './Setting_modals';
+import Loading from '../../components/Loading';
 
 export default function ChatSettings({route}) {
   const navigation = useNavigation();
   const item = route.params.item;
   const conversation_id = route.params.id;
   const [isVisible, setIsVisible] = useState(false);
+  const [isLoading, setisLoading] = useState(false);
   const [type, setType] = useState('');
   const [data, setData] = useState(item);
   const listItems = getInitialItems(item.type);
@@ -92,6 +93,20 @@ export default function ChatSettings({route}) {
     setType(action);
     setIsVisible(true);
   };
+
+  const ChangeImage = async doc => {
+    try {
+      setisLoading(true);
+      const id = uuid.v4();
+      const newImage = await handlePickImage();
+      const reference = storage().ref(`Conversations/${doc.id}/Avatar/${id}`);
+      await reference.putFile(newImage);
+      const downloadURL = await reference.getDownloadURL();
+      await doc.update({image: downloadURL}).then(() => setisLoading(false));
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const renderItem = ({item}) => {
     return (
       <TouchableOpacity
@@ -111,7 +126,7 @@ export default function ChatSettings({route}) {
         <View style={{alignItems: 'center'}}>
           <Avatar.Image
             source={{
-              uri: data?.image,
+              uri: data?.image || images.imageLoading,
             }}
             size={88}
           />
@@ -125,9 +140,7 @@ export default function ChatSettings({route}) {
           </Text>
           <View style={styles.iconBox}>
             {listIcon.map(item => (
-              <Pressable
-                onPress={item.onPress}
-                key={item.icon}>
+              <Pressable onPress={item.onPress} key={item.icon}>
                 <Avatar.Icon
                   icon={item.icon}
                   size={40}
@@ -161,22 +174,11 @@ export default function ChatSettings({route}) {
             item={data}
           />
         </UIModals>
+        <Loading isVisible={isLoading} />
       </PageContainer>
     </SafeAreaView>
   );
 }
-const ChangeImage = async doc => {
-  try {
-    const id = uuid.v4();
-    const newImage = await handlePickImage();
-    const reference = storage().ref(`Conversations/${doc.id}/Files/${id}`);
-    await reference.putFile(newImage);
-    const downloadURL = await reference.getDownloadURL();
-    await doc.update({image: downloadURL});
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#000000'},

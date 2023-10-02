@@ -6,7 +6,7 @@ import {
   TextInput,
   FlatList,
 } from 'react-native';
-import React, {useContext, useLayoutEffect, useState} from 'react';
+import React, {useContext, useLayoutEffect, useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {Avatar, Searchbar} from 'react-native-paper';
@@ -18,7 +18,8 @@ import {authStore, conversationStore, profileStore} from '../../store';
 import Message_Items from './Message_Items';
 import {UserType} from '../../../UserContext';
 import {db} from '../../firebase/firebaseConfig';
-import {firebase} from '@react-native-firebase/firestore';
+import UIModals from '../../components/UIModals';
+import {useIsFocused} from '@react-navigation/native';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends} = useContext(UserType);
@@ -26,33 +27,29 @@ const Messages = ({navigation}) => {
   const {profile, friends} = profileStore();
   const {userId} = authStore();
   const {conversations} = conversationStore();
-  const [filteredUsers, setFilteredUsers] = useState(contacts);
+  const [filterMessage, setFilterMessage] = useState([]);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const handleSearch = text => {
-    setSearch(text);
-    const filteredData = contacts.filter(user =>
-      user.userName.toLowerCase().includes(text.toLowerCase()),
-    );
-    setFilteredUsers(filteredData);
-  };
-  useLayoutEffect(() => {
-    const getData = async () => {
-      const promises = friends.map(async id => {
-        const doc = await db.collection('users').doc(id).get();
-        return {
-          id: doc.id,
-          name: doc.data().name,
-          image: doc.data().image,
-          last_active_at: doc.data().last_active_at,
-          phone: doc.data().phone,
-        };
-      });
-      const users = await Promise.all(promises);
-      setUserFriends(users);
-    };
+  const [isVisible, setisVisible] = useState(false);
+  const isFocus = useIsFocused();
 
+  useEffect(() => {
+    if (searchQuery.length == 0) {
+      setFilterMessage(message);
+    } else {
+      const filteredData = message.filter(user =>
+        user.data.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+      setFilterMessage(filteredData);
+    }
+  }, [searchQuery]);
+  useEffect(() => {
+    setSearchQuery('');
+  }, [isFocus]);
+
+  useLayoutEffect(() => {
     getData();
   }, [friends]);
+
   useLayoutEffect(() => {
     if (conversations.length > 0) {
       const unsubscribe = db
@@ -70,6 +67,7 @@ const Messages = ({navigation}) => {
             conversations.includes(conversation.id),
           );
           setMessage(filteredConversations);
+          setFilterMessage(filteredConversations);
         });
 
       return () => unsubscribe();
@@ -77,8 +75,20 @@ const Messages = ({navigation}) => {
       setMessage([]);
     }
   }, [conversations]);
-
-
+  const getData = async () => {
+    const promises = friends.map(async id => {
+      const doc = await db.collection('users').doc(id).get();
+      return {
+        id: doc.id,
+        name: doc.data().name,
+        image: doc.data().image,
+        last_active_at: doc.data().last_active_at,
+        phone: doc.data().phone,
+      };
+    });
+    const users = await Promise.all(promises);
+    setUserFriends(users);
+  };
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
@@ -93,40 +103,21 @@ const Messages = ({navigation}) => {
           }}>
           <Avatar.Image
             source={{
-              uri:
-                profile?.image ||
-                'https://th.bing.com/th/id/R.7264dc52a5fed9616a2687dd8b040b05?rik=cOkUXWXWe4k2eQ&pid=ImgRaw&r=0',
+              uri: profile?.image || images.imageLoading,
             }}
             size={44}
           />
-          <Text style={{...FONTS.h3}}>Đoạn Chat</Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              width: 80,
-            }}>
-            <TouchableOpacity onPress={() => console.log('Add contacts')}>
-              <MaterialCommunityIcons
-                name="message-badge-outline"
-                size={25}
-                color={COLORS.secondaryBlack}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('AddChat')}>
-              <MaterialCommunityIcons
-                name="pencil"
-                size={25}
-                color={COLORS.secondaryBlack}
-              />
-            </TouchableOpacity>
-          </View>
+          <Text style={{...FONTS.h2}}>Đoạn Chat</Text>
+
+          <TouchableOpacity onPress={() => navigation.navigate('AddChat')}>
+            <MaterialCommunityIcons
+              name="pencil"
+              size={25}
+              color={COLORS.secondaryBlack}
+            />
+          </TouchableOpacity>
         </View>
-        <UISearch
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          onPress={() => console.log(searchQuery)}
-        />
+        <UISearch onChangeText={setSearchQuery} value={searchQuery} />
 
         <View
           style={{
@@ -156,7 +147,10 @@ const Messages = ({navigation}) => {
                   width: 66,
                   height: 77,
                 }}>
-                <Avatar.Image source={{uri: item.image}} size={55} />
+                <Avatar.Image
+                  source={{uri: item.image || images.imageLoading}}
+                  size={55}
+                />
                 <Text style={{color: COLORS.black, flex: 1}} numberOfLines={1}>
                   {item.name}
                 </Text>
@@ -169,9 +163,10 @@ const Messages = ({navigation}) => {
             Chưa có tin nhắn
           </Text>
         )}
+
         <FlatList
           showsVerticalScrollIndicator={false}
-          data={message}
+          data={filterMessage}
           renderItem={({item, index}) => (
             <Message_Items
               item={item.data}

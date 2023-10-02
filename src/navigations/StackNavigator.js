@@ -13,6 +13,7 @@ import ChatSettings from '../screens/Chat/Chat_Settings';
 import LoadingScreen from '../screens/Loading';
 import AddContact from '../screens/Contacts/AddContact';
 import AddChat from '../screens/GroupChat/Index';
+import ChangePass from '../screens/User/ChangePass';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   return (
@@ -48,6 +49,7 @@ const StackNavigator = () => {
         <Stack.Screen name="Chats" component={Index} />
         <Stack.Screen name="AddContact" component={AddContact} />
         <Stack.Screen name="AddChat" component={AddChat} />
+        <Stack.Screen name="ChangePass" component={ChangePass} />
       </Stack.Navigator>
     </NavigationContainer>
   );

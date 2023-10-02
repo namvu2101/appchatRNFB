@@ -2,7 +2,7 @@ import {Pressable, View, Alert, Text} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {COLORS, SIZES, FONTS} from '../../constants';
+import {COLORS, SIZES, FONTS, images} from '../../constants';
 import Icon from 'react-native-vector-icons/Ionicons';
 import UIButton from '../../components/UIButton';
 import UITextInput from '../../components/UITextInput';
@@ -20,7 +20,7 @@ const CreateProfile = ({navigation, route}) => {
   const phoneNumber = route.params;
   const [image, setImage] = useState('');
   const [userName, setUserName] = useState('');
-  const [account, setAccount] = useState('');
+  const [email, setemail] = useState('');
   const [password, setPassword] = useState('123456');
   const [secure, setSecure] = useState(true);
   const [submit, setsubmit] = useState(true);
@@ -41,8 +41,9 @@ const CreateProfile = ({navigation, route}) => {
       status: true,
       last_active_at: timestamp,
       add: '',
-      email: '',
+      email: email,
       date: timestamp,
+      isOnline: true,
     };
 
     usersCollection
@@ -55,10 +56,10 @@ const CreateProfile = ({navigation, route}) => {
       .catch(error => console.error('Lỗi khi thêm người dùng:', error));
   };
   useEffect(() => {
-    if (account.length == 0 || userName.length == 0 || password.length == 0) {
+    if (email.length == 0 || userName.length == 0 || password.length == 0) {
       setsubmit(true);
     } else setsubmit(false);
-  }, [account, userName, password]);
+  }, [email, userName, password]);
 
   const CheckValue = () => {
     const validationResult = validatePassword(password);
@@ -101,7 +102,10 @@ const CreateProfile = ({navigation, route}) => {
             justifyContent: 'center',
           }}>
           {image.length != 0 ? (
-            <Avatar.Image source={{uri: image}} size={80} />
+            <Avatar.Image
+              source={{uri: image || images.imageLoading}}
+              size={80}
+            />
           ) : (
             <Icon name="person-circle-outline" size={84} color={COLORS.black} />
           )}
@@ -117,10 +121,10 @@ const CreateProfile = ({navigation, route}) => {
         </Pressable>
 
         <UITextInput
-          title="Tên tài khoản"
-          value={account}
+          title="Nhập email"
+          value={email}
           inputMode="email"
-          onChangeText={setAccount}
+          onChangeText={setemail}
         />
         <UITextInput
           title="Tên của bạn"

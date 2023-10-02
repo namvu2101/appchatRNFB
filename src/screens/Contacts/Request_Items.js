@@ -1,6 +1,6 @@
 import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React, {useLayoutEffect, useState} from 'react';
-import {COLORS, FONTS, SIZES} from '../../constants';
+import {COLORS, FONTS, SIZES, images} from '../../constants';
 import {Avatar, Button} from 'react-native-paper';
 import {authStore, profileStore} from '../../store';
 import {db} from '../../firebase/firebaseConfig';
@@ -91,7 +91,7 @@ export default function Request_Items({item, index}) {
             }
           : null,
       ]}>
-      <Avatar.Image source={{uri: item.image}} size={50} />
+      <Avatar.Image source={{uri: item?.image || images.imageLoading}} size={50} />
       <View>
         <Text
           style={{

@@ -1,7 +1,7 @@
 import {View, Text, Pressable, Image, StyleSheet} from 'react-native';
 import React from 'react';
 import {Avatar} from 'react-native-paper';
-import {COLORS} from '../../constants';
+import {COLORS, images} from '../../constants';
 
 export default function List_Message({item, userId, user}) {
   const [isSelected, setisSelected] = React.useState(false);
@@ -39,15 +39,13 @@ export default function List_Message({item, userId, user}) {
               style={[messageContainerStyle, styles.imageMessageContainer]}>
               <Image
                 source={{
-                  uri:
-                    item?.photo ||
-                    'https://img.idesign.vn/2018/10/23/id-loading-1.gif',
+                  uri: item?.photo || images.imageLoading,
                 }}
                 style={styles.image}
                 resizeMode="contain"
               />
             </Pressable>
-            {isSelected && (
+            {isSelected && item?.timeSend && (
               <Text
                 style={[
                   styles.timestampText,
@@ -55,7 +53,7 @@ export default function List_Message({item, userId, user}) {
                     ? styles.senderTimestampText
                     : styles.receiverTimestampText,
                 ]}>
-                {formatTime(item.timeSend)}
+                {formatTime(item?.timeSend)}
               </Text>
             )}
           </View>
@@ -65,7 +63,10 @@ export default function List_Message({item, userId, user}) {
         <View style={styles.userInfoContainer}>
           <Avatar.Image
             source={{
-              uri: user.type === 'Person' ? user.image : item.senderImage,
+              uri:
+                user.type === 'Person'
+                  ? user.image
+                  : item.senderImage || images.imageLoading,
             }}
             size={20}
           />

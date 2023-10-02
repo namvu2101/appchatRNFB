@@ -106,7 +106,7 @@ export default function Login() {
               }
             />
             <Button textColor={COLORS.red} style={{alignItems: 'flex-end'}}>
-              Forgot Password?
+              Quên mật khẩu ?
             </Button>
             <Text
               style={{
@@ -175,14 +175,14 @@ export default function Login() {
           )}
 
           <UIButton
-            title="Login"
+            title="Đăng nhập"
             disabled={isdisable}
             onPress={() => checkValue()}
           />
           <Button
             textColor={COLORS.red}
-            onPress={() => navigation.navigate('PhoneNumber')}>
-            Dont have account ? Sign Up
+            onPress={() => navigation.navigate('PhoneNumber','signup')}>
+            Bạn chưa có tài khoản ? Đăng ký tại đây
           </Button>
         </View>
       </PageContainer>

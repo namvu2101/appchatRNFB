@@ -4,7 +4,7 @@ import {
   View,
   ScrollView,
   Pressable,
-  Dimensions,
+  TouchableOpacity,
   Alert,
   FlatList,
 } from 'react-native';
@@ -12,64 +12,18 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import React from 'react';
 import {Avatar, Button} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
-import {COLORS, SIZES, images} from '../constants';
+import {COLORS, SIZES, FONTS} from '../../constants';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import PageContainer from '../components/PageContainer';
+import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {conversationStore, profileStore} from '../store';
+import {conversationStore, profileStore} from '../../store';
+import SettingItems from './SettingItems';
 
 export default function More() {
   const navigation = useNavigation();
   const {profile, setFriends} = profileStore();
   const {setConversations} = conversationStore();
-  const listItem = [
-    {
-      icon: 'account-outline',
-      name: 'Account',
-      dec: 'Privacy, security, change number',
-    },
-    {
-      icon: 'chat-processing-outline',
-      name: 'Chat',
-      dec: 'Chat history,theme,wallpapers',
-    },
-    {
-      icon: 'bell-ring-outline',
-      name: 'Notifycations',
-      dec: 'Messages, group and others',
-    },
-    {
-      icon: 'help-circle-outline',
-      name: 'Help',
-      dec: 'Help center,contact us, privacy policy',
-    },
-    {
-      icon: 'arrow-expand',
-      name: 'Storage and data',
-      dec: 'Network usage, stogare usage',
-    },
-    {
-      icon: 'account-multiple-plus-outline',
-      name: 'Invite a friend',
-      dec: 'Add New Your  Friend',
-    },
-    {
-      icon: 'account-multiple-plus',
-      name: 'Invite a friend',
-      dec: 'Add New Your  Friend',
-    },
-    {
-      icon: 'account-multiple-plus',
-      name: 'Invite a friend',
-      dec: 'Add New Your  Friend',
-    },
-    {
-      icon: 'account-multiple-plus',
-      name: 'Invite a friend',
-      dec: 'Add New Your  Friend',
-    },
-  ];
-
+  const listItem = SettingItems();
   const handleLogOut = () => {
     Alert.alert(
       'Thông báo!',
@@ -79,8 +33,8 @@ export default function More() {
           text: 'Ok',
           onPress: () => {
             AsyncStorage.setItem('userId', '');
-            setConversations([])
-            setFriends([])
+            setConversations([]);
+            setFriends([]);
             navigation.replace('Login');
           },
         },
@@ -106,8 +60,8 @@ export default function More() {
             }}>
             <Avatar.Image source={{uri: profile?.image}} size={66} />
             <View style={{width: 180, marginHorizontal: 10}}>
-              <Text style={{color: '#000'}}>{profile.name}</Text>
-              <Text style={{color: '#000'}}>{profile.phone}</Text>
+              <Text style={{...FONTS.h3}}>{profile.name}</Text>
+              <Text style={{...FONTS.h4}}>{profile.phone}</Text>
             </View>
             <MaterialCommunityIcons
               name="qrcode-scan"
@@ -118,20 +72,27 @@ export default function More() {
 
           <ScrollView>
             {listItem.map((i, index) => (
-              <Pressable
+              <TouchableOpacity
                 key={index}
+                onPress={i.onPress}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  width: 300,
-                  marginBottom: 20,
+                  width: SIZES.width * 0.8,
+                  paddingVertical: 10,
+                  borderBottomColor: COLORS.gray,
+                  borderBottomWidth: 1,
                 }}>
                 <Avatar.Icon icon={i.icon} size={50} color={'#FFFFFF'} />
-                <View style={{marginHorizontal: 10}}>
-                  <Text style={{color: '#000'}}>{i.name}</Text>
-                  <Text style={{color: '#000'}}>{i.dec}</Text>
+                <View style={{marginHorizontal: 10, justifyContent: 'center'}}>
+                  <Text style={{...FONTS.h3}}>{i.name}</Text>
+                  {i.dec && (
+                    <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
+                      {i.dec}
+                    </Text>
+                  )}
                 </View>
-              </Pressable>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -140,8 +101,9 @@ export default function More() {
           textColor="#000"
           icon="logout"
           rippleColor={COLORS.white}
+          labelStyle={{...FONTS.h2}}
           onPressIn={handleLogOut}>
-          Log Out
+          Đăng xuất
         </Button>
       </PageContainer>
     </SafeAreaView>

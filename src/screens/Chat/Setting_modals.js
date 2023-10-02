@@ -6,9 +6,11 @@ import {db} from '../../firebase/firebaseConfig';
 import {COLORS, FONTS, SIZES} from '../../constants';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import UISearch from '../../components/UISearch';
+import Loading from '../../components/Loading';
 
 export default function Setting_modals(props) {
   const [newName, setnewName] = useState(props.item.name);
+  const [isLoading, setisLoading] = useState(false)
   const [member, setMember] = useState([]);
   const handleUpdateName = async () => {
     if (newName.length == 0) {
@@ -40,12 +42,12 @@ export default function Setting_modals(props) {
   }, []);
   return (
     <View>
-      {props.type == 'Đổi tên nhóm' ? (
+      {props.type == 'Đổi tên nhóm' || props.type =='Biệt danh' ? (
         <View style={{backgroundColor: '#fff', alignItems: 'center'}}>
           <UITextInput
             autoFocus={true}
             style={{height: 55}}
-            placeholder="Tên nhóm (Bắt buộc)"
+            placeholder="Nhập tên (Bắt buộc)"
             value={newName}
             onChangeText={setnewName}
             onSubmit={() => handleUpdateName()}
@@ -114,6 +116,7 @@ export default function Setting_modals(props) {
           </View>
         )
       )}
+      <Loading isVisible={isLoading} /> 
     </View>
   );
 }

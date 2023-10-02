@@ -9,9 +9,9 @@ export const COLORS = {
   tertiaryWhite: '#fafafa',
   green: '#2CC069',
   black: '#000000',
-  secondaryBlack: '#0F1828',
+  secondaryBlack: '#330033',
   gray: '#CCCCCC',
-  secondaryGray: '#C0C0C0',
+  secondaryGray: '#666666',
   red:'red'
 };
 

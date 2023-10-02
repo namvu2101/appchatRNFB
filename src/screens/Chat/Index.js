@@ -1,11 +1,18 @@
-import {StyleSheet, Text, View, TouchableOpacity, FlatList} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+  Pressable,
+} from 'react-native';
 import React, {useLayoutEffect, useState, useEffect, useContext} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Avatar, TextInput} from 'react-native-paper';
-import {FONTS, SIZES, images} from '../../constants';
+import {COLORS, FONTS, SIZES, images} from '../../constants';
 import UITextInput from '../../components/UITextInput';
 import List_Message from './List_Message';
 import {db, storage, timestamp} from '../../firebase/firebaseConfig';
@@ -13,19 +20,23 @@ import {authStore, profileStore} from '../../store';
 import {firebase} from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import {handlePickImage} from '../../components/ImagePicker';
+import Loading from '../../components/Loading';
 
 export default function Index({route}) {
   const navigation = useNavigation();
   const [input, setInput] = useState('');
   const [conversation_exists, setConversation_exists] = useState(false);
+  const [isLayoutEffectDone, setIsLayoutEffectDone] = useState(false);
   const [submit, setSubmit] = useState(false);
   const [messages, setMessages] = useState([]);
   const recipient = route.params.item;
   const recipientId = route.params.recipientId;
   const type = route.params.type;
   const conversation_id = route.params.conversation_id;
+  const [conversationData, setConversationData] = useState();
   const {profile} = profileStore();
   const {userId} = authStore();
+  const isFocus = useIsFocused()
   useEffect(() => {
     if (input.length > 0) {
       setSubmit(true);
@@ -35,10 +46,21 @@ export default function Index({route}) {
   }, [input]);
 
   useLayoutEffect(() => {
+    fetchConversationData();
     setOptionNavigator();
     fetchData();
     checkConversation_exists();
-  }, []);
+    setIsLayoutEffectDone(true);
+  }, [isFocus]);
+  const fetchConversationData = () => {
+    db.collection('Conversations')
+      .doc(conversation_id)
+      .onSnapshot(query => {
+        if (query.exists) {
+          setConversationData(query.data());
+        }
+      });
+  };
   const checkConversation_exists = () => {
     db.collection('Conversations')
       .doc(conversation_id)
@@ -54,47 +76,7 @@ export default function Index({route}) {
   };
   const setOptionNavigator = () => {
     navigation.setOptions({
-      headerShadowVisible: true,
-      headerTitleAlign: 'left',
-      headerTitle: () => (
-        <View style={styles.header}>
-          <Avatar.Image size={49} source={{uri: recipient?.image}} />
-          <Text numberOfLines={1} style={{...FONTS.h3, marginHorizontal: 10}}>
-            {recipient.name}
-          </Text>
-        </View>
-      ),
-      headerRight: () => (
-        <View style={{flexDirection: 'row', marginRight: -20}}>
-          <TouchableOpacity onPress={() => alert('video call')}>
-            <Avatar.Icon
-              size={40}
-              icon="video"
-              style={{backgroundColor: '#fff'}}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => alert('call')}>
-            <Avatar.Icon
-              size={40}
-              icon="phone"
-              style={{backgroundColor: '#fff'}}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('ChatSettings', {
-                item: recipient,
-                id: conversation_id,
-              })
-            }>
-            <Avatar.Icon
-              size={40}
-              icon="information"
-              style={{backgroundColor: '#fff'}}
-            />
-          </TouchableOpacity>
-        </View>
-      ),
+      headerShown: false,
     });
   };
   const fetchData = () => {
@@ -216,7 +198,6 @@ export default function Index({route}) {
   };
   const onViewSend = (messageType, imageUri) => {
     const newMessage = {
-      timeSend: new Date(),
       senderId: userId,
       senderImage: profile.image,
       name: profile.name,
@@ -235,10 +216,63 @@ export default function Index({route}) {
     copymessage.unshift(message);
     setMessages(copymessage);
   };
+  const list_icon = [
+    {
+      icon: 'video',
+      onPress: () => {},
+    },
+    {
+      icon: 'phone',
+      onPress: () => {},
+    },
+    {
+      icon: 'information',
+      onPress: () => {
+        navigation.navigate('ChatSettings', {
+          item: recipient,
+          id: conversation_id,
+        });
+      },
+    },
+  ];
 
-  return (
+  return !isLayoutEffectDone ? (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={{marginRight: 10}}>
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={25}
+              color={'#000E08'}
+            />
+          </Pressable>
+
+          <Avatar.Image
+            size={49}
+            source={{uri: conversationData?.image || images.imageLoading}}
+          />
+          <Text
+            numberOfLines={1}
+            style={{
+              ...FONTS.h3,
+              width: SIZES.width * 0.33,
+              textAlign: 'center',
+            }}>
+            {conversationData?.name}
+          </Text>
+          {list_icon.map(i => (
+            <TouchableOpacity onPress={i.onPress} key={i.icon}>
+              <Avatar.Icon
+                size={40}
+                icon={i.icon}
+                style={{backgroundColor: '#fff'}}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
         <FlatList
           inverted
           showsVerticalScrollIndicator={false}
@@ -294,14 +328,21 @@ export default function Index({route}) {
         </View>
       </PageContainer>
     </SafeAreaView>
+  ) : (
+    <Loading />
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    marginLeft: -20,
     flexDirection: 'row',
     alignItems: 'center',
+    height: 55,
+    width: SIZES.width,
+    borderBottomColor: COLORS.secondaryGray,
+    borderBottomWidth: 1,
+    marginVertical: 5,
+    paddingHorizontal: 22,
   },
   _input_box: {
     height: 80,

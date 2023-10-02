@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Image,
+  Keyboard,
 } from 'react-native';
 import {Avatar, Button, TextInput} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
@@ -114,13 +115,20 @@ export default function UserProfile() {
   };
 
   const onBackButton = () => {
-    if (list.forEach((i, index) => i.value != profileFields[index].value)) {
+    if (
+      list[0].value != profileFields[0].value ||
+      list[1].value != profileFields[1].value ||
+      list[2].value != profileFields[2].value ||
+      list[3].value != profileFields[3].value ||
+      profile.image != image ||
+      profile.date != newDate
+    ) {
       Alert.alert('Thông báo!', 'Bạn có muốn lưu thay đổi ?', [
         {
           text: 'Lưu',
-          onPress: () => {
-            handleUpdate();
-            navigation.goBack();
+          onPress: async() => {
+           await handleUpdate();
+            
           },
         },
         {
@@ -139,7 +147,9 @@ export default function UserProfile() {
   };
 
   const updateDateofBirth = () => {
-    const dateFormat = `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+    const dateFormat = `${date.getDate()}/${
+      date.getMonth() + 1
+    }/${date.getFullYear()}`;
     setnewDate(dateFormat);
     onClose();
   };
@@ -176,7 +186,10 @@ export default function UserProfile() {
               setisVisible(true);
             }}
             style={styles.profileSection}>
-            <Avatar.Image source={{uri: image}} size={80} />
+            <Avatar.Image
+              source={{uri: image || images.imageLoading}}
+              size={80}
+            />
           </Pressable>
           <Text style={styles.text}>{profile.name}</Text>
           <Text style={styles.text}>{profile.email}</Text>

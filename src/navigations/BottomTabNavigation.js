@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Messages from '../screens/Home/Messages';
 import Contacts from '../screens/Contacts/Contacts';
-import More from '../screens/More';
+import More from '../screens/Setting/More';
 import Index from '../screens/FriendRequest/Index';
 
 const Tab = createBottomTabNavigator();

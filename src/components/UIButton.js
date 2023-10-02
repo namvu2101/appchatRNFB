@@ -5,7 +5,7 @@ import {COLORS, FONTS, SIZES} from '../constants';
 
 const UIButton = props => {
   const enabledBgColor = props.color || COLORS.primary;
-  const disabledBgColor = COLORS.secondaryGray;
+  const disabledBgColor = COLORS.gray;
   const bgColor = props.disabled ? disabledBgColor : enabledBgColor;
 
   return (

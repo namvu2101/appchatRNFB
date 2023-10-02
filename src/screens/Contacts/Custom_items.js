@@ -1,6 +1,6 @@
 import {StyleSheet, Text, View, TouchableOpacity, Image} from 'react-native';
 import React from 'react';
-import {COLORS, FONTS, SIZES} from '../../constants';
+import {COLORS, FONTS, SIZES, images} from '../../constants';
 import {useNavigation} from '@react-navigation/native';
 
 export default function Custom_items({item, index}) {
@@ -56,7 +56,7 @@ export default function Custom_items({item, index}) {
         )}
 
         <Image
-          source={{uri: item.image}}
+          source={{uri: item?.image || images.imageLoading}}
           resizeMode="contain"
           style={{
             height: 50,

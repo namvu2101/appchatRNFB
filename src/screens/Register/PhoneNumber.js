@@ -19,10 +19,10 @@ import {Button} from 'react-native-paper';
 import PageContainer from '../../components/PageContainer';
 import UIModals from '../../components/UIModals';
 import {flagcode} from '../../constants/flagCode';
-import {db} from '../../firebase/firebaseConfig';
+import {auth, db} from '../../firebase/firebaseConfig';
 import {validatePhoneNumber} from '../../constants/validate';
 
-export default function PhoneNumber({navigation}) {
+export default function PhoneNumber({navigation, route}) {
   const [areas, setAreas] = useState([]);
   const [selectedArea, setSelectedArea] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -32,7 +32,8 @@ export default function PhoneNumber({navigation}) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isdisable, setIsdisable] = useState(true);
-
+  const action = route.params;
+  console.log(action);
   useLayoutEffect(() => {
     let areaData = flagcode.map(item => {
       return {
@@ -138,16 +139,16 @@ export default function PhoneNumber({navigation}) {
     setVerificationCode('');
   };
   const handleSend = async () => {
-    navigation.replace('CreateProfile', phoneNumber);
-    // const phone = selectedArea.callingCode + phoneNumber;
-    // const confirm = await auth()
-    //   .verifyPhoneNumber(phone)
-    //   .then(verificationId => {
-    //     console.log('Mã xác thực đã được gửi đi.');
-    //   })
-    //   .catch(e => console.log(e));
-    // setConfirmation(confirm);
-    // setVisible(true);
+    // navigation.replace('CreateProfile', phoneNumber);
+    const phone = selectedArea.callingCode + phoneNumber;
+    const confirm = await auth()
+      .verifyPhoneNumber(phone)
+      .then(verificationId => {
+        console.log('Mã xác thực đã được gửi đi.');
+      })
+      .catch(e => console.log(e));
+    setConfirmation(confirm);
+    setVisible(true);
   };
   const confirmCode = async () => {
     try {
@@ -175,7 +176,7 @@ export default function PhoneNumber({navigation}) {
               color: COLORS.black,
               textAlign: 'center',
             }}>
-            Enter Your Phone Number
+            Nhập SĐT đăng ký
           </Text>
           <Text
             style={{
@@ -184,7 +185,7 @@ export default function PhoneNumber({navigation}) {
               textAlign: 'center',
               marginVertical: 44,
             }}>
-            Please confirm your country code and enter your phone number
+            Hãy chọn mã quốc gia và nhập SĐT của bạn vào bên dưới
           </Text>
 
           <View
@@ -279,7 +280,14 @@ export default function PhoneNumber({navigation}) {
             disabled={isdisable}
             title="Lấy mã"
             onPress={() => {
-              checkPhonenumber();
+              switch (action) {
+                case 'changepass':
+                  handleSend();
+                  break;
+                default:
+                  checkPhonenumber();
+                  break;
+              }
             }}
           />
         </View>

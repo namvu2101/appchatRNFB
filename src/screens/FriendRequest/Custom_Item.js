@@ -1,6 +1,6 @@
 import {Pressable, StyleSheet, Text, View, Image} from 'react-native';
 import React, {useContext} from 'react';
-import {COLORS, FONTS, SIZES} from '../../constants';
+import {COLORS, FONTS, SIZES, images} from '../../constants';
 import {Avatar, Button} from 'react-native-paper';
 import {db} from '../../firebase/firebaseConfig';
 import {firebase} from '@react-native-firebase/firestore';
@@ -64,7 +64,7 @@ export default function Custom_Item({item, data, setData}) {
         justifyContent: 'space-evenly',
         marginVertical: 10,
       }}>
-      <Avatar.Image source={{uri: item?.image}} size={55} />
+      <Avatar.Image source={{uri: item?.image || images.imageLoading}} size={55} />
       <View style={{width: 100, alignItems: 'center'}}>
         <Text style={{...FONTS.h4, color: COLORS.black}} numberOfLines={1}>
           {item?.name}

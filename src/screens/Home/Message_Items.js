@@ -31,9 +31,8 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
           `${chatmessages?.[0].name} : ${chatmessages?.[0]?.messageText}`,
         );
       }
-    }
-    else{
-      setMessageText(`Hãy gửi lời chào đến ${item.name}`)
+    } else {
+      setMessageText(`Hãy gửi lời chào đến ${item.name}`);
     }
   }, [chatmessages]);
   return (
@@ -73,7 +72,14 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
               zIndex: 1000,
             }}></View>
         )}
-        <Avatar.Image source={{uri: item?.image}} size={55} />
+        <Avatar.Image
+          source={{
+            uri:
+              item?.image ||
+              images.imageLoading
+          }}
+          size={55}
+        />
       </View>
       <View
         style={{

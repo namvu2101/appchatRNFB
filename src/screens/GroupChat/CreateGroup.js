@@ -6,7 +6,7 @@ import {db, storage} from '../../firebase/firebaseConfig';
 import firestore, {firebase} from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {COLORS, FONTS, SIZES} from '../../constants';
+import {COLORS, FONTS, SIZES, images} from '../../constants';
 import UISearch from '../../components/UISearch';
 import UIModals from '../../components/UIModals';
 import UITextInput from '../../components/UITextInput';
@@ -110,7 +110,7 @@ export default function CreateGroup({onClose, friends}) {
   const renderItem = ({item}) => {
     return (
       <View style={styles.memberItem}>
-        <Avatar.Image source={{uri: item.image}} size={44} />
+        <Avatar.Image source={{uri: item.image || images.imageLoading}} size={44} />
         <View style={{marginHorizontal: 10}}>
           <Text style={{...FONTS.h3, textAlign: 'left'}}>{item.name}</Text>
         </View>
@@ -139,7 +139,7 @@ export default function CreateGroup({onClose, friends}) {
                 marginHorizontal: 5,
                 alignItems: 'center',
               }}>
-              <Avatar.Image source={{uri: item.image}} size={44} />
+              <Avatar.Image source={{uri: item.image || images.imageLoading}} size={44} />
               <Text
                 style={{...FONTS.h4, textAlign: 'center', width: 55}}
                 numberOfLines={1}>
