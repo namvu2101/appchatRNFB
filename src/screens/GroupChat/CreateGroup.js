@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {handlePickImage} from '../../components/ImagePicker';
 import {authStore} from '../../store';
 import uuid from 'react-native-uuid';
+import Loading from '../../components/Loading';
 
 export default function CreateGroup({onClose, friends}) {
   const navigation = useNavigation();
@@ -22,6 +23,7 @@ export default function CreateGroup({onClose, friends}) {
   const [input, setInput] = useState('');
   const [image, setImage] = useState('');
   const [submit, setSubmit] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const {userId} = authStore();
   const handleCreate = async input => {
     const idImage = uuid.v4();
@@ -33,10 +35,9 @@ export default function CreateGroup({onClose, friends}) {
     } else {
       const member_id = member.map(i => i.id);
       try {
+        setIsLoading(true);
         member_id.push(userId);
-        const reference = storage().ref(
-          `Conversations/avatar/${idImage}`,
-        );
+        const reference = storage().ref(`Conversations/avatar/${idImage}`);
         await reference.putFile(image);
         const avatar = await reference.getDownloadURL();
         await docRef
@@ -52,6 +53,7 @@ export default function CreateGroup({onClose, friends}) {
           })
           .then(doc => {
             addConversation(member_id, doc.id);
+            setIsLoading(false);
             Alert.alert('Thông báo !', 'Tạo nhóm thành công', [
               {
                 text: 'OK',
@@ -235,6 +237,7 @@ export default function CreateGroup({onClose, friends}) {
           </View>
         </View>
       </UIModals>
+      <Loading isVisible={isLoading} />
     </View>
   );
 }

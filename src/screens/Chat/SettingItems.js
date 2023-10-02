@@ -45,7 +45,7 @@ export function getInitialItems(type) {
   return items;
 }
 
-export function getIconItems(type, handleIconClick) {
+export function getIconItems(type) {
   const [isNotify, setIsNotify] = useState(true);
   return [
     {

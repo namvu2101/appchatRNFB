@@ -57,7 +57,7 @@ const Messages = ({navigation}) => {
     if (conversations.length > 0) {
       const unsubscribe = db
         .collection('Conversations')
-        .where(firebase.firestore.FieldPath.documentId(), 'in', conversations)
+        .orderBy('last_message', 'desc')
         .onSnapshot(snapshot => {
           const res = [];
           snapshot.forEach(doc => {
@@ -66,12 +66,10 @@ const Messages = ({navigation}) => {
               data: doc.data(),
             });
           });
-
-          res.sort(
-            (a, b) => (b.data.last_message || 0) - (a.data.last_message || 0),
+          const filteredConversations = res.filter(conversation =>
+            conversations.includes(conversation.id),
           );
-
-          setMessage(res);
+          setMessage(filteredConversations);
         });
 
       return () => unsubscribe();
@@ -79,6 +77,8 @@ const Messages = ({navigation}) => {
       setMessage([]);
     }
   }, [conversations]);
+
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
@@ -175,6 +175,7 @@ const Messages = ({navigation}) => {
           renderItem={({item, index}) => (
             <Message_Items
               item={item.data}
+              conversation_id={item.id}
               index={index}
               onPress={() => {
                 navigation.navigate('Chats', {

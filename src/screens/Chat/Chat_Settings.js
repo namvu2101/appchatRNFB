@@ -126,7 +126,7 @@ export default function ChatSettings({route}) {
           <View style={styles.iconBox}>
             {listIcon.map(item => (
               <Pressable
-                onPress={() => handleIconClick(item.title)}
+                onPress={item.onPress}
                 key={item.icon}>
                 <Avatar.Icon
                   icon={item.icon}

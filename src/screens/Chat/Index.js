@@ -33,7 +33,26 @@ export default function Index({route}) {
       setSubmit(false);
     }
   }, [input]);
+
   useLayoutEffect(() => {
+    setOptionNavigator();
+    fetchData();
+    checkConversation_exists();
+  }, []);
+  const checkConversation_exists = () => {
+    db.collection('Conversations')
+      .doc(conversation_id)
+      .get()
+      .then(doc => {
+        setConversation_exists(doc.exists);
+        if (doc.exists && doc.data().image != recipient.image) {
+          db.collection('Conversations').doc(conversation_id).update({
+            image: recipient.image,
+          });
+        }
+      });
+  };
+  const setOptionNavigator = () => {
     navigation.setOptions({
       headerShadowVisible: true,
       headerTitleAlign: 'left',
@@ -77,21 +96,8 @@ export default function Index({route}) {
         </View>
       ),
     });
-  }, [route]);
-  useEffect(() => {
-    db.collection('Conversations')
-      .doc(conversation_id)
-      .get()
-      .then(doc => {
-        setConversation_exists(doc.exists);
-        if (doc.exists && doc.data().image != recipient.image) {
-          db.collection('Conversations').doc(conversation_id).update({
-            image: recipient.image,
-          });
-        }
-      });
-  }, []);
-  useLayoutEffect(() => {
+  };
+  const fetchData = () => {
     const unsubscribe = db
       .collection('Conversations')
       .doc(conversation_id)
@@ -111,10 +117,11 @@ export default function Index({route}) {
       });
 
     return () => unsubscribe();
-  }, []);
+  };
 
   const onSendMessage = async (messageType, imageUri) => {
     setInput('');
+    onViewSend(messageType);
     const formData = {
       timeSend: timestamp,
       senderId: userId,
@@ -124,54 +131,44 @@ export default function Index({route}) {
       messageText: messageType === 'image' ? 'send photo' : input,
     };
     if (messageType === 'image') {
-      (formData.recipientId = recipientId), (formData.photo = imageUri);
+      formData.photo = imageUri;
     }
     if (type === 'Person') {
-      const conversationIds = [
-        `${userId}-${recipientId}`,
-        `${recipientId}-${userId}`,
-      ];
-      conversationIds.forEach(conversationId => {
-        updateUserConversation(conversationId);
-        sendPerson(conversationId, formData);
-        if (conversation_exists) {
-          db.collection('Conversations')
-            .doc(conversationId)
-            .update({
-              last_message: timestamp,
-              messageText: messageType === 'image' ? 'send photo' : input,
-            });
-        } else {
-          updateConversation(conversationId);
-        }
-      });
+      formData.recipientId = recipientId;
+      sendPersonMessages(formData);
     } else {
-      const collectionRef = db
-        .collection('Conversations')
-        .doc(conversation_id)
-        .collection('messages');
-      await collectionRef.add(formData);
-      await db
-        .collection('Conversations')
-        .doc(conversation_id)
-        .update({
-          last_message: timestamp,
-          messageText: messageType === 'image' ? 'send photo' : input,
-        });
+      sendGroup(formData);
     }
+  };
+  const sendPersonMessages = formData => {
+    const conversationIds = [
+      `${userId}-${recipientId}`,
+      `${recipientId}-${userId}`,
+    ];
+
+    conversationIds.forEach(conversationId => {
+      updateUserConversation(conversationId);
+      sendPerson(conversationId, formData);
+
+      if (conversation_exists) {
+        db.collection('Conversations').doc(conversationId).update({
+          last_message: timestamp,
+        });
+      } else {
+        createConversation(conversationId);
+      }
+    });
   };
 
   const sendPerson = (id, data) => {
     db.collection('Conversations').doc(id).collection('messages').add(data);
   };
-
-  const updateConversation = id => {
+  const createConversation = id => {
     db.collection('Conversations')
       .doc(id)
       .set({
         type: 'Person',
         last_message: timestamp,
-        messageText: input,
         recipientId: id === `${userId}-${recipientId}` ? recipientId : userId,
         senderID: id === `${userId}-${recipientId}` ? userId : recipientId,
         name: id === `${userId}-${recipientId}` ? recipient.name : profile.name,
@@ -180,6 +177,16 @@ export default function Index({route}) {
       });
   };
 
+  const sendGroup = async formData => {
+    const collectionRef = db
+      .collection('Conversations')
+      .doc(conversation_id)
+      .collection('messages');
+    await collectionRef.add(formData);
+    await db.collection('Conversations').doc(conversation_id).update({
+      last_message: timestamp,
+    });
+  };
   const updateUserConversation = id => {
     const user = id === `${userId}-${recipientId}` ? userId : recipientId;
     db.collection('conversations')
@@ -196,6 +203,7 @@ export default function Index({route}) {
     const id = uuid.v4();
     try {
       const newImagePath = await handlePickImage();
+      onViewSend('image', newImagePath);
       const reference = storage().ref(
         `Conversations/${conversation_id}/Files/${id}`,
       );
@@ -203,8 +211,29 @@ export default function Index({route}) {
       const downloadURL = await reference.getDownloadURL();
       await onSendMessage('image', downloadURL);
     } catch (error) {
-      console.log(error);
+      console.log('error', error);
     }
+  };
+  const onViewSend = (messageType, imageUri) => {
+    const newMessage = {
+      timeSend: new Date(),
+      senderId: userId,
+      senderImage: profile.image,
+      name: profile.name,
+      messageType: messageType === 'image' ? 'image' : 'text',
+      messageText: messageType === 'image' ? 'send photo' : input,
+    };
+    if (messageType === 'image') {
+      newMessage.photo = imageUri;
+    }
+    const message = {
+      id: `documentSnapshot.id`,
+      data: newMessage,
+    };
+
+    const copymessage = [...messages];
+    copymessage.unshift(message);
+    setMessages(copymessage);
   };
 
   return (

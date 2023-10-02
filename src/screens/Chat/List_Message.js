@@ -1,13 +1,14 @@
-import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
+import {View, Text, Pressable, Image, StyleSheet} from 'react-native';
 import React from 'react';
-import { Avatar } from 'react-native-paper';
+import {Avatar} from 'react-native-paper';
+import {COLORS} from '../../constants';
 
-export default function List_Message({ item, userId, user }) {
+export default function List_Message({item, userId, user}) {
   const [isSelected, setisSelected] = React.useState(false);
 
   const formatTime = time => {
     const jsDate = time.toDate();
-    const options = { hour: 'numeric', minute: 'numeric' };
+    const options = {hour: 'numeric', minute: 'numeric'};
     return new Date(jsDate).toLocaleString('en-US', options);
   };
 
@@ -21,8 +22,7 @@ export default function List_Message({ item, userId, user }) {
       {item.messageType === 'text' ? (
         <Pressable
           onPress={() => setisSelected(!isSelected)}
-          style={[styles.messageContainer, messageContainerStyle]}
-        >
+          style={[styles.messageContainer, messageContainerStyle]}>
           <Text style={styles.messageText}>{item?.messageText}</Text>
 
           {isSelected && (
@@ -33,30 +33,32 @@ export default function List_Message({ item, userId, user }) {
         </Pressable>
       ) : (
         item.messageType === 'image' && (
-          <Pressable
-            onLongPress={() => setisSelected(!isSelected)}
-            style={[messageContainerStyle, styles.imageMessageContainer]}
-          >
-            <View>
+          <View>
+            <Pressable
+              onLongPress={() => setisSelected(!isSelected)}
+              style={[messageContainerStyle, styles.imageMessageContainer]}>
               <Image
-                source={{ uri: item?.photo }}
+                source={{
+                  uri:
+                    item?.photo ||
+                    'https://img.idesign.vn/2018/10/23/id-loading-1.gif',
+                }}
                 style={styles.image}
                 resizeMode="contain"
               />
-              {isSelected && (
-                <Text
-                  style={[
-                    styles.timestampText,
-                    item?.senderId === userId
-                      ? styles.senderTimestampText
-                      : styles.receiverTimestampText,
-                  ]}
-                >
-                  {formatTime(item.timeSend)}
-                </Text>
-              )}
-            </View>
-          </Pressable>
+            </Pressable>
+            {isSelected && (
+              <Text
+                style={[
+                  styles.timestampText,
+                  item?.senderId === userId
+                    ? styles.senderTimestampText
+                    : styles.receiverTimestampText,
+                ]}>
+                {formatTime(item.timeSend)}
+              </Text>
+            )}
+          </View>
         )
       )}
       {item?.senderId !== userId && (
@@ -92,6 +94,9 @@ const styles = StyleSheet.create({
   imageMessageContainer: {
     marginVertical: 10,
     backgroundColor: '#FFFFFF',
+    borderColor: COLORS.secondaryGray,
+    borderWidth: 1,
+    borderRadius: 10,
   },
   messageText: {
     fontSize: 15,
@@ -100,7 +105,6 @@ const styles = StyleSheet.create({
   timestampText: {
     fontSize: 9,
     color: '#000',
-    marginTop: 5,
   },
   senderTimestampText: {
     textAlign: 'right',
@@ -111,7 +115,7 @@ const styles = StyleSheet.create({
   image: {
     width: 150,
     height: 300,
-    borderRadius: 7,
+    borderRadius: 10,
   },
   userInfoContainer: {
     flexDirection: 'row',
