@@ -63,7 +63,10 @@ export default function Index({route}) {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('ChatSettings', (item = recipient))
+              navigation.navigate('ChatSettings', {
+                item: recipient,
+                id: conversation_id,
+              })
             }>
             <Avatar.Icon
               size={40}

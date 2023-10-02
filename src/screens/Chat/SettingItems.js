@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 export function getInitialItems(type) {
   const items = [
     {icon: 'pencil', color: '#000', title: 'Background', onPress: () => {}},
-    {title: 'Biệt danh', onPress: () => {}},
+
     {
       icon: 'emoticon-cool-outline',
       color: '#000',
@@ -38,6 +38,8 @@ export function getInitialItems(type) {
     ];
 
     return groupItems.concat(items);
+  } else {
+    items.unshift({title: 'Biệt danh', onPress: () => {}});
   }
 
   return items;
