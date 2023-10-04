@@ -22,15 +22,14 @@ export function getInitialItems(type) {
       title: 'Files',
       onPress: () => {},
     },
-    {
-      icon: 'eye-off',
-      color: '#000',
-      title: 'Xóa đoạn chat',
-      onPress: () => {},
-    },
   ];
 
   if (type === 'Group') {
+    items.push({
+      icon: 'delete-forever-outline',
+      color: '#000',
+      title: 'Rời nhóm',
+    });
     const groupItems = [
       {title: 'Đổi tên nhóm', onPress: () => {}},
       {title: 'Thành viên', onPress: () => {}},
@@ -40,6 +39,13 @@ export function getInitialItems(type) {
     return groupItems.concat(items);
   } else {
     items.unshift({title: 'Biệt danh', onPress: () => {}});
+    items.push(
+      {
+        icon: 'delete-forever-outline',
+        color: '#000',
+        title: 'Xóa đoạn chat',
+      },
+    );
   }
 
   return items;

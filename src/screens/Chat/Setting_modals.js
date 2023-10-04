@@ -7,11 +7,11 @@ import {COLORS, FONTS, SIZES} from '../../constants';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import UISearch from '../../components/UISearch';
 import Loading from '../../components/Loading';
+import ViewMember from './viewMember';
 
 export default function Setting_modals(props) {
   const [newName, setnewName] = useState(props.item.name);
-  const [isLoading, setisLoading] = useState(false)
-  const [member, setMember] = useState([]);
+  const [isLoading, setisLoading] = useState(false);
   const handleUpdateName = async () => {
     if (newName.length == 0) {
       console.error('khong dc de trong');
@@ -20,29 +20,9 @@ export default function Setting_modals(props) {
       props.onClose();
     }
   };
-  useLayoutEffect(() => {
-    if (props.type == 'Thành viên') {
-      props.item.member_id.forEach(id => {
-        db.collection('users')
-          .doc(id)
-          .get()
-          .then(doc => {
-            const user = {
-              id: id,
-              name: doc.data().name,
-              image: doc.data().image,
-            };
-            member.push(user);
-          });
-      });
-    }
-    else if(props.type == 'Files'){
-        
-    }
-  }, []);
   return (
     <View>
-      {props.type == 'Đổi tên nhóm' || props.type =='Biệt danh' ? (
+      {props.type == 'Đổi tên nhóm' || props.type == 'Biệt danh' ? (
         <View style={{backgroundColor: '#fff', alignItems: 'center'}}>
           <UITextInput
             autoFocus={true}
@@ -68,47 +48,11 @@ export default function Setting_modals(props) {
           </View>
         </View>
       ) : props.type == 'Thành viên' ? (
-        <View style={{backgroundColor: COLORS.white,height:SIZES.height}}>
-             <View
-        style={{
-          flexDirection: 'row',
-          height: 50,
-          alignItems: 'center',
-          marginHorizontal:22
-        }}>
-        <Pressable onPress={props.onClose}>
-          <MaterialCommunityIcons name="arrow-left" size={25} color="#000" />
-        </Pressable>
-
-        <Text style={{...FONTS.h2}}>Thành viên</Text>
-        {/* <Pressable disabled={!submit} onPress={() => setIsVisible(true)}>
-          <Text
-            style={{
-              ...FONTS.h3,
-              color: submit ? COLORS.secondaryBlack : COLORS.secondaryGray,
-            }}>
-            Tiếp
-          </Text>
-        </Pressable> */}
-      </View>
-      <UISearch style={{marginHorizontal: 22}} />
-          <FlatList
-            data={member}
-            renderItem={({item}) => (
-              <Pressable
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginHorizontal: 22,
-                  height: 50,
-                  marginVertical:5
-                }}>
-                <Avatar.Image source={{uri: item.image}} size={50} />
-                <Text style={{...FONTS.h3,marginLeft:20}}>{item.name}</Text>
-              </Pressable>
-            )}
-          />
-        </View>
+        <ViewMember
+          onClose={props.onClose}
+          member_id={props.item.member_id}
+          create_id={props.item.create_id}
+        />
       ) : (
         props.type == 'Files' && (
           <View style={{height: 500, backgroundColor: '#fff'}}>
@@ -116,7 +60,7 @@ export default function Setting_modals(props) {
           </View>
         )
       )}
-      <Loading isVisible={isLoading} /> 
+      <Loading isVisible={isLoading} />
     </View>
   );
 }

@@ -42,7 +42,7 @@ export default function Index() {
             marginTop: 22,
             width: SIZES.width,
           }}>
-          <Text style={{...FONTS.h2, color: COLORS.black}}>Request</Text>
+          <Text style={{...FONTS.h2, color: COLORS.black}}>Lời mời kết bạn</Text>
           <TouchableOpacity onPress={() => console.log('Add contacts')}>
             <AntDesign name="plus" size={25} color={COLORS.secondaryBlack} />
           </TouchableOpacity>

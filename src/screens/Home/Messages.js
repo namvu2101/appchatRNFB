@@ -9,7 +9,7 @@ import {
 import React, {useContext, useLayoutEffect, useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {Avatar, Searchbar} from 'react-native-paper';
+import {Avatar, Badge, Searchbar} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {FONTS, COLORS, images, SIZES} from '../../constants';
 import {contacts} from '../../constants/data';
@@ -20,6 +20,7 @@ import {UserType} from '../../../UserContext';
 import {db} from '../../firebase/firebaseConfig';
 import UIModals from '../../components/UIModals';
 import {useIsFocused} from '@react-navigation/native';
+import Loading from '../../components/Loading';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends} = useContext(UserType);
@@ -31,6 +32,7 @@ const Messages = ({navigation}) => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isVisible, setisVisible] = useState(false);
   const isFocus = useIsFocused();
+  const [isLayoutEffectDone, setIsLayoutEffectDone] = useState(false);
 
   useEffect(() => {
     if (searchQuery.length == 0) {
@@ -51,28 +53,33 @@ const Messages = ({navigation}) => {
   }, [friends]);
 
   useLayoutEffect(() => {
-    if (conversations.length > 0) {
-      const unsubscribe = db
-        .collection('Conversations')
-        .orderBy('last_message', 'desc')
-        .onSnapshot(snapshot => {
-          const res = [];
-          snapshot.forEach(doc => {
-            res.push({
-              id: doc.id,
-              data: doc.data(),
+    try {
+      if (conversations.length > 0) {
+        const unsubscribe = db
+          .collection('Conversations')
+          .orderBy('last_message', 'desc')
+          .onSnapshot(snapshot => {
+            const res = [];
+            snapshot.forEach(doc => {
+              res.push({
+                id: doc.id,
+                data: doc.data(),
+              });
             });
+            const filteredConversations = res.filter(conversation =>
+              conversations.includes(conversation.id),
+            );
+            setMessage(filteredConversations);
+            setFilterMessage(filteredConversations);
+            setIsLayoutEffectDone(true);
           });
-          const filteredConversations = res.filter(conversation =>
-            conversations.includes(conversation.id),
-          );
-          setMessage(filteredConversations);
-          setFilterMessage(filteredConversations);
-        });
 
-      return () => unsubscribe();
-    } else {
-      setMessage([]);
+        return () => unsubscribe();
+      } else {
+        setMessage([]);
+      }
+    } catch (error) {
+      console.log(error);
     }
   }, [conversations]);
   const getData = async () => {
@@ -89,7 +96,7 @@ const Messages = ({navigation}) => {
     const users = await Promise.all(promises);
     setUserFriends(users);
   };
-  return (
+  return isLayoutEffectDone ? (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <View
@@ -147,10 +154,24 @@ const Messages = ({navigation}) => {
                   width: 66,
                   height: 77,
                 }}>
-                <Avatar.Image
-                  source={{uri: item.image || images.imageLoading}}
-                  size={55}
-                />
+                <View>
+                  <Avatar.Image
+                    source={{uri: item.image || images.imageLoading}}
+                    size={55}
+                  />
+                  <Badge
+                    size={15}
+                    style={{
+                      position: 'absolute',
+                      backgroundColor: COLORS.green,
+                      borderColor: COLORS.white,
+                      borderWidth: 2,
+                      bottom: 0,
+                      right: 0,
+                    }}
+                  />
+                </View>
+
                 <Text style={{color: COLORS.black, flex: 1}} numberOfLines={1}>
                   {item.name}
                 </Text>
@@ -158,7 +179,7 @@ const Messages = ({navigation}) => {
             )}
           />
         </View>
-        {message.length == 0 && (
+        {filterMessage.length == 0 && (
           <Text style={{...FONTS.h3, color: COLORS.black}}>
             Chưa có tin nhắn
           </Text>
@@ -186,6 +207,8 @@ const Messages = ({navigation}) => {
         />
       </PageContainer>
     </SafeAreaView>
+  ) : (
+    <View style={{flex: 1, backgroundColor: COLORS.white}} />
   );
 };
 

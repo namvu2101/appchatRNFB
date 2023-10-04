@@ -1,64 +1,32 @@
 import {View, Text, Pressable, Image, StyleSheet} from 'react-native';
 import React from 'react';
-import {Avatar} from 'react-native-paper';
-import {COLORS, images} from '../../constants';
+import {Avatar, IconButton} from 'react-native-paper';
+import {COLORS, SIZES, images} from '../../constants';
+import UIModals from '../../components/UIModals';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function List_Message({item, userId, user}) {
   const [isSelected, setisSelected] = React.useState(false);
+  const [isVisible, setisVisible] = React.useState(false);
+  const [isLongPress, setisLongPress] = React.useState(false);
 
   const formatTime = time => {
     const jsDate = time.toDate();
     const options = {hour: 'numeric', minute: 'numeric'};
     return new Date(jsDate).toLocaleString('en-US', options);
   };
-
+  const list = [
+    {icon: 'arrow-down-thin', onPress: () => {}},
+    {icon: 'pin-outline', onPress: () => {}},
+    {icon: 'delete-outline', onPress: () => {}},
+  ];
   const messageContainerStyle =
     item?.senderId === userId
       ? styles.senderMessageContainer
       : styles.receiverMessageContainer;
 
   return (
-    <>
-      {item.messageType === 'text' ? (
-        <Pressable
-          onPress={() => setisSelected(!isSelected)}
-          style={[styles.messageContainer, messageContainerStyle]}>
-          <Text style={styles.messageText}>{item?.messageText}</Text>
-
-          {isSelected && (
-            <Text style={styles.timestampText}>
-              {formatTime(item.timeSend)}
-            </Text>
-          )}
-        </Pressable>
-      ) : (
-        item.messageType === 'image' && (
-          <View>
-            <Pressable
-              onLongPress={() => setisSelected(!isSelected)}
-              style={[messageContainerStyle, styles.imageMessageContainer]}>
-              <Image
-                source={{
-                  uri: item?.photo || images.imageLoading,
-                }}
-                style={styles.image}
-                resizeMode="contain"
-              />
-            </Pressable>
-            {isSelected && item?.timeSend && (
-              <Text
-                style={[
-                  styles.timestampText,
-                  item?.senderId === userId
-                    ? styles.senderTimestampText
-                    : styles.receiverTimestampText,
-                ]}>
-                {formatTime(item?.timeSend)}
-              </Text>
-            )}
-          </View>
-        )
-      )}
+    <View>
       {item?.senderId !== userId && (
         <View style={styles.userInfoContainer}>
           <Avatar.Image
@@ -73,7 +41,107 @@ export default function List_Message({item, userId, user}) {
           <Text style={styles.senderNameText}>{item.name}</Text>
         </View>
       )}
-    </>
+      {item.messageType === 'text' ? (
+        <>
+          <Pressable
+            onPress={() => setisSelected(!isSelected)}
+            onLongPress={() => setisLongPress(!isLongPress)}
+            style={[styles.messageContainer, messageContainerStyle]}>
+            <Text style={styles.messageText}>{item?.messageText}</Text>
+
+            {isSelected && (
+              <Text style={styles.timestampText}>
+                {formatTime(item.timeSend)}
+              </Text>
+            )}
+          </Pressable>
+
+          {isLongPress && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-evenly',
+                    borderRadius: 20,
+                    borderColor: 'green',
+                    borderWidth: 1,
+                    marginTop: 10,
+                    paddingVertical: 5,
+                    width: 200,
+                  }}>
+                  {list.map(i => (
+                    <Pressable
+                      onPress={i.onPress}
+                      key={i.icon}
+                      style={{justifyContent: 'space-between'}}>
+                      <Avatar.Icon
+                        icon={i.icon}
+                        size={33}
+                        color='white'
+                      />
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+        </>
+      ) : (
+        item.messageType === 'image' && (
+          <>
+            <Pressable
+              onPress={() => setisVisible(true)}
+              onLongPress={() => setisLongPress(!isLongPress)}
+              style={[messageContainerStyle, styles.imageMessageContainer]}>
+              <Image
+                source={{
+                  uri: item?.photo || images.imageLoading,
+                }}
+                style={styles.image}
+                resizeMode="contain"
+              />
+              {isLongPress && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-evenly',
+                    borderRadius: 20,
+                    borderColor: 'green',
+                    borderWidth: 1,
+                    marginTop: 10,
+                    paddingVertical: 5,
+                    width: 200,
+                  }}>
+                  {list.map(i => (
+                    <Pressable
+                      onPress={i.onPress}
+                      key={i.icon}
+                      style={{justifyContent: 'space-between'}}>
+                      <Avatar.Icon
+                        icon={i.icon}
+                        size={33}
+                        color='white'
+                      />
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </Pressable>
+          </>
+        )
+      )}
+
+      <UIModals
+        isVisible={isVisible}
+        onClose={() => setisVisible(false)}
+        style={{alignItems: 'center'}}>
+        <Image
+          source={{uri: item?.photo || images.imageLoading}}
+          style={{
+            height: SIZES.height * 0.8,
+            width: SIZES.width * 0.8,
+          }}
+          resizeMode="contain"
+        />
+      </UIModals>
+    </View>
   );
 }
 
@@ -83,6 +151,7 @@ const styles = StyleSheet.create({
     maxWidth: '60%',
     borderRadius: 7,
     margin: 10,
+    alignItems: 'center',
   },
   senderMessageContainer: {
     alignSelf: 'flex-end',
@@ -95,9 +164,7 @@ const styles = StyleSheet.create({
   imageMessageContainer: {
     marginVertical: 10,
     backgroundColor: '#FFFFFF',
-    borderColor: COLORS.secondaryGray,
-    borderWidth: 1,
-    borderRadius: 10,
+    alignItems: 'center',
   },
   messageText: {
     fontSize: 15,
@@ -116,6 +183,8 @@ const styles = StyleSheet.create({
   image: {
     width: 150,
     height: 300,
+    borderColor: COLORS.secondaryGray,
+    borderWidth: 1,
     borderRadius: 10,
   },
   userInfoContainer: {

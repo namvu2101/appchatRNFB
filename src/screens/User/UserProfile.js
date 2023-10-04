@@ -33,13 +33,14 @@ export default function UserProfile() {
   const [type, setType] = useState('');
   const [date, setDate] = useState(new Date());
   const [newDate, setnewDate] = useState(
-    profile.date.lenght > 0 ? profile.date : 'Thêm ngày sinh',
+    profile.date ? profile.date : 'Thêm ngày sinh',
   );
   const [isLoading, setIsLoading] = useState(false);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
+    console.log(profile.date);
   }, []);
   const list = [
     {
@@ -126,9 +127,8 @@ export default function UserProfile() {
       Alert.alert('Thông báo!', 'Bạn có muốn lưu thay đổi ?', [
         {
           text: 'Lưu',
-          onPress: async() => {
-           await handleUpdate();
-            
+          onPress: async () => {
+            await handleUpdate();
           },
         },
         {

@@ -11,7 +11,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Avatar, TextInput} from 'react-native-paper';
+import {Avatar, Badge, TextInput} from 'react-native-paper';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
 import UITextInput from '../../components/UITextInput';
 import List_Message from './List_Message';
@@ -20,23 +20,21 @@ import {authStore, profileStore} from '../../store';
 import {firebase} from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import {handlePickImage} from '../../components/ImagePicker';
-import Loading from '../../components/Loading';
 
 export default function Index({route}) {
   const navigation = useNavigation();
   const [input, setInput] = useState('');
   const [conversation_exists, setConversation_exists] = useState(false);
-  const [isLayoutEffectDone, setIsLayoutEffectDone] = useState(false);
   const [submit, setSubmit] = useState(false);
   const [messages, setMessages] = useState([]);
   const recipient = route.params.item;
   const recipientId = route.params.recipientId;
   const type = route.params.type;
   const conversation_id = route.params.conversation_id;
-  const [conversationData, setConversationData] = useState();
+  const [conversationData, setConversationData] = useState(recipient);
   const {profile} = profileStore();
   const {userId} = authStore();
-  const isFocus = useIsFocused()
+  const isFocus = useIsFocused();
   useEffect(() => {
     if (input.length > 0) {
       setSubmit(true);
@@ -50,7 +48,6 @@ export default function Index({route}) {
     setOptionNavigator();
     fetchData();
     checkConversation_exists();
-    setIsLayoutEffectDone(true);
   }, [isFocus]);
   const fetchConversationData = () => {
     db.collection('Conversations')
@@ -236,7 +233,7 @@ export default function Index({route}) {
     },
   ];
 
-  return !isLayoutEffectDone ? (
+  return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <View style={styles.header}>
@@ -249,20 +246,41 @@ export default function Index({route}) {
               color={'#000E08'}
             />
           </Pressable>
+          <View>
+            <Avatar.Image
+              size={49}
+              source={{uri: conversationData?.image || images.imageLoading}}
+            />
+            <Badge
+              size={15}
+              style={{
+                position: 'absolute',
+                backgroundColor: COLORS.green,
+                borderColor: COLORS.white,
+                borderWidth: 2,
+                bottom: 0,
+                right: 0,
+              }}
+            />
+          </View>
 
-          <Avatar.Image
-            size={49}
-            source={{uri: conversationData?.image || images.imageLoading}}
-          />
-          <Text
-            numberOfLines={1}
-            style={{
-              ...FONTS.h3,
-              width: SIZES.width * 0.33,
-              textAlign: 'center',
-            }}>
-            {conversationData?.name}
-          </Text>
+          <View style={{width: SIZES.width * 0.33, marginLeft: 12}}>
+            <Text
+              numberOfLines={1}
+              style={{
+                ...FONTS.h3,
+              }}>
+              {conversationData?.name}
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={{
+                ...FONTS.h3,
+                color: COLORS.secondaryGray,
+              }}>
+              online
+            </Text>
+          </View>
           {list_icon.map(i => (
             <TouchableOpacity onPress={i.onPress} key={i.icon}>
               <Avatar.Icon
@@ -328,8 +346,6 @@ export default function Index({route}) {
         </View>
       </PageContainer>
     </SafeAreaView>
-  ) : (
-    <Loading />
   );
 }
 

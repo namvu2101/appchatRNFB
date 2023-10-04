@@ -7,7 +7,7 @@ import {COLORS} from '../constants';
 export default function UIModals(props) {
   return (
     <Modal
-      style={{margin: 0}}
+      style={{margin: 0,...props.style}}
       isVisible={props.isVisible}
       onBackdropPress={props.onClose}
       onBackButtonPress={props.onClose}

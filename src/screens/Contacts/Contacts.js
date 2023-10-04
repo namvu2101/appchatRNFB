@@ -43,7 +43,7 @@ const Contacts = ({navigation}) => {
             marginTop: 22,
             width: SIZES.width,
           }}>
-          <Text style={{...FONTS.h2, color: COLORS.black}}>Contacts</Text>
+          <Text style={{...FONTS.h2, color: COLORS.black}}>Liên hệ</Text>
           <TouchableOpacity onPress={() => navigation.navigate('AddContact')}>
             <AntDesign name="plus" size={25} color={COLORS.secondaryBlack} />
           </TouchableOpacity>

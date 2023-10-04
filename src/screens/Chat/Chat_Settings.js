@@ -4,7 +4,7 @@ import {
   Text,
   View,
   Pressable,
-  ScrollView,
+  Alert,
   TouchableOpacity,
   FlatList,
   Keyboard,
@@ -22,6 +22,8 @@ import UIModals from '../../components/UIModals';
 import uuid from 'react-native-uuid';
 import Setting_modals from './Setting_modals';
 import Loading from '../../components/Loading';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {firebase} from '@react-native-firebase/firestore';
 
 export default function ChatSettings({route}) {
   const navigation = useNavigation();
@@ -34,12 +36,15 @@ export default function ChatSettings({route}) {
   const listItems = getInitialItems(item.type);
   const listIcon = getIconItems(item.type, handleIconClick);
   const docRef = db.collection('Conversations').doc(conversation_id);
+
   useLayoutEffect(() => {
     docRef.onSnapshot(doc => {
-      setData(doc.data());
+      if (doc.exists) {
+        setData(doc.data());
+      }
     });
   }, [conversation_id]);
-  const handleItemClick = action => {
+  const handleItemClick = async action => {
     switch (action) {
       case 'Đổi tên nhóm':
         console.log('Đổi tên');
@@ -71,9 +76,15 @@ export default function ChatSettings({route}) {
         console.log('Files');
         onOpen(action);
         break;
+      case 'Ẩn đoạn chat':
+        hideConversation(conversation_id);
+        break;
+      case 'Rời nhóm':
+        await outConversation(conversation_id);
+        await navigation.replace('BottomTabs');
+        break;
       case 'Xóa đoạn chat':
-        console.log('Xóa đoạn chat');
-        onOpen(action);
+        handleDelete();
         break;
       default:
         break;
@@ -92,6 +103,25 @@ export default function ChatSettings({route}) {
   const onOpen = action => {
     setType(action);
     setIsVisible(true);
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Thông báo',
+      'Bạn muốn xóa đoạn chat này ?',
+      [
+        {
+          text: 'OK',
+          onPress: async () => {
+            setisLoading(true);
+            await removeChat(conversation_id);
+            setisLoading(false);
+          },
+        },
+        {text: 'Huỷ', style: 'cancel'},
+      ],
+      {cancelable: true},
+    );
   };
 
   const ChangeImage = async doc => {
@@ -169,9 +199,9 @@ export default function ChatSettings({route}) {
             isVisible={isVisible}
             onClose={onClose}
             type={type}
-            data={data}
             docRef={docRef}
             item={data}
+            conversation_id={conversation_id}
           />
         </UIModals>
         <Loading isVisible={isLoading} />
@@ -179,7 +209,40 @@ export default function ChatSettings({route}) {
     </SafeAreaView>
   );
 }
-
+const removeChat = async id => {
+  try {
+    hideConversation(id);
+    db.collection('Conversations').doc(id).delete();
+    const messagesRef = db
+      .collection('Conversations')
+      .doc(id)
+      .collection('messages');
+    const querySnapshot = await messagesRef.get();
+    querySnapshot.forEach(async doc => {
+      await doc.ref.delete();
+    });
+  } catch (error) {
+    console.error('Error deleting messages:', error);
+  }
+};
+const hideConversation = async conversation_id => {
+  const userId = await AsyncStorage.getItem('userId');
+  db.collection('conversations')
+    .doc(userId)
+    .update({
+      list_conversations:
+        firebase.firestore.FieldValue.arrayRemove(conversation_id),
+    });
+};
+const outConversation = async id => {
+  const userId = await AsyncStorage.getItem('userId');
+  hideConversation(id);
+  db.collection('Conversations')
+    .doc(id)
+    .update({
+      member_id: firebase.firestore.FieldValue.arrayRemove(`${userId}`),
+    });
+};
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#000000'},
 

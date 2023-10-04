@@ -8,7 +8,6 @@ import {authStore} from '../../store';
 export default function Message_Items({item, index, onPress, conversation_id}) {
   const [chatmessages, setChatMessages] = React.useState([]);
   const [messageText, setMessageText] = React.useState();
-
   const {userId} = authStore();
   React.useLayoutEffect(() => {
     const unsubscribe = db
@@ -22,7 +21,7 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
       });
     return () => unsubscribe();
   }, [conversation_id]);
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (chatmessages.length != 0) {
       if (userId == chatmessages?.[0]?.senderId) {
         setMessageText(`Bạn : ${chatmessages?.[0]?.messageText}`);
@@ -57,9 +56,10 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
           paddingVertical: 15,
           marginRight: 22,
         }}>
-        {item?.isOnline && item?.isOnline == true && (
+        {/* {item?.isOnline && item?.isOnline == true && ( */}
           <View
             style={{
+              flex:1,
               height: 14,
               width: 14,
               borderRadius: 7,
@@ -67,16 +67,14 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
               borderColor: COLORS.white,
               borderWidth: 2,
               position: 'absolute',
-              top: 14,
+              bottom: 14,
               right: 2,
               zIndex: 1000,
-            }}></View>
-        )}
+            }}/>
+        {/* )} */}
         <Avatar.Image
           source={{
-            uri:
-              item?.image ||
-              images.imageLoading
+            uri: item?.image || images.imageLoading,
           }}
           size={55}
         />
