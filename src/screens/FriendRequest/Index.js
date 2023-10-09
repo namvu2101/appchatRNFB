@@ -29,25 +29,29 @@ export default function Index() {
     };
 
     getData();
-  }, []);
+  }, [friendRequests]);
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <View
           style={{
             flexDirection: 'row',
-            justifyContent: 'space-between',
+
             alignItems: 'center',
             paddingHorizontal: 22,
             marginTop: 22,
             width: SIZES.width,
           }}>
-          <Text style={{...FONTS.h2, color: COLORS.black}}>Lời mời kết bạn</Text>
-          <TouchableOpacity onPress={() => console.log('Add contacts')}>
-            <AntDesign name="plus" size={25} color={COLORS.secondaryBlack} />
-          </TouchableOpacity>
+          <Text style={{...FONTS.h2, color: COLORS.black}}>
+            Lời mời kết bạn
+          </Text>
         </View>
         <UISearch />
+        {friendRequests.length == 0 && (
+          <Text style={{...FONTS.h3, color: COLORS.black}}>
+           Không có lời mời nào
+          </Text>
+        )}
         <FlatList
           data={filteredUsers}
           renderItem={({item}) => (

@@ -45,6 +45,7 @@ const profileStore = create(set => ({
 
 const conversationStore = create(set => ({
   conversations: [],
+  updateConversations: newData => set({conversations: newData}),
   setConversations: createActions(set, 'conversations'),
 }));
 

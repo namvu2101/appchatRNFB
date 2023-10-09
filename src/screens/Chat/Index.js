@@ -36,7 +36,7 @@ export default function Index({route}) {
   const {userId} = authStore();
   const isFocus = useIsFocused();
   useEffect(() => {
-    if (input.length > 0) {
+    if (input.length != 0) {
       setSubmit(true);
     } else {
       setSubmit(false);
@@ -64,7 +64,11 @@ export default function Index({route}) {
       .get()
       .then(doc => {
         setConversation_exists(doc.exists);
-        if (doc.exists && doc.data().image != recipient.image) {
+        if (
+          doc.exists &&
+          doc.data().type == 'Person' &&
+          doc.data().image != recipient.image
+        ) {
           db.collection('Conversations').doc(conversation_id).update({
             image: recipient.image,
           });
@@ -99,7 +103,6 @@ export default function Index({route}) {
   };
 
   const onSendMessage = async (messageType, imageUri) => {
-    setInput('');
     onViewSend(messageType);
     const formData = {
       timeSend: timestamp,
@@ -107,7 +110,7 @@ export default function Index({route}) {
       senderImage: profile.image,
       name: profile.name,
       messageType: messageType === 'image' ? 'image' : 'text',
-      messageText: messageType === 'image' ? 'send photo' : input,
+      messageText: messageType === 'image' ? 'đã gửi hình ảnh' : input,
     };
     if (messageType === 'image') {
       formData.photo = imageUri;
@@ -118,6 +121,8 @@ export default function Index({route}) {
     } else {
       sendGroup(formData);
     }
+    setInput('');
+
   };
   const sendPersonMessages = formData => {
     const conversationIds = [
@@ -297,7 +302,13 @@ export default function Index({route}) {
           data={messages}
           style={{width: SIZES.width, paddingHorizontal: 10}}
           renderItem={({item}) => (
-            <List_Message item={item.data} userId={userId} user={recipient} />
+            <List_Message
+              item={item.data}
+              id={item.id}
+              userId={userId}
+              user={recipient}
+              conversation_id={conversation_id}
+            />
           )}
         />
         <View style={styles._input_box}>

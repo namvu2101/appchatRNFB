@@ -14,6 +14,7 @@ import LoadingScreen from '../screens/Loading';
 import AddContact from '../screens/Contacts/AddContact';
 import AddChat from '../screens/GroupChat/Index';
 import ChangePass from '../screens/User/ChangePass';
+import Information from '../screens/User/Information';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   return (
@@ -47,6 +48,7 @@ const StackNavigator = () => {
         <Stack.Screen name="ChatSettings" component={ChatSettings} />
 
         <Stack.Screen name="Chats" component={Index} />
+        <Stack.Screen name="Information" component={Information} />
         <Stack.Screen name="AddContact" component={AddContact} />
         <Stack.Screen name="AddChat" component={AddChat} />
         <Stack.Screen name="ChangePass" component={ChangePass} />

@@ -18,7 +18,7 @@ import {profileStore} from '../../store';
 export default function AddContact() {
   const [contactsRandom, setContactsRandom] = useState([]);
   const {userId} = authStore();
-  const {friends} = profileStore();
+  const {friends,friendRequests} = profileStore();
   useEffect(() => {
     const getUsers = async () => {
       const resq = await db
@@ -36,7 +36,7 @@ export default function AddContact() {
           ),
         );
       const filterData = resq.filter(
-        item => item.id != userId && !friends.includes(item.id),
+        item => item.id != userId && !friends.includes(item.id) && !friendRequests.includes(item.id),
       );
 
       setContactsRandom(filterData);

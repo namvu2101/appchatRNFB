@@ -126,15 +126,20 @@ export default function ChatSettings({route}) {
 
   const ChangeImage = async doc => {
     try {
-      setisLoading(true);
       const id = uuid.v4();
       const newImage = await handlePickImage();
-      const reference = storage().ref(`Conversations/${doc.id}/Avatar/${id}`);
-      await reference.putFile(newImage);
-      const downloadURL = await reference.getDownloadURL();
-      await doc.update({image: downloadURL}).then(() => setisLoading(false));
+      if (newImage != 'Error') {
+        setisLoading(true);
+        const reference = storage().ref(`Conversations/${doc.id}/Avatar/${id}`);
+        await reference.putFile(newImage);
+        const downloadURL = await reference.getDownloadURL();
+        await doc
+          .update({image: downloadURL})
+          .then(() => console.log('update success'));
+        setisLoading(false);
+      }
     } catch (error) {
-      console.log(error);
+      console.log('error', error);
     }
   };
   const renderItem = ({item}) => {

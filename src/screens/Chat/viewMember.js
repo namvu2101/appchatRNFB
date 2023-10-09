@@ -12,20 +12,21 @@ export default function ViewMember({onClose, member_id, create_id}) {
   const {userId} = authStore();
   useLayoutEffect(() => {
     const list = [];
-    member_id.map(id => {
-      db.collection('users')
-        .doc(id)
-        .get()
-        .then(doc => {
+    db.collection('users')
+      .get()
+      .then(doc => {
+        doc.docs.map(i => {
           const user = {
-            id: id,
-            name: doc.data().name,
-            image: doc.data().image,
+            id: i.id,
+            name: i.data().name,
+            image:i.data().image,
           };
-          list.push(user);
-          setMember(list);
+          list.push(user)
         });
-    });
+        const filteredList = list.filter(item => member_id.includes(item.id));
+         setMember(filteredList)
+      });
+     
   }, []);
 
   return (

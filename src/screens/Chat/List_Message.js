@@ -1,11 +1,18 @@
-import {View, Text, Pressable, Image, StyleSheet} from 'react-native';
+import {View, Text, Pressable, Image, StyleSheet, Alert} from 'react-native';
 import React from 'react';
 import {Avatar, IconButton} from 'react-native-paper';
 import {COLORS, SIZES, images} from '../../constants';
 import UIModals from '../../components/UIModals';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {db} from '../../firebase/firebaseConfig';
 
-export default function List_Message({item, userId, user}) {
+export default function List_Message({
+  item,
+  userId,
+  user,
+  conversation_id,
+  id,
+}) {
   const [isSelected, setisSelected] = React.useState(false);
   const [isVisible, setisVisible] = React.useState(false);
   const [isLongPress, setisLongPress] = React.useState(false);
@@ -18,8 +25,36 @@ export default function List_Message({item, userId, user}) {
   const list = [
     {icon: 'arrow-down-thin', onPress: () => {}},
     {icon: 'pin-outline', onPress: () => {}},
-    {icon: 'delete-outline', onPress: () => {}},
+    {
+      icon: 'delete-outline',
+      onPress: () => {
+        handleDelete();
+      },
+    },
   ];
+  const handleDelete = () => {
+    Alert.alert(
+      'Thông báo',
+      'Bạn muốn xóa tin nhắn này ?',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            deletleMessage();
+          },
+        },
+        {text: 'Huỷ', style: 'cancel'},
+      ],
+      {cancelable: true},
+    );
+  };
+  const deletleMessage = () => {
+    db.collection('Conversations')
+      .doc(conversation_id)
+      .collection('messages')
+      .doc(id)
+      .delete();
+  };
   const messageContainerStyle =
     item?.senderId === userId
       ? styles.senderMessageContainer
@@ -57,31 +92,28 @@ export default function List_Message({item, userId, user}) {
           </Pressable>
 
           {isLongPress && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-evenly',
-                    borderRadius: 20,
-                    borderColor: 'green',
-                    borderWidth: 1,
-                    marginTop: 10,
-                    paddingVertical: 5,
-                    width: 200,
-                  }}>
-                  {list.map(i => (
-                    <Pressable
-                      onPress={i.onPress}
-                      key={i.icon}
-                      style={{justifyContent: 'space-between'}}>
-                      <Avatar.Icon
-                        icon={i.icon}
-                        size={33}
-                        color='white'
-                      />
-                    </Pressable>
-                  ))}
-                </View>
-              )}
+            <View
+              style={[
+                messageContainerStyle,
+                {
+                  flexDirection: 'row',
+                  justifyContent: 'space-evenly',
+                  borderRadius: 20,
+                  borderColor: 'green',
+                  borderWidth: 1,
+                  marginTop: 10,
+                  paddingVertical: 5,
+                  width: 200,
+                  backgroundColor: 'white',
+                },
+              ]}>
+              {list.map(i => (
+                <Pressable onPress={i.onPress} key={i.icon}>
+                  <Avatar.Icon icon={i.icon} size={33} color="white" />
+                </Pressable>
+              ))}
+            </View>
+          )}
         </>
       ) : (
         item.messageType === 'image' && (
@@ -114,11 +146,7 @@ export default function List_Message({item, userId, user}) {
                       onPress={i.onPress}
                       key={i.icon}
                       style={{justifyContent: 'space-between'}}>
-                      <Avatar.Icon
-                        icon={i.icon}
-                        size={33}
-                        color='white'
-                      />
+                      <Avatar.Icon icon={i.icon} size={33} color="white" />
                     </Pressable>
                   ))}
                 </View>

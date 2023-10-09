@@ -7,7 +7,7 @@ import Messages from '../screens/Home/Messages';
 import Contacts from '../screens/Contacts/Contacts';
 import More from '../screens/Setting/More';
 import Index from '../screens/FriendRequest/Index';
-
+import Notifycation from '../screens/Notifycation';
 const Tab = createBottomTabNavigator();
 
 const MyTabs = () => {
@@ -17,7 +17,6 @@ const MyTabs = () => {
         tabBarShowLabel: false,
         headerShown: false,
         tabBarHideOnKeyboard: true,
-  
       }}>
       <Tab.Screen
         name="Messages"
@@ -46,6 +45,7 @@ const MyTabs = () => {
           ),
         }}
       />
+
       <Tab.Screen
         name="FriendsRequest"
         component={Index}
@@ -53,6 +53,19 @@ const MyTabs = () => {
           tabBarIcon: ({color, size}) => (
             <MaterialCommunityIcons
               name="account-arrow-left-outline"
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Notifycation"
+        component={Notifycation}
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <MaterialCommunityIcons
+              name="bell-outline"
               color={color}
               size={size}
             />

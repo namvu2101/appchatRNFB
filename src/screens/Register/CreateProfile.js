@@ -27,6 +27,10 @@ const CreateProfile = ({navigation, route}) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const handleRegister = async () => {
+    const date = new Date();
+    const newDate = `${date.getDate()}/${
+      date.getMonth() + 1
+    }/${date.getFullYear()}`;
     const idImage = uuid.v4();
     const usersCollection = db.collection('users');
     const reference = storage().ref(`users/Avatar/${idImage}`);
@@ -42,7 +46,7 @@ const CreateProfile = ({navigation, route}) => {
       last_active_at: timestamp,
       add: '',
       email: email,
-      date: timestamp,
+      date: newDate,
       isOnline: true,
     };
 
@@ -156,7 +160,7 @@ const CreateProfile = ({navigation, route}) => {
 
         <UIButton
           disabled={submit}
-          title="Save"
+          title="Đăng ký"
           style={{marginVertical: 44}}
           onPress={() => CheckValue()}
         />

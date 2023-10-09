@@ -3,13 +3,13 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  TextInput,
+  ScrollView,
   FlatList,
 } from 'react-native';
 import React, {useContext, useLayoutEffect, useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {Avatar, Badge, Searchbar} from 'react-native-paper';
+import {ActivityIndicator, Avatar, Badge, Searchbar} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {FONTS, COLORS, images, SIZES} from '../../constants';
 import {contacts} from '../../constants/data';
@@ -53,34 +53,36 @@ const Messages = ({navigation}) => {
   }, [friends]);
 
   useLayoutEffect(() => {
-    try {
-      if (conversations.length > 0) {
-        const unsubscribe = db
-          .collection('Conversations')
-          .orderBy('last_message', 'desc')
-          .onSnapshot(snapshot => {
-            const res = [];
-            snapshot.forEach(doc => {
-              res.push({
-                id: doc.id,
-                data: doc.data(),
+    const getConversations = async () => {
+      setIsLayoutEffectDone(false);
+      try {
+        if (conversations.length > 0) {
+          db.collection('Conversations')
+            .orderBy('last_message', 'desc')
+            .onSnapshot(async snapshot => {
+              const res = [];
+              snapshot.forEach(doc => {
+                res.push({
+                  id: doc.id,
+                  data: doc.data(),
+                });
               });
+              const filteredConversations = res.filter(conversation =>
+                conversations.includes(conversation.id),
+              );
+              setMessage(filteredConversations);
+              setFilterMessage(filteredConversations);
+              setIsLayoutEffectDone(true);
             });
-            const filteredConversations = res.filter(conversation =>
-              conversations.includes(conversation.id),
-            );
-            setMessage(filteredConversations);
-            setFilterMessage(filteredConversations);
-            setIsLayoutEffectDone(true);
-          });
-
-        return () => unsubscribe();
-      } else {
-        setMessage([]);
+        } else {
+          setMessage([]);
+          setIsLayoutEffectDone(true);
+        }
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    };
+    getConversations();
   }, [conversations]);
   const getData = async () => {
     const promises = friends.map(async id => {
@@ -96,7 +98,7 @@ const Messages = ({navigation}) => {
     const users = await Promise.all(promises);
     setUserFriends(users);
   };
-  return isLayoutEffectDone ? (
+  return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <View
@@ -179,36 +181,40 @@ const Messages = ({navigation}) => {
             )}
           />
         </View>
-        {filterMessage.length == 0 && (
-          <Text style={{...FONTS.h3, color: COLORS.black}}>
-            Chưa có tin nhắn
-          </Text>
-        )}
+        {isLayoutEffectDone ? (
+          <>
+            {filterMessage.length == 0 && (
+              <Text style={{...FONTS.h3, color: COLORS.black}}>
+                Chưa có tin nhắn
+              </Text>
+            )}
 
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          data={filterMessage}
-          renderItem={({item, index}) => (
-            <Message_Items
-              item={item.data}
-              conversation_id={item.id}
-              index={index}
-              onPress={() => {
-                navigation.navigate('Chats', {
-                  item: item.data,
-                  type: item?.data?.type,
-                  conversation_id: item.id,
-                  recipientId: item?.data?.recipientId,
-                });
-              }}
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              data={filterMessage}
+              renderItem={({item, index}) => (
+                <Message_Items
+                  item={item.data}
+                  conversation_id={item.id}
+                  index={index}
+                  onPress={() => {
+                    navigation.navigate('Chats', {
+                      item: item.data,
+                      type: item?.data?.type,
+                      conversation_id: item.id,
+                      recipientId: item?.data?.recipientId,
+                    });
+                  }}
+                />
+              )}
+              keyExtractor={item => item.id.toString()}
             />
-          )}
-          keyExtractor={item => item.id.toString()}
-        />
+          </>
+        ) : (
+          <ActivityIndicator size={30} color="black" />
+        )}
       </PageContainer>
     </SafeAreaView>
-  ) : (
-    <View style={{flex: 1, backgroundColor: COLORS.white}} />
   );
 };
 

@@ -12,7 +12,7 @@ import UIModals from '../../components/UIModals';
 import UITextInput from '../../components/UITextInput';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {handlePickImage} from '../../components/ImagePicker';
-import {authStore} from '../../store';
+import {authStore, conversationStore} from '../../store';
 import uuid from 'react-native-uuid';
 import Loading from '../../components/Loading';
 
@@ -24,6 +24,7 @@ export default function CreateGroup({onClose, friends}) {
   const [image, setImage] = useState('');
   const [submit, setSubmit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const {updateConversations, conversations} = conversationStore();
   const {userId} = authStore();
   const handleCreate = async input => {
     const idImage = uuid.v4();
@@ -51,18 +52,17 @@ export default function CreateGroup({onClose, friends}) {
             member_id: member_id,
             read: 'id da xem',
           })
-          .then(doc => {
-            addConversation(member_id, doc.id);
-            setIsLoading(false);
+          .then(async doc => {
             Alert.alert('Thông báo !', 'Tạo nhóm thành công', [
               {
                 text: 'OK',
                 onPress: () => {
+                  setIsLoading(false);
                   navigation.replace('BottomTabs');
                 },
               },
             ]);
-            console.log('Create group success');
+            addConversation(member_id, doc.id);
           });
       } catch (error) {
         console.log(error);
@@ -110,7 +110,10 @@ export default function CreateGroup({onClose, friends}) {
   const renderItem = ({item}) => {
     return (
       <View style={styles.memberItem}>
-        <Avatar.Image source={{uri: item.image || images.imageLoading}} size={44} />
+        <Avatar.Image
+          source={{uri: item.image || images.imageLoading}}
+          size={44}
+        />
         <View style={{marginHorizontal: 10}}>
           <Text style={{...FONTS.h3, textAlign: 'left'}}>{item.name}</Text>
         </View>
@@ -139,7 +142,10 @@ export default function CreateGroup({onClose, friends}) {
                 marginHorizontal: 5,
                 alignItems: 'center',
               }}>
-              <Avatar.Image source={{uri: item.image || images.imageLoading}} size={44} />
+              <Avatar.Image
+                source={{uri: item.image || images.imageLoading}}
+                size={44}
+              />
               <Text
                 style={{...FONTS.h4, textAlign: 'center', width: 55}}
                 numberOfLines={1}>

@@ -33,14 +33,13 @@ export default function UserProfile() {
   const [type, setType] = useState('');
   const [date, setDate] = useState(new Date());
   const [newDate, setnewDate] = useState(
-    profile.date ? profile.date : 'Thêm ngày sinh',
+    profile.date ? profile.date : 'Chưa cập nhật',
   );
   const [isLoading, setIsLoading] = useState(false);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
-    console.log(profile.date);
   }, []);
   const list = [
     {
@@ -51,13 +50,13 @@ export default function UserProfile() {
     },
     {
       name: 'Email Address',
-      value: profile?.email || 'Thêm email mới',
+      value: profile?.email || 'Chưa cập nhật email',
       editable: false,
       inputMode: 'email',
     },
     {
       name: 'Address',
-      value: profile?.add || 'Thêm địa chỉ',
+      value: profile?.add || 'Chưa cập nhật địa chỉ',
       editable: false,
       inputMode: 'text',
     },

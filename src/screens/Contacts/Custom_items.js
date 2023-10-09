@@ -14,9 +14,9 @@ export default function Custom_items({item, index}) {
     <TouchableOpacity
       key={index}
       onPress={() => {
-        // navigation.navigate('PersonalChat', {
-        //   userName: item.userName,
-        // })
+        navigation.navigate('Information', {
+          id: item.id,
+        });
       }}
       style={[
         {

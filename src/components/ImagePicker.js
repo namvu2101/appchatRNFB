@@ -11,8 +11,10 @@ export const handlePickImage = () => {
 
     launchImageLibrary(options, response => {
       if (response.didCancel) {
+        resolve('Error')
         console.log('User cancelled image picker');
       } else if (response.error) {
+        resolve('Error')
         console.log('ImagePicker Error: ', response.error);
       } else {
         const pathToFile = response.assets[0].uri;

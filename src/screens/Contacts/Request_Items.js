@@ -3,64 +3,27 @@ import React, {useLayoutEffect, useState} from 'react';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
 import {Avatar, Button} from 'react-native-paper';
 import {authStore, profileStore} from '../../store';
-import {db} from '../../firebase/firebaseConfig';
-import {firebase} from '@react-native-firebase/firestore';
+import {useNavigation} from '@react-navigation/native';
+import {handleActions} from '../User/actions';
+
 export default function Request_Items({item, index}) {
   const [sentrequest, setSentrequest] = useState(false);
   const {sentRequestFriends} = profileStore();
-  const {userId} = authStore();
+  const navigation = useNavigation();
+
   useLayoutEffect(() => {
     if (sentRequestFriends.find(i => i == item.id)) {
       setSentrequest(true);
-    }
-  }, []);
-  const updateSentRequest = (id, data, action) => {
-    const docRef = db.doc(`sentRequestFriends/${id}`);
-    if (action == 'add') {
-      docRef.set(
-        {
-          list_sentRequestFriends:
-            firebase.firestore.FieldValue.arrayUnion(data),
-        },
-        {merge: true},
-      );
     } else {
-      docRef.set(
-        {
-          list_sentRequestFriends:
-            firebase.firestore.FieldValue.arrayRemove(data),
-        },
-        {merge: true},
-      );
+      setSentrequest(false);
     }
-  };
-  const updateFriendRequest = (id, data, action) => {
-    const docRef = db.doc(`friendRequests/${id}`);
-
-    if (action == 'add') {
-      docRef.set(
-        {
-          list_friendRequests: firebase.firestore.FieldValue.arrayUnion(data),
-        },
-        {merge: true},
-      );
-    } else {
-      docRef.set(
-        {
-          list_friendRequests: firebase.firestore.FieldValue.arrayRemove(data),
-        },
-        {merge: true},
-      );
-    }
-  };
+  }, [sentRequestFriends]);
 
   const handleSent = () => {
-    updateSentRequest(userId, item.id, 'add');
-    updateFriendRequest(item.id, userId, 'add');
+    handleActions('Kết bạn', item.id);
   };
   const handleCancel = () => {
-    updateSentRequest(userId, item.id, 'remove');
-    updateFriendRequest(item.id, userId, 'remove');
+    handleActions('Hủy yêu cầu', item.id);
   };
   const handleSubmit = () => {
     if (sentrequest) {
@@ -72,7 +35,11 @@ export default function Request_Items({item, index}) {
   return (
     <TouchableOpacity
       key={index}
-      onPress={() => {}}
+      onPress={() => {
+        navigation.navigate('Information', {
+          id: item.id,
+        });
+      }}
       style={[
         {
           width: SIZES.width,
@@ -91,7 +58,10 @@ export default function Request_Items({item, index}) {
             }
           : null,
       ]}>
-      <Avatar.Image source={{uri: item?.image || images.imageLoading}} size={50} />
+      <Avatar.Image
+        source={{uri: item?.image || images.imageLoading}}
+        size={50}
+      />
       <View>
         <Text
           style={{
