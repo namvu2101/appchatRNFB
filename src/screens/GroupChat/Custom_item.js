@@ -17,15 +17,16 @@ export default function Custom_item({item, index}) {
           recipientId: item.id,
         });
       }}
+      
       key={item.id}
       title={item.name}
       descriptionNumberOfLines={1}
       titleStyle={{...FONTS.h3}}
-      style={{backgroundColor: index % 2 == 0 && COLORS.secondaryWhite}}
+      style={{backgroundColor: index % 2 == 0 && COLORS.secondaryWhite,paddingVertical:-10}}
       // description={item.phone}
       // descriptionStyle={{color: '#000', fontWeight: 'bold'}}
       left={props => (
-        <Avatar.Image source={{uri: item.image}} size={55} {...props} />
+        <Avatar.Image source={{uri: item.image}} size={50} {...props} />
       )}
     />
   );

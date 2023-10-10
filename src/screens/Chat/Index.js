@@ -122,7 +122,6 @@ export default function Index({route}) {
       sendGroup(formData);
     }
     setInput('');
-
   };
   const sendPersonMessages = formData => {
     const conversationIds = [

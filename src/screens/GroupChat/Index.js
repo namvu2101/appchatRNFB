@@ -8,6 +8,7 @@ import {
   TextInput,
   Keyboard,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -87,11 +88,11 @@ export default function AddChat({route}) {
               alignItems: 'center',
               marginVertical: 22,
             }}>
-            <Text style={{...FONTS.h3}}>đến :</Text>
+            <Text style={{...FONTS.h3}}>Đến: </Text>
             <UITextInput style={{height: 30}} />
           </View>
           <View style={styles.underHeaderContainer}>
-            <Pressable
+            <TouchableOpacity
               style={styles.underHeader}
               onPress={() => setisVisible(true)}>
               <Avatar.Icon
@@ -101,7 +102,7 @@ export default function AddChat({route}) {
                 style={{backgroundColor: COLORS.secondaryWhite}}
               />
               <Text style={{...FONTS.h3}}>Tạo nhóm chat</Text>
-            </Pressable>
+            </TouchableOpacity>
             {/* <View
             style={{
               flexDirection: 'row',

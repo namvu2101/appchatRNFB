@@ -9,7 +9,7 @@ import {
   FlatList,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import React from 'react';
+import React, {useContext} from 'react';
 import {Avatar, Button} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {COLORS, SIZES, FONTS} from '../../constants';
@@ -18,10 +18,12 @@ import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {conversationStore, profileStore} from '../../store';
 import SettingItems from './SettingItems';
+import {UserType} from '../../../UserContext';
 
 export default function More() {
   const navigation = useNavigation();
-  const {profile, setFriends} = profileStore();
+  const {setUserFriends} = useContext(UserType);
+  const {profile} = profileStore();
   const {setConversations} = conversationStore();
   const listItem = SettingItems();
   const handleLogOut = () => {
@@ -34,7 +36,7 @@ export default function More() {
           onPress: () => {
             AsyncStorage.setItem('userId', '');
             setConversations([]);
-            setFriends([]);
+            setUserFriends([]);
             navigation.replace('Login');
           },
         },
@@ -60,8 +62,8 @@ export default function More() {
             }}>
             <Avatar.Image source={{uri: profile?.image}} size={66} />
             <View style={{width: 180, marginHorizontal: 10}}>
-              <Text style={{...FONTS.h3}}>{profile.name}</Text>
-              <Text style={{...FONTS.h4}}>{profile.phone}</Text>
+              <Text style={{...FONTS.h3}}>{profile?.name}</Text>
+              <Text style={{...FONTS.h4}}>{profile?.phone}</Text>
             </View>
             <MaterialCommunityIcons
               name="qrcode-scan"

@@ -46,7 +46,7 @@ export default function Index() {
             Lời mời kết bạn
           </Text>
         </View>
-        <UISearch />
+        <UISearch  />
         {friendRequests.length == 0 && (
           <Text style={{...FONTS.h3, color: COLORS.black}}>
            Không có lời mời nào

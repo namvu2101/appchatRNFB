@@ -141,8 +141,10 @@ export default function UserProfile() {
   };
   const ChangeAvatar = async () => {
     const avatar = await handlePickImage();
-    setisVisible(false);
-    setImage(avatar);
+    if (avatar != 'Error') {
+      setisVisible(false);
+      setImage(avatar);
+    }
   };
 
   const updateDateofBirth = () => {

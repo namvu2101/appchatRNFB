@@ -1,7 +1,7 @@
 import {StyleSheet, Text, View, TouchableOpacity, Image} from 'react-native';
 import React, {useEffect} from 'react';
 import {FONTS, COLORS, images, SIZES} from '../../constants';
-import {Avatar} from 'react-native-paper';
+import {Avatar, List} from 'react-native-paper';
 import {db} from '../../firebase/firebaseConfig';
 import {authStore} from '../../store';
 
@@ -35,61 +35,55 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
     }
   }, [chatmessages]);
   return (
-    <TouchableOpacity
-      key={index}
-      onPress={onPress}
-      style={[
-        {
-          width: SIZES.width,
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: 22,
-          borderBottomColor: COLORS.secondaryWhite,
-          borderBottomWidth: 1,
-        },
-        index % 2 == 0 && {
-          backgroundColor: COLORS.tertiaryWhite,
-        },
-      ]}>
-      <View
-        style={{
-          paddingVertical: 15,
-          marginRight: 22,
-        }}>
-        {/* {item?.isOnline && item?.isOnline == true && ( */}
-          <View
-            style={{
-              flex:1,
-              height: 14,
-              width: 14,
-              borderRadius: 7,
-              backgroundColor: COLORS.green,
-              borderColor: COLORS.white,
-              borderWidth: 2,
-              position: 'absolute',
-              bottom: 14,
-              right: 2,
-              zIndex: 1000,
-            }}/>
-        {/* )} */}
-        <Avatar.Image
-          source={{
-            uri: item?.image || images.imageLoading,
-          }}
-          size={55}
-        />
-      </View>
-      <View
-        style={{
-          flexDirection: 'column',
-        }}>
-        <Text style={{...FONTS.h4, marginBottom: 4, color: COLORS.black}}>
-          {item.name}
-        </Text>
-        <Text style={{fontSize: 14, color: COLORS.secondaryGray}}>
-          {messageText}
-        </Text>
-      </View>
+    <TouchableOpacity onPress={onPress}>
+      <List.Item
+        title={item.name}
+        titleStyle={{...FONTS.h3}}
+        description={messageText}
+        descriptionStyle={{
+          marginTop: 5,
+          color: COLORS.secondaryGray,
+        }}
+        style={[
+          {
+            width: SIZES.width,
+            alignItems: 'center',
+            marginHorizontal: 20,
+            borderBottomColor: COLORS.secondaryWhite,
+            borderBottomWidth: 1,
+            paddingVertical: -10,
+          },
+          index % 2 == 0 && {
+            backgroundColor: COLORS.tertiaryWhite,
+          },
+        ]}
+        left={() => (
+          <View>
+            <View
+              style={{
+                flex: 1,
+                height: 14,
+                width: 14,
+                borderRadius: 7,
+                backgroundColor: COLORS.green,
+                borderColor: COLORS.white,
+                borderWidth: 2,
+                position: 'absolute',
+                bottom: 0,
+                right: 2,
+                zIndex: 1000,
+              }}
+            />
+
+            <Avatar.Image
+              source={{
+                uri: item?.image || images.imageLoading,
+              }}
+              size={50}
+            />
+          </View>
+        )}
+      />
     </TouchableOpacity>
   );
 }
