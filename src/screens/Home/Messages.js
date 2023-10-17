@@ -17,86 +17,85 @@ import UISearch from '../../components/UISearch';
 import {authStore, conversationStore, profileStore} from '../../store';
 import Message_Items from './Message_Items';
 import {UserType} from '../../../UserContext';
-import {db} from '../../firebase/firebaseConfig';
-import UIModals from '../../components/UIModals';
-import {useIsFocused} from '@react-navigation/native';
-import Loading from '../../components/Loading';
+
 
 const Messages = ({navigation}) => {
-  const {setUserFriends, userFriends} = useContext(UserType);
+  const {setUserFriends, userFriends, users, userConversations} =
+    useContext(UserType);
   const [message, setMessage] = useState([]);
   const {profile, friends} = profileStore();
   const {userId} = authStore();
   const {conversations} = conversationStore();
-  const [filterMessage, setFilterMessage] = useState([]);
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [isVisible, setisVisible] = useState(false);
-  const isFocus = useIsFocused();
   const [isLayoutEffectDone, setIsLayoutEffectDone] = useState(false);
 
-  useEffect(() => {
-    if (searchQuery.length == 0) {
-      setFilterMessage(message);
-    } else {
-      const filteredData = message.filter(user =>
-        user.data.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-      setFilterMessage(filteredData);
-    }
-  }, [searchQuery]);
-  useEffect(() => {
-    setSearchQuery('');
-  }, [isFocus]);
-
   useLayoutEffect(() => {
+    const getData = async () => {
+      const list_friend = users.filter(item => friends.includes(item.id));
+      setUserFriends(list_friend);
+    };
     getData();
   }, [friends]);
 
   useLayoutEffect(() => {
     const getConversations = async () => {
-      setIsLayoutEffectDone(false);
-      try {
-        if (conversations.length > 0) {
-          db.collection('Conversations')
-            .orderBy('last_message', 'desc')
-            .onSnapshot(async snapshot => {
-              const res = [];
-              snapshot.forEach(doc => {
-                res.push({
-                  id: doc.id,
-                  data: doc.data(),
-                });
-              });
-              const filteredConversations = res.filter(conversation =>
-                conversations.includes(conversation.id),
-              );
-              setMessage(filteredConversations);
-              setFilterMessage(filteredConversations);
-              setIsLayoutEffectDone(true);
-            });
-        } else {
-          setMessage([]);
-          setIsLayoutEffectDone(true);
-        }
-      } catch (error) {
-        console.log(error);
-      }
+      const filter = userConversations.filter(
+        i => i.data?.senderID == userId || i.data?.member_id?.includes(userId),
+      );
+      setMessage(filter);
+      setIsLayoutEffectDone(true);
     };
     getConversations();
-  }, [conversations]);
-  const getData = async () => {
-    const promises = friends.map(async id => {
-      const doc = await db.collection('users').doc(id).get();
-      return {
-        id: doc.id,
-        name: doc.data().name,
-        image: doc.data().image,
-        last_active_at: doc.data().last_active_at,
-        phone: doc.data().phone,
-      };
-    });
-    const users = await Promise.all(promises);
-    setUserFriends(users);
+  }, [userConversations]);
+
+  const renderItem = ({item}) => {
+    return (
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate('Chats', {
+            item: item.data,
+            type: 'Person',
+            conversation_id: `${userId}-${item.id}`,
+            recipientId: item.id,
+          })
+        }
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 66,
+          height: 77,
+        }}>
+        <View
+          style={{
+            borderColor: 'blue',
+            height: 54,
+            width: 54,
+            borderWidth: 1,
+            borderRadius: 27,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Avatar.Image
+            source={{uri: item.data.image || images.imageLoading}}
+            size={50}
+          />
+          <Badge
+            size={15}
+            style={{
+              position: 'absolute',
+              backgroundColor: COLORS.green,
+              borderColor: COLORS.white,
+              borderWidth: 2,
+              bottom: 0,
+              right: 0,
+            }}
+          />
+        </View>
+
+        <Text style={{color: COLORS.black, flex: 1}} numberOfLines={1}>
+          {item.data.name}
+        </Text>
+      </TouchableOpacity>
+    );
   };
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -116,17 +115,36 @@ const Messages = ({navigation}) => {
             }}
             size={44}
           />
-          <Text style={{...FONTS.h2}}>Đoạn Chat</Text>
-
-          <TouchableOpacity onPress={() => navigation.navigate('AddChat')}>
-            <MaterialCommunityIcons
-              name="pencil"
-              size={25}
-              color={COLORS.secondaryBlack}
-            />
-          </TouchableOpacity>
+          <Text style={{...FONTS.h2}}>Đoạn chat</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              width: '20%',
+              justifyContent: 'space-between',
+            }}>
+            <TouchableOpacity onPress={() => navigation.navigate('AddContact')}>
+              <MaterialCommunityIcons
+                name="account-plus-outline"
+                size={25}
+                color={COLORS.secondaryBlack}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('AddChat')}>
+              <MaterialCommunityIcons
+                name="chat-plus-outline"
+                size={25}
+                color={COLORS.secondaryBlack}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-        <UISearch onChangeText={setSearchQuery} value={searchQuery} />
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('Search', {conversations: message})
+          }>
+          <UISearch editable={false} />
+        </TouchableOpacity>
 
         <View
           style={{
@@ -140,79 +158,36 @@ const Messages = ({navigation}) => {
             horizontal={true}
             data={userFriends}
             keyExtractor={item => item.id}
-            renderItem={({item}) => (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('Chats', {
-                    item,
-                    type: item?.type || 'Person',
-                    conversation_id: `${userId}-${item.id}`,
-                    recipientId: item.id,
-                  })
-                }
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 66,
-                  height: 77,
-                }}>
-                <View>
-                  <Avatar.Image
-                    source={{uri: item.image || images.imageLoading}}
-                    size={55}
-                  />
-                  <Badge
-                    size={15}
-                    style={{
-                      position: 'absolute',
-                      backgroundColor: COLORS.green,
-                      borderColor: COLORS.white,
-                      borderWidth: 2,
-                      bottom: 0,
-                      right: 0,
-                    }}
-                  />
-                </View>
-
-                <Text style={{color: COLORS.black, flex: 1}} numberOfLines={1}>
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            )}
+            renderItem={renderItem}
           />
         </View>
-        {isLayoutEffectDone ? (
-          <>
-            {filterMessage.length == 0 && (
-              <Text style={{...FONTS.h3, color: COLORS.black}}>
-                Chưa có tin nhắn
-              </Text>
-            )}
 
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={filterMessage}
-              renderItem={({item, index}) => (
-                <Message_Items
-                  item={item.data}
-                  conversation_id={item.id}
-                  index={index}
-                  onPress={() => {
-                    navigation.navigate('Chats', {
-                      item: item.data,
-                      type: item?.data?.type,
-                      conversation_id: item.id,
-                      recipientId: item?.data?.recipientId,
-                    });
-                  }}
-                />
-              )}
-              keyExtractor={item => item.id.toString()}
-            />
-          </>
-        ) : (
-          <ActivityIndicator size={30} color="black" />
+        {message.length == 0 && (
+          <Text style={{...FONTS.h3, color: COLORS.black}}>
+            Chưa có tin nhắn
+          </Text>
         )}
+
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={message}
+          renderItem={({item, index}) => (
+            <Message_Items
+              item={item.data}
+              conversation_id={item.id}
+              index={index}
+              onPress={() => {
+                navigation.navigate('Chats', {
+                  item: item.data,
+                  type: item?.data?.type,
+                  conversation_id: item.id,
+                  recipientId: item?.data?.recipientId,
+                });
+              }}
+            />
+          )}
+          keyExtractor={item => item.id.toString()}
+        />
       </PageContainer>
     </SafeAreaView>
   );

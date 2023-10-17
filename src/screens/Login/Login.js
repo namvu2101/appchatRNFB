@@ -30,13 +30,13 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isdisable, setIsdisable] = useState(true);
   const icons_social = [images.gg, images.fb, images.ap];
-  const [hideKeyboard, setHideKeyboard] = useState(false);
+  const [hideKeyboard, setHideKeyboard] = useState(true);
   useEffect(() => {
-    Keyboard.addListener('keyboardDidShow', () => {
-      setHideKeyboard(false);
-    });
     Keyboard.addListener('keyboardDidHide', () => {
       setHideKeyboard(true);
+    });
+    Keyboard.addListener('keyboardDidShow', () => {
+      setHideKeyboard(false);
     });
   }, []);
 
@@ -86,7 +86,6 @@ export default function Login() {
           </Text>
           <View>
             <UITextInput
-              autoFocus={true}
               title="Account/Phone number"
               value={account}
               inputMode="numeric"
@@ -181,7 +180,7 @@ export default function Login() {
           />
           <Button
             textColor={COLORS.red}
-            onPress={() => navigation.navigate('PhoneNumber','signup')}>
+            onPress={() => navigation.navigate('PhoneNumber', 'signup')}>
             Bạn chưa có tài khoản ? Đăng ký tại đây
           </Button>
         </View>

@@ -5,10 +5,13 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Avatar, ProgressBar} from 'react-native-paper';
 import {authStore, conversationStore, profileStore} from '../store';
 import NetInfo from '@react-native-community/netinfo';
+import {db} from '../firebase/firebaseConfig';
+import {UserType} from '../../UserContext';
 
 const LoadingScreen = ({navigation}) => {
   const isFocused = useIsFocused();
   const {setUserId} = authStore();
+  const {setUsers, setUserConversations} = useContext(UserType);
   const {setConversations} = conversationStore();
   const {setProfile, setFriendRequest, setFriends, setSentRequest} =
     profileStore();
@@ -33,11 +36,13 @@ const LoadingScreen = ({navigation}) => {
         await setUserId(userId);
 
         const promises = [
+          getConversations(),
           setFriends(userId),
           setFriendRequest(userId),
           setSentRequest(userId),
           setConversations(userId),
           setProfile(userId),
+          getUser(userId),
         ];
 
         await Promise.all(promises);
@@ -59,6 +64,31 @@ const LoadingScreen = ({navigation}) => {
 
     checkUserAndRedirect();
   }, [isFocused]);
+  const getUser = async id => {
+    db.collection('users').onSnapshot(doc => {
+      const data = doc.docs.map(i => {
+        return {
+          id: i.id,
+          data: i.data(),
+        };
+      });
+      setUsers(data.filter(i => i.id != id));
+    });
+  };
+  const getConversations = () => {
+    db.collection('Conversations')
+      .orderBy('last_message', 'desc')
+      .onSnapshot(doc => {
+        const res = doc.docs.map(i => {
+          return {
+            id: i.id,
+            data: i.data(),
+          };
+        });
+
+        setUserConversations(res);
+      });
+  };
   return (
     <LinearGradient
       colors={['#3777F0', '#FFFFFF']}

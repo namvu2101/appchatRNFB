@@ -1,5 +1,5 @@
 import {StyleSheet, Text, View, TouchableOpacity, FlatList} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useContext, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import UISearch from '../../components/UISearch';
@@ -8,28 +8,29 @@ import {COLORS, FONTS, SIZES} from '../../constants';
 import Custom_Item from './Custom_Item';
 import {profileStore} from '../../store';
 import {db} from '../../firebase/firebaseConfig';
+import {UserType} from '../../../UserContext';
 
 export default function Index() {
   const {friendRequests} = profileStore();
-  const [filteredUsers, setFilteredUsers] = React.useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const {users} = useContext(UserType);
+  const [search, setSearch] = useState('');
+  const [data, setData] = useState([]);
   useEffect(() => {
-    const getData = async () => {
-      const promises = friendRequests.map(async id => {
-        const doc = await db.collection('users').doc(id).get();
-        return {
-          id: doc.id,
-          name: doc.data().name,
-          image: doc.data().image,
-          phone: doc.data().phone,
-        };
-      });
+    if (search.length == 0) {
+      const filter = users.filter(item => friendRequests.includes(item.id));
+      setFilteredUsers(filter);
+    } else {
+      const newData = [...filteredUsers];
+      const res = newData.filter(
+        item =>
+          item.data.name.toLowerCase().includes(search.toLowerCase()) ||
+          item.data.phone.includes(search),
+      );
+      setFilteredUsers(res);
+    }
+  }, [search]);
 
-      const users = await Promise.all(promises);
-      setFilteredUsers(users);
-    };
-
-    getData();
-  }, [friendRequests]);
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
@@ -46,17 +47,22 @@ export default function Index() {
             Lời mời kết bạn
           </Text>
         </View>
-        <UISearch  />
+        <UISearch
+          value={search}
+          onChangeText={setSearch}
+          onClear={() => setSearch('')}
+        />
         {friendRequests.length == 0 && (
           <Text style={{...FONTS.h3, color: COLORS.black}}>
-           Không có lời mời nào
+            Không có lời mời nào
           </Text>
         )}
         <FlatList
           data={filteredUsers}
           renderItem={({item}) => (
             <Custom_Item
-              item={item}
+              item={item.data}
+              id={item.id}
               setData={setFilteredUsers}
               data={filteredUsers}
             />

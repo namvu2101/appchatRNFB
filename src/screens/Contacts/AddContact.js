@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import UISearch from '../../components/UISearch';
@@ -14,48 +14,69 @@ import {db} from '../../firebase/firebaseConfig';
 import {authStore} from '../../store';
 import Request_Items from './Request_Items';
 import {profileStore} from '../../store';
-
+import {COLORS, FONTS} from '../../constants';
+import {UserType} from '../../../UserContext';
 export default function AddContact() {
   const [contactsRandom, setContactsRandom] = useState([]);
   const {userId} = authStore();
-  const {friends,friendRequests} = profileStore();
+  const {friends, friendRequests} = profileStore();
+  const [search, setSearch] = useState('');
+  const {users} = useContext(UserType);
+  const [res, setRes] = useState([]);
   useEffect(() => {
     const getUsers = async () => {
-      const resq = await db
-        .collection('users')
-        .get()
-        .then(doc =>
-          doc.docs.map(
-            item =>
-              (data = {
-                id: item.id,
-                name: item.data().name,
-                image: item.data().image,
-                phone: item.data().phone,
-              }),
-          ),
-        );
-      const filterData = resq.filter(
-        item => item.id != userId && !friends.includes(item.id) && !friendRequests.includes(item.id),
+      const filterData = users.filter(
+        item => !friends.includes(item.id) && !friendRequests.includes(item.id),
       );
-
-      setContactsRandom(filterData);
+      const randomContacts = filterData
+      .sort(() => Math.random() - 0.5)  // Xáo trộn mảng ngẫu nhiên
+      .slice(0, 7);  // Lấy 7 phần tử đầu tiên
+      setContactsRandom(randomContacts);
     };
     getUsers();
   }, []);
-
+  useEffect(() => {
+    if (search.length == 0) {
+      setRes([]);
+    }
+  }, [search]);
+  const handleSearch = () => {
+    const filter = users.filter(user => user.data.phone == search);
+    setRes(filter);
+  };
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
-        <UISearch />
+        <UISearch
+          inputMode="numeric"
+          value={search}
+          onChangeText={setSearch}
+          onClear={() => setSearch('')}
+          onSubmitEditing={handleSearch}
+          onPress={handleSearch}
+        />
+        {res.length > 0 && (
+          <FlatList
+            data={res}
+            renderItem={({item, index}) => (
+              <Request_Items item={item.data} id={item.id} index={index} />
+            )}
+            contentContainerStyle={{
+              height: 150,
+            }}
+          />
+        )}
+
+        <Text style={{...FONTS.h3, color: COLORS.secondaryGray}}>Gợi ý</Text>
         <FlatList
           data={contactsRandom}
           renderItem={({item, index}) => (
-            <Request_Items
-              item={item}
-              index={index}
-            />
+            <Request_Items item={item.data} id={item.id} index={index} />
           )}
+          contentContainerStyle={{
+            borderTopColor: COLORS.gray,
+            borderTopWidth: 1,
+          }}
         />
       </PageContainer>
     </SafeAreaView>

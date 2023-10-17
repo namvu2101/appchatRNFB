@@ -27,13 +27,13 @@ const profileStore = create(set => ({
       .onSnapshot(doc => {
         console.log('Update User Profile');
         const user = {
-          name: doc.data().name,
-          image: doc.data().image,
-          phone: doc.data().phone,
-          add: doc.data().add,
-          email: doc.data().email,
-          date: doc.data().date,
-          status: doc.data().status,
+          name: doc.data()?.name,
+          image: doc.data()?.image,
+          phone: doc.data()?.phone,
+          add: doc.data()?.add,
+          email: doc.data()?.email,
+          date: doc.data()?.date,
+          status: doc.data()?.status,
         };
         set({profile: user});
       });
@@ -42,11 +42,14 @@ const profileStore = create(set => ({
   setFriends: createActions(set, 'friends'),
   setSentRequest: createActions(set, 'sentRequestFriends'),
 }));
-
+const HistoryStore = create(set => ({
+  history_search: [],
+  update: newData => set({history_search: newData}),
+}));
 const conversationStore = create(set => ({
   conversations: [],
   updateConversations: newData => set({conversations: newData}),
   setConversations: createActions(set, 'conversations'),
 }));
 
-export {authStore, profileStore, conversationStore};
+export {authStore, profileStore, conversationStore,HistoryStore};

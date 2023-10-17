@@ -11,22 +11,24 @@ export default function Custom_item({item, index}) {
     <List.Item
       onPress={() => {
         navigation.navigate('Chats', {
-          item,
-          type: item?.type || 'Person',
+          item: item.data,
+          type: 'Person',
           conversation_id: `${userId}-${item.id}`,
           recipientId: item.id,
         });
       }}
-      
-      key={item.id}
-      title={item.name}
+      key={item.data.id}
+      title={item.data.name}
       descriptionNumberOfLines={1}
       titleStyle={{...FONTS.h3}}
-      style={{backgroundColor: index % 2 == 0 && COLORS.secondaryWhite,paddingVertical:-10}}
+      style={{
+        backgroundColor: index % 2 == 0 && COLORS.secondaryWhite,
+        paddingVertical: -10,
+      }}
       // description={item.phone}
       // descriptionStyle={{color: '#000', fontWeight: 'bold'}}
       left={props => (
-        <Avatar.Image source={{uri: item.image}} size={50} {...props} />
+        <Avatar.Image source={{uri: item.data.image}} size={50} {...props} />
       )}
     />
   );

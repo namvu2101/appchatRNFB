@@ -73,7 +73,7 @@ export default function AddChat({route}) {
 
   useEffect(() => {
     const filter = userFriends.sort(function (a, b) {
-      return a.name.localeCompare(b.name);
+      return a.data.name.localeCompare(b.name);
     });
     setDataList(filter);
   }, []);

@@ -11,26 +11,26 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {COLORS, FONTS, SIZES} from '../../constants';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {contacts} from '../../constants/data';
 import UISearch from '../../components/UISearch';
 import Custom_items from './Custom_items';
-import {db} from '../../firebase/firebaseConfig';
-import {profileStore} from '../../store';
 import {UserType} from '../../../UserContext';
 
 const Contacts = ({navigation}) => {
   const [search, setSearch] = useState('');
-  const [filteredUsers, setFilteredUsers] = useState(contacts);
-  const [data, setData] = useState([]);
   const {userFriends} = useContext(UserType);
-  const handleSearch = text => {
-    setSearch(text);
-    const filteredData = contacts.filter(user =>
-      user.userName.toLowerCase().includes(text.toLowerCase()),
-    );
-    setFilteredUsers(filteredData);
-  };
-
+  const [data, setdata] = useState(userFriends);
+  useEffect(() => {
+    if (search.length != 0) {
+      const filter = userFriends.filter(
+        item =>
+          item.data.name.toLowerCase().includes(search.toLowerCase()) ||
+          item.data.phone.includes(search),
+      );
+      setdata(filter);
+    } else {
+      setdata(userFriends);
+    }
+  }, [search]);
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
@@ -48,14 +48,18 @@ const Contacts = ({navigation}) => {
             <AntDesign name="plus" size={25} color={COLORS.secondaryBlack} />
           </TouchableOpacity>
         </View>
-        <UISearch value={search} onChangeText={setSearch} />
+        <UISearch
+          value={search}
+          onChangeText={setSearch}
+          onClear={() => setSearch('')}
+        />
         {userFriends.length == 0 && (
           <Text style={{...FONTS.h3, color: COLORS.black}}>Chưa có bạn bè</Text>
         )}
         <FlatList
-          data={userFriends}
+          data={data}
           renderItem={({item, index}) => (
-            <Custom_items item={item} index={index} />
+            <Custom_items item={item.data} index={index} userId={item.id} />
           )}
           keyExtractor={item => item.id.toString()}
         />

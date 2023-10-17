@@ -15,6 +15,7 @@ import AddContact from '../screens/Contacts/AddContact';
 import AddChat from '../screens/GroupChat/Index';
 import ChangePass from '../screens/User/ChangePass';
 import Information from '../screens/User/Information';
+import Search from '../screens/Home/Search';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   return (
@@ -52,6 +53,11 @@ const StackNavigator = () => {
         <Stack.Screen name="AddContact" component={AddContact} />
         <Stack.Screen name="AddChat" component={AddChat} />
         <Stack.Screen name="ChangePass" component={ChangePass} />
+        <Stack.Screen
+          name="Search"
+          component={Search}
+          options={{animation: 'fade', headerShown: false}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -4,7 +4,7 @@ import {COLORS, FONTS, SIZES, images} from '../../constants';
 import {useNavigation} from '@react-navigation/native';
 import {Avatar, List} from 'react-native-paper';
 
-export default function Custom_items({item, index}) {
+export default function Custom_items({item, index, userId}) {
   const navigation = useNavigation();
   const formatTime = time => {
     const jsDate = time.toDate();
@@ -15,7 +15,7 @@ export default function Custom_items({item, index}) {
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('Information', {
-          id: item.id,
+          id: userId,
         });
       }}>
       <List.Item
@@ -40,7 +40,16 @@ export default function Custom_items({item, index}) {
           },
         ]}
         left={() => (
-          <View>
+          <View
+            style={{
+              borderColor: 'blue',
+              height: 54,
+              width: 54,
+              borderWidth: 1,
+              borderRadius: 27,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <View
               style={{
                 flex: 1,

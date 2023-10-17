@@ -5,13 +5,16 @@ import {
   TouchableOpacity,
   FlatList,
   Pressable,
+  TextInput,
+  Keyboard,
+  Alert,
 } from 'react-native';
 import React, {useLayoutEffect, useState, useEffect, useContext} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Avatar, Badge, TextInput} from 'react-native-paper';
+import {Avatar, Badge} from 'react-native-paper';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
 import UITextInput from '../../components/UITextInput';
 import List_Message from './List_Message';
@@ -34,12 +37,11 @@ export default function Index({route}) {
   const [conversationData, setConversationData] = useState(recipient);
   const {profile} = profileStore();
   const {userId} = authStore();
-  const isFocus = useIsFocused();
   useEffect(() => {
-    if (input.length != 0) {
-      setSubmit(true);
-    } else {
+    if (input.length == 0) {
       setSubmit(false);
+    } else {
+      setSubmit(true);
     }
   }, [input]);
 
@@ -48,7 +50,7 @@ export default function Index({route}) {
     setOptionNavigator();
     fetchData();
     checkConversation_exists();
-  }, [isFocus]);
+  }, []);
   const fetchConversationData = () => {
     db.collection('Conversations')
       .doc(conversation_id)
@@ -102,7 +104,7 @@ export default function Index({route}) {
     return () => unsubscribe();
   };
 
-  const onSendMessage = async (messageType, imageUri) => {
+  const onSendMessage = (messageType, imageUri) => {
     onViewSend(messageType);
     const formData = {
       timeSend: timestamp,
@@ -130,12 +132,12 @@ export default function Index({route}) {
     ];
 
     conversationIds.forEach(conversationId => {
-      updateUserConversation(conversationId);
       sendPerson(conversationId, formData);
 
       if (conversation_exists) {
         db.collection('Conversations').doc(conversationId).update({
           last_message: timestamp,
+          messageText: input,
         });
       } else {
         createConversation(conversationId);
@@ -168,6 +170,7 @@ export default function Index({route}) {
     await collectionRef.add(formData);
     await db.collection('Conversations').doc(conversation_id).update({
       last_message: timestamp,
+      messageText: input,
     });
   };
   const updateUserConversation = id => {
@@ -184,15 +187,18 @@ export default function Index({route}) {
 
   const sendImage = async () => {
     const id = uuid.v4();
+    Keyboard.dismiss();
     try {
       const newImagePath = await handlePickImage();
-      onViewSend('image', newImagePath);
-      const reference = storage().ref(
-        `Conversations/${conversation_id}/Files/${id}`,
-      );
-      await reference.putFile(newImagePath);
-      const downloadURL = await reference.getDownloadURL();
-      await onSendMessage('image', downloadURL);
+      if (newImagePath != 'Error') {
+        onViewSend('image', newImagePath);
+        const reference = storage().ref(
+          `Conversations/${conversation_id}/Files/${id}`,
+        );
+        await reference.putFile(newImagePath);
+        const downloadURL = await reference.getDownloadURL();
+        await onSendMessage('image', downloadURL);
+      }
     } catch (error) {
       console.log('error', error);
     }
@@ -220,11 +226,23 @@ export default function Index({route}) {
   const list_icon = [
     {
       icon: 'video',
-      onPress: () => {},
+      onPress: () => {
+        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
+          text:'OK'
+        }], {
+          cancelable: true,
+        });
+      },
     },
     {
       icon: 'phone',
-      onPress: () => {},
+      onPress: () => {
+        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
+          text:'OK'
+        }], {
+          cancelable: true,
+        });
+      },
     },
     {
       icon: 'information',
@@ -250,7 +268,16 @@ export default function Index({route}) {
               color={'#000E08'}
             />
           </Pressable>
-          <View>
+          <View
+            style={{
+              borderColor: 'blue',
+              height: 50,
+              width: 50,
+              borderWidth: 1,
+              borderRadius: 27,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <Avatar.Image
               size={49}
               source={{uri: conversationData?.image || images.imageLoading}}
@@ -290,6 +317,7 @@ export default function Index({route}) {
               <Avatar.Icon
                 size={40}
                 icon={i.icon}
+                color={COLORS.primary}
                 style={{backgroundColor: '#fff'}}
               />
             </TouchableOpacity>
@@ -316,43 +344,49 @@ export default function Index({route}) {
             size={25}
             color={'#000E08'}
           />
-          <UITextInput
+          <TextInput
             value={input}
             onChangeText={setInput}
-            outlineStyle={styles._text_input}
-            style={{width: '70%', paddingHorizontal: 5, height: 50}}
-            outlinestyle={{borderRadius: 50}}
-            mode="outlined"
-            right={<TextInput.Icon icon="file-outline" color={'#797C7B'} />}
+            style={{
+              ...FONTS.h4,
+              width: '70%',
+              paddingHorizontal: 5,
+              height: 50,
+              borderColor: COLORS.primary,
+              borderWidth: 2,
+              borderRadius: 25,
+              paddingLeft: 12,
+              marginHorizontal: 10,
+            }}
           />
-          <View style={styles._btnSend}>
-            {submit ? (
-              <TouchableOpacity onPress={() => onSendMessage('text')}>
+          {submit ? (
+            <TouchableOpacity onPress={() => onSendMessage('text')}>
+              <MaterialCommunityIcons
+                name="send-circle"
+                size={44}
+                color={'#20A090'}
+              />
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity style={{marginRight: 10}} onPress={sendImage}>
                 <MaterialCommunityIcons
-                  name="send-circle"
-                  size={44}
-                  color={'#20A090'}
+                  name="camera-outline"
+                  size={25}
+                  color={'#000E08'}
                 />
               </TouchableOpacity>
-            ) : (
-              <>
-                <TouchableOpacity style={{marginRight: 10}} onPress={sendImage}>
-                  <MaterialCommunityIcons
-                    name="camera-outline"
-                    size={25}
-                    color={'#000E08'}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity>
-                  <MaterialCommunityIcons
-                    name="microphone"
-                    size={25}
-                    color={'#000E08'}
-                  />
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
+              <TouchableOpacity>
+                <MaterialCommunityIcons
+                  name="microphone"
+                  size={25}
+                  color={'#000E08'}
+                />
+              </TouchableOpacity>
+            </>
+          )}
+
+          <View style={styles._btnSend}></View>
         </View>
       </PageContainer>
     </SafeAreaView>
@@ -365,17 +399,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 55,
     width: SIZES.width,
-    borderBottomColor: COLORS.secondaryGray,
+    borderBottomColor: COLORS.gray,
     borderBottomWidth: 1,
     marginVertical: 5,
     paddingHorizontal: 22,
   },
   _input_box: {
-    height: 80,
+    height: 66,
     flexDirection: 'row',
     alignItems: 'center',
     width: SIZES.width,
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    borderTopColor: COLORS.secondaryWhite,
+    borderTopWidth: 1,
   },
   _btnSend: {
     width: 50,

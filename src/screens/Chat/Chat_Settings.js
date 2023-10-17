@@ -24,19 +24,21 @@ import Setting_modals from './Setting_modals';
 import Loading from '../../components/Loading';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/firestore';
+import {UserType} from '../../../UserContext';
 
 export default function ChatSettings({route}) {
   const navigation = useNavigation();
   const item = route.params.item;
+  const [isNotify, setIsNotify] = useState(true);
   const conversation_id = route.params.id;
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setisLoading] = useState(false);
   const [type, setType] = useState('');
   const [data, setData] = useState(item);
   const listItems = getInitialItems(item.type);
-  const listIcon = getIconItems(item.type, handleIconClick);
+  const listIcon = getIconItems(item.type, isNotify);
   const docRef = db.collection('Conversations').doc(conversation_id);
-
+  const {userConversations, setUserConversations} = React.useContext(UserType);
   useLayoutEffect(() => {
     docRef.onSnapshot(doc => {
       if (doc.exists) {
@@ -78,19 +80,70 @@ export default function ChatSettings({route}) {
         break;
       case 'Ẩn đoạn chat':
         hideConversation(conversation_id);
+        setUserConversations(
+          userConversations.filter(i => i.id != conversation_id),
+        );
+        navigation.replace('BottomTabs');
         break;
       case 'Rời nhóm':
-        await outConversation(conversation_id);
-        await navigation.replace('BottomTabs');
+        Alert.alert(
+          'Thông báo',
+          'Bạn muốn rời đoạn chat này ?',
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                setisLoading(true);
+                outConversation(conversation_id);
+                setUserConversations(
+                  userConversations.filter(i => i.id != conversation_id),
+                );
+                navigation.replace('BottomTabs');
+                setisLoading(false);
+              },
+            },
+            {text: 'Huỷ', style: 'cancel'},
+          ],
+          {cancelable: true},
+        );
         break;
       case 'Xóa đoạn chat':
         handleDelete();
+        setUserConversations(
+          userConversations.filter(i => i.id != conversation_id),
+        );
         break;
       default:
         break;
     }
   };
-  const handleIconClick = () => {};
+  const handleIconClick = index => {
+    console.log(index);
+    switch (index) {
+      case 0:
+        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
+          text:'OK'
+        }], {
+          cancelable: true,
+        });
+        break;
+      case 1:
+        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
+          text:'OK'
+        }], {
+          cancelable: true,
+        });
+        break;
+      case 2:
+        break;
+      case 3:
+        setIsNotify(!isNotify)
+        break;
+
+      default:
+        break;
+    }
+  };
   useLayoutEffect(() => {
     navigation.setOptions({});
   }, []);
@@ -174,8 +227,8 @@ export default function ChatSettings({route}) {
             {data?.name}
           </Text>
           <View style={styles.iconBox}>
-            {listIcon.map(item => (
-              <Pressable onPress={item.onPress} key={item.icon}>
+            {listIcon.map((item, index) => (
+              <Pressable onPress={() => handleIconClick(index)} key={item.icon}>
                 <Avatar.Icon
                   icon={item.icon}
                   size={40}
@@ -216,8 +269,8 @@ export default function ChatSettings({route}) {
 }
 const removeChat = async id => {
   try {
-    hideConversation(id);
     db.collection('Conversations').doc(id).delete();
+
     const messagesRef = db
       .collection('Conversations')
       .doc(id)
@@ -231,17 +284,11 @@ const removeChat = async id => {
   }
 };
 const hideConversation = async conversation_id => {
-  const userId = await AsyncStorage.getItem('userId');
-  db.collection('conversations')
-    .doc(userId)
-    .update({
-      list_conversations:
-        firebase.firestore.FieldValue.arrayRemove(conversation_id),
-    });
+  db.collection('Conversations').doc(conversation_id).delete();
 };
 const outConversation = async id => {
   const userId = await AsyncStorage.getItem('userId');
-  hideConversation(id);
+
   db.collection('Conversations')
     .doc(id)
     .update({

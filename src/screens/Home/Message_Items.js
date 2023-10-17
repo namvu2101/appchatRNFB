@@ -1,13 +1,14 @@
 import {StyleSheet, Text, View, TouchableOpacity, Image} from 'react-native';
 import React, {useEffect} from 'react';
 import {FONTS, COLORS, images, SIZES} from '../../constants';
-import {Avatar, List} from 'react-native-paper';
+import {ActivityIndicator, Avatar, List} from 'react-native-paper';
 import {db} from '../../firebase/firebaseConfig';
 import {authStore} from '../../store';
 
 export default function Message_Items({item, index, onPress, conversation_id}) {
   const [chatmessages, setChatMessages] = React.useState([]);
-  const [messageText, setMessageText] = React.useState();
+  const [messageText, setMessageText] = React.useState('');
+  const [isLoading, setisLoading] = React.useState(false);
   const {userId} = authStore();
   React.useLayoutEffect(() => {
     const unsubscribe = db
@@ -20,18 +21,23 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
         setChatMessages(data);
       });
     return () => unsubscribe();
-  }, [conversation_id]);
+  }, []);
   React.useLayoutEffect(() => {
+    setisLoading(false);
     if (chatmessages.length != 0) {
       if (userId == chatmessages?.[0]?.senderId) {
-        setMessageText(`Bạn : ${chatmessages?.[0]?.messageText}`);
+        setMessageText(`Bạn: ${chatmessages?.[0]?.messageText}`);
       } else {
         setMessageText(
-          `${chatmessages?.[0].name} : ${chatmessages?.[0]?.messageText}`,
+          `${chatmessages?.[0].name}: ${chatmessages?.[0]?.messageText}`,
         );
       }
+      setTimeout(() => {
+        setisLoading(true);
+      }, 200);
     } else {
-      setMessageText(`Hãy gửi lời chào đến ${item.name}`);
+      setMessageText(`Hãy gửi lời chào đến: ${item.name}`);
+      setisLoading(true);
     }
   }, [chatmessages]);
   return (
@@ -39,7 +45,13 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
       <List.Item
         title={item.name}
         titleStyle={{...FONTS.h3}}
-        description={messageText}
+        description={
+          isLoading ? (
+            messageText
+          ) : (
+            <ActivityIndicator size={12} color="black" />
+          )
+        }
         descriptionStyle={{
           marginTop: 5,
           color: COLORS.secondaryGray,
@@ -58,7 +70,16 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
           },
         ]}
         left={() => (
-          <View>
+          <View
+            style={{
+              borderColor: 'blue',
+              height: 54,
+              width: 54,
+              borderWidth: 1,
+              borderRadius: 27,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <View
               style={{
                 flex: 1,

@@ -15,6 +15,7 @@ import {validatePassword} from '../../constants/validate';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UIModals from '../../components/UIModals';
 import ListAvatar from '../../components/ListAvatar';
+import Loading from '../../components/Loading';
 
 const CreateProfile = ({navigation, route}) => {
   const phoneNumber = route.params;
@@ -25,6 +26,7 @@ const CreateProfile = ({navigation, route}) => {
   const [secure, setSecure] = useState(true);
   const [submit, setsubmit] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const handleRegister = async () => {
     const date = new Date();
@@ -55,6 +57,7 @@ const CreateProfile = ({navigation, route}) => {
       .then(docRef => {
         const userId = docRef.id;
         AsyncStorage.setItem('userId', userId);
+        setIsLoading(false);
         navigation.replace('Loading');
       })
       .catch(error => console.error('Lỗi khi thêm người dùng:', error));
@@ -65,13 +68,14 @@ const CreateProfile = ({navigation, route}) => {
     } else setsubmit(false);
   }, [email, userName, password]);
 
-  const CheckValue = () => {
+  const CheckValue = async () => {
     const validationResult = validatePassword(password);
     if (validationResult === null) {
       if (image.length == 0) {
         setErrorMessage('chua chon avatar');
       } else {
-        handleRegister();
+        setIsLoading(true);
+        await handleRegister();
       }
     } else {
       setErrorMessage('Lỗi: ' + validationResult);
@@ -87,8 +91,10 @@ const CreateProfile = ({navigation, route}) => {
   };
   const ChangeAvatar = async () => {
     const avatar = await handlePickImage();
-    setIsVisible(false);
-    setImage(avatar);
+    if (avatar != 'Error') {
+      setIsVisible(false);
+      setImage(avatar);
+    }
   };
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -182,6 +188,7 @@ const CreateProfile = ({navigation, route}) => {
             />
           </View>
         </UIModals>
+        <Loading isVisible={isLoading} />
       </PageContainer>
     </SafeAreaView>
   );

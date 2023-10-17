@@ -6,7 +6,7 @@ import {authStore, profileStore} from '../../store';
 import {useNavigation} from '@react-navigation/native';
 import {handleActions} from '../User/actions';
 
-export default function Request_Items({item, index}) {
+export default function Request_Items({item, index, id}) {
   const [sentrequest, setSentrequest] = useState(false);
   const {sentRequestFriends} = profileStore();
   const navigation = useNavigation();
@@ -14,7 +14,7 @@ export default function Request_Items({item, index}) {
     navigation.setOptions({headerTitle: 'Thêm bạn'});
   }, []);
   useLayoutEffect(() => {
-    if (sentRequestFriends.find(i => i == item.id)) {
+    if (sentRequestFriends.find(i => i == id)) {
       setSentrequest(true);
     } else {
       setSentrequest(false);
@@ -22,10 +22,10 @@ export default function Request_Items({item, index}) {
   }, [sentRequestFriends]);
 
   const handleSent = () => {
-    handleActions('Kết bạn', item.id);
+    handleActions('Kết bạn', id);
   };
   const handleCancel = () => {
-    handleActions('Hủy yêu cầu', item.id);
+    handleActions('Hủy yêu cầu', id);
   };
   const handleSubmit = () => {
     if (sentrequest) {
@@ -39,7 +39,7 @@ export default function Request_Items({item, index}) {
       key={index}
       onPress={() => {
         navigation.navigate('Information', {
-          id: item.id,
+          id: id,
         });
       }}>
       <List.Item
@@ -64,7 +64,16 @@ export default function Request_Items({item, index}) {
           },
         ]}
         left={() => (
-          <View>
+          <View
+            style={{
+              borderColor: 'blue',
+              height: 54,
+              width: 54,
+              borderWidth: 1,
+              borderRadius: 27,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <View
               style={{
                 flex: 1,

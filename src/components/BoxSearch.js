@@ -10,7 +10,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SIZES, FONTS, COLORS} from '../constants';
 
-export default function UISearch(props) {
+export default function BoxSearch(props) {
   return (
     <View style={{...styles.container, ...props.style}}>
       <TouchableOpacity onPress={props.onPress}>
@@ -26,7 +26,6 @@ export default function UISearch(props) {
         placeholder=" Tìm kiếm"
         placeholderTextColor={'#CACACA'}
         onSubmitEditing={props.onPress}
-        inputMode={props.inputMode}
       />
       {props.value && props.value.length != 0 && (
         <TouchableOpacity onPress={props.onClear}>

@@ -1,10 +1,19 @@
-import {View, Text, Pressable, Image, StyleSheet, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  Image,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import React from 'react';
 import {Avatar, IconButton} from 'react-native-paper';
 import {COLORS, SIZES, images} from '../../constants';
 import UIModals from '../../components/UIModals';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {db} from '../../firebase/firebaseConfig';
+import ImageModals from '../Modals/ImageModals';
 
 export default function List_Message({
   item,
@@ -85,7 +94,11 @@ export default function List_Message({
             <Text style={styles.messageText}>{item?.messageText}</Text>
 
             {isSelected && (
-              <Text style={styles.timestampText}>
+              <Text
+                style={{
+                  ...styles.timestampText,
+                  textAlign: item?.senderId === userId ? 'right' : 'left',
+                }}>
                 {formatTime(item.timeSend)}
               </Text>
             )}
@@ -127,7 +140,7 @@ export default function List_Message({
                   uri: item?.photo || images.imageLoading,
                 }}
                 style={styles.image}
-                resizeMode="contain"
+                resizeMode="cover"
               />
               {isLongPress && (
                 <View
@@ -159,15 +172,8 @@ export default function List_Message({
       <UIModals
         isVisible={isVisible}
         onClose={() => setisVisible(false)}
-        style={{alignItems: 'center'}}>
-        <Image
-          source={{uri: item?.photo || images.imageLoading}}
-          style={{
-            height: SIZES.height * 0.8,
-            width: SIZES.width * 0.8,
-          }}
-          resizeMode="contain"
-        />
+        animationInTiming={100}>
+        <ImageModals onClose={() => setisVisible(false)} image={item.photo} />
       </UIModals>
     </View>
   );
@@ -179,7 +185,6 @@ const styles = StyleSheet.create({
     maxWidth: '60%',
     borderRadius: 7,
     margin: 10,
-    alignItems: 'center',
   },
   senderMessageContainer: {
     alignSelf: 'flex-end',

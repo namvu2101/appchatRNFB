@@ -6,24 +6,24 @@ import {authStore, profileStore} from '../../store';
 import {useNavigation} from '@react-navigation/native';
 import {handleActions} from '../User/actions';
 
-export default function Custom_Item({item, data, setData}) {
+export default function Custom_Item({item, data, setData, id}) {
   const navigation = useNavigation();
 
   const handleAccept = () => {
-    handleActions('Chấp nhận', item.id);
-    setData(data.filter(i => i.id != item.id));
+    handleActions('Chấp nhận', id);
+    setData(data.filter(i => i.id != id));
   };
 
   const handleReject = () => {
-    setData(data.filter(i => i.id != item.id));
-    handleActions('Từ chối', item.id);
+    setData(data.filter(i => i.id != id));
+    handleActions('Từ chối', id);
   };
 
   return (
     <Pressable
       onPressOut={() =>
         navigation.navigate('Information', {
-          id: item.id,
+          id: id,
         })
       }
       style={{

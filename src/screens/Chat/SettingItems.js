@@ -41,6 +41,11 @@ export function getInitialItems(type) {
     items.unshift({title: 'Biệt danh', onPress: () => {}});
     items.push(
       {
+        icon: 'eye-off',
+        color: '#000',
+        title: 'Ẩn đoạn chat',
+      },
+      {
         icon: 'delete-forever-outline',
         color: '#000',
         title: 'Xóa đoạn chat',
@@ -51,40 +56,27 @@ export function getInitialItems(type) {
   return items;
 }
 
-export function getIconItems(type) {
-  const [isNotify, setIsNotify] = useState(true);
+export function getIconItems(type, isNotify) {
   return [
     {
       icon: 'phone',
       color: '#000',
       title: 'Gọi',
-      onPress: () => {
-        console.log('Press Call');
-      },
     },
     {
       icon: 'video',
       color: '#000',
       title: 'Video',
-      onPress: () => {
-        console.log('Press Video');
-      },
     },
     {
       icon: type === 'Group' ? 'account-plus' : 'account',
       color: '#000',
       title: type === 'Group' ? 'Thêm' : 'Xem',
-      onPress: () => {
-        console.log('Press Add');
-      },
     },
     {
       icon: isNotify ? 'bell' : 'bell-off',
       color: isNotify ? '#000' : '#3777F0',
       title: isNotify ? 'Tắt' : 'Bật',
-      onPress: () => {
-        setIsNotify(!isNotify);
-      },
     },
   ];
 }

@@ -62,7 +62,7 @@ export default function CreateGroup({onClose, friends}) {
                 },
               },
             ]);
-            addConversation(member_id, doc.id);
+            // addConversation(member_id, doc.id);
           });
       } catch (error) {
         console.log(error);
@@ -111,11 +111,11 @@ export default function CreateGroup({onClose, friends}) {
     return (
       <View style={styles.memberItem}>
         <Avatar.Image
-          source={{uri: item.image || images.imageLoading}}
+          source={{uri: item.data.image || images.imageLoading}}
           size={44}
         />
         <View style={{marginHorizontal: 10}}>
-          <Text style={{...FONTS.h3, textAlign: 'left'}}>{item.name}</Text>
+          <Text style={{...FONTS.h3, textAlign: 'left'}}>{item.data.name}</Text>
         </View>
         <Checkbox.Item
           status={member.some(m => m.id === item.id) ? 'checked' : 'unchecked'}
@@ -143,13 +143,13 @@ export default function CreateGroup({onClose, friends}) {
                 alignItems: 'center',
               }}>
               <Avatar.Image
-                source={{uri: item.image || images.imageLoading}}
+                source={{uri: item.data.image || images.imageLoading}}
                 size={44}
               />
               <Text
                 style={{...FONTS.h4, textAlign: 'center', width: 55}}
                 numberOfLines={1}>
-                {item.name}
+                {item.data.name}
               </Text>
               <MaterialCommunityIcons
                 name="alpha-x-circle"
