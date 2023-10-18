@@ -16,6 +16,7 @@ import AddChat from '../screens/GroupChat/Index';
 import ChangePass from '../screens/User/ChangePass';
 import Information from '../screens/User/Information';
 import Search from '../screens/Home/Search';
+import CreateGroup from '../screens/GroupChat/CreateGroup';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   return (
@@ -45,10 +46,19 @@ const StackNavigator = () => {
           component={LoadingScreen}
           options={{headerShown: false}}
         />
+        <Stack.Screen
+          name="CreateGroup"
+          component={CreateGroup}
+          options={{headerShown: false}}
+        />
         <Stack.Screen name="UserProfile" component={UserProfile} />
         <Stack.Screen name="ChatSettings" component={ChatSettings} />
 
-        <Stack.Screen name="Chats" component={Index} />
+        <Stack.Screen
+          name="Chats"
+          component={Index}
+          options={{headerShown: false}}
+        />
         <Stack.Screen name="Information" component={Information} />
         <Stack.Screen name="AddContact" component={AddContact} />
         <Stack.Screen name="AddChat" component={AddChat} />

@@ -24,7 +24,7 @@ import Setting_modals from './Setting_modals';
 import Loading from '../../components/Loading';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/firestore';
-import {UserType} from '../../../UserContext';
+import {UserType} from '../../contexts/UserContext';
 
 export default function ChatSettings({route}) {
   const navigation = useNavigation();

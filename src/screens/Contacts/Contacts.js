@@ -13,7 +13,7 @@ import {COLORS, FONTS, SIZES} from '../../constants';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import UISearch from '../../components/UISearch';
 import Custom_items from './Custom_items';
-import {UserType} from '../../../UserContext';
+import {UserType} from '../../contexts/UserContext';
 
 const Contacts = ({navigation}) => {
   const [search, setSearch] = useState('');
@@ -30,7 +30,7 @@ const Contacts = ({navigation}) => {
     } else {
       setdata(userFriends);
     }
-  }, [search]);
+  }, [search,userFriends]);
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>

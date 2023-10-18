@@ -18,7 +18,7 @@ import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {url} from '../../components/configURL';
-import {UserType} from '../../../UserContext';
+import {UserType} from '../../contexts/UserContext';
 import {db} from '../../firebase/firebaseConfig';
 
 export default function Login() {

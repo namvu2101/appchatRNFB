@@ -15,7 +15,7 @@ import {authStore} from '../../store';
 import Request_Items from './Request_Items';
 import {profileStore} from '../../store';
 import {COLORS, FONTS} from '../../constants';
-import {UserType} from '../../../UserContext';
+import {UserType} from '../../contexts/UserContext';
 export default function AddContact() {
   const [contactsRandom, setContactsRandom] = useState([]);
   const {userId} = authStore();

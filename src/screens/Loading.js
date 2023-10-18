@@ -6,7 +6,7 @@ import {Avatar, ProgressBar} from 'react-native-paper';
 import {authStore, conversationStore, profileStore} from '../store';
 import NetInfo from '@react-native-community/netinfo';
 import {db} from '../firebase/firebaseConfig';
-import {UserType} from '../../UserContext';
+import {UserType} from '../contexts/UserContext';
 
 const LoadingScreen = ({navigation}) => {
   const isFocused = useIsFocused();

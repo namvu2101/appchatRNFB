@@ -1,6 +1,6 @@
 import {StyleSheet, Text, View, Pressable, FlatList, Alert} from 'react-native';
-import React, {useEffect, useState} from 'react';
-import Modal from 'react-native-modal';
+import React, {useEffect, useState,useContext} from 'react';
+import Animated, {useSharedValue, withSpring} from 'react-native-reanimated';
 import {Avatar, Button, Checkbox, TextInput} from 'react-native-paper';
 import {db, storage} from '../../firebase/firebaseConfig';
 import firestore, {firebase} from '@react-native-firebase/firestore';
@@ -15,8 +15,9 @@ import {handlePickImage} from '../../components/ImagePicker';
 import {authStore, conversationStore} from '../../store';
 import uuid from 'react-native-uuid';
 import Loading from '../../components/Loading';
+import { UserType } from '../../contexts/UserContext';
 
-export default function CreateGroup({onClose, friends}) {
+export default function CreateGroup() {
   const navigation = useNavigation();
   const [isvisible, setIsVisible] = useState(false);
   const [member, setMember] = useState([]);
@@ -24,8 +25,22 @@ export default function CreateGroup({onClose, friends}) {
   const [image, setImage] = useState('');
   const [submit, setSubmit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const {updateConversations, conversations} = conversationStore();
+  const {userFriends} = useContext(UserType);
+  const [data, setdata] = useState(userFriends);
   const {userId} = authStore();
+  const [search, setSearch] = useState('');
+  useEffect(() => {
+    if (search.length != 0) {
+      const filter = userFriends.filter(
+        item =>
+          item.data.name.toLowerCase().includes(search.toLowerCase()) ||
+          item.data.phone.includes(search),
+      );
+      setdata(filter);
+    } else {
+      setdata(userFriends);
+    }
+  }, [search]);
   const handleCreate = async input => {
     const idImage = uuid.v4();
     const docRef = db.collection('Conversations');
@@ -115,22 +130,29 @@ export default function CreateGroup({onClose, friends}) {
           size={44}
         />
         <View style={{marginHorizontal: 10}}>
-          <Text style={{...FONTS.h3, textAlign: 'left'}}>{item.data.name}</Text>
+          <Text style={{...FONTS.h3,width:SIZES.width * 0.44}} numberOfLines={2}>{item.data.name}</Text>
         </View>
         <Checkbox.Item
           status={member.some(m => m.id === item.id) ? 'checked' : 'unchecked'}
           onPress={() => onPress(item)}
           color="red" // Màu khi đã chọn
           uncheckedColor="blue"
-          style={{borderRadius: 50}}
         />
       </View>
     );
   };
 
   const viewMember = () => {
+    const height = useSharedValue(80);
+    useEffect(() => {
+      if (member.length == 0) {
+        height.value = withSpring(height.value - 80, {damping: 100,stiffness:300});
+      } else {
+        height.value = withSpring(80, {damping: 100,stiffness:300});
+      }
+    }, [member]);
     return (
-      <View>
+      <Animated.View style={{height: height}}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -164,7 +186,7 @@ export default function CreateGroup({onClose, friends}) {
             </Pressable>
           )}
         />
-      </View>
+      </Animated.View>
     );
   };
   const ChangeAvatar = async () => {
@@ -180,7 +202,7 @@ export default function CreateGroup({onClose, friends}) {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-        <Pressable onPress={onClose}>
+        <Pressable onPress={()=>navigation.goBack()}>
           <MaterialCommunityIcons name="arrow-left" size={25} color="#000" />
         </Pressable>
 
@@ -195,11 +217,15 @@ export default function CreateGroup({onClose, friends}) {
           </Text>
         </Pressable>
       </View>
-      <UISearch style={{marginHorizontal: 0}} />
-      {member.length > 0 && viewMember()}
+      <UISearch
+          value={search}
+          onChangeText={setSearch}
+          onClear={() => setSearch('')}
+        />
+      {viewMember()}
       <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>Gợi ý</Text>
 
-      <FlatList data={friends} renderItem={renderItem} />
+      <FlatList data={data} renderItem={renderItem} />
 
       <UIModals isVisible={isvisible} onClose={onHide}>
         <View

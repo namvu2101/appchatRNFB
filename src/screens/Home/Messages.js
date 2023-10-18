@@ -16,8 +16,7 @@ import {contacts} from '../../constants/data';
 import UISearch from '../../components/UISearch';
 import {authStore, conversationStore, profileStore} from '../../store';
 import Message_Items from './Message_Items';
-import {UserType} from '../../../UserContext';
-
+import {UserType} from '../../contexts/UserContext';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends, users, userConversations} =
@@ -130,7 +129,12 @@ const Messages = ({navigation}) => {
                 color={COLORS.secondaryBlack}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('AddChat')}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('AddChat', {
+                  group: message.filter(i => i.data.type == 'Group'),
+                })
+              }>
               <MaterialCommunityIcons
                 name="chat-plus-outline"
                 size={25}

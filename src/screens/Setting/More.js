@@ -18,7 +18,7 @@ import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {conversationStore, profileStore} from '../../store';
 import SettingItems from './SettingItems';
-import {UserType} from '../../../UserContext';
+import {UserType} from '../../contexts/UserContext';
 
 export default function More() {
   const navigation = useNavigation();

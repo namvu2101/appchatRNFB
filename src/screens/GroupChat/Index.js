@@ -21,62 +21,31 @@ import {useNavigation} from '@react-navigation/native';
 import {COLORS, FONTS, SIZES} from '../../constants';
 import UITextInput from '../../components/UITextInput';
 import {Avatar} from 'react-native-paper';
-import {profileStore} from '../../store';
-import {UserType} from '../../../UserContext';
-import UIModals from '../../components/UIModals';
-import UISearch from '../../components/UISearch';
+import {UserType} from '../../contexts/UserContext';
 
 export default function AddChat({route}) {
-  const [isVisible, setisVisible] = useState(false);
   const [dataList, setDataList] = useState([]);
-  const {userFriends} = useContext(UserType);
-  const [input, setInput] = useState('');
+  const {userFriends, users} = useContext(UserType);
+  const [search, setSearch] = useState('');
+  const [data, setdata] = useState(userFriends.concat(route.params.group));
   const navigation = useNavigation();
-  const onClose = () => {
-    setisVisible(false);
-  };
 
-  const onOpen = () => {
-    if (input.length == 0) {
-      Alert.alert('Message', 'Name group is empty');
-    } else {
-      Keyboard.dismiss();
-      setisVisible(true);
-    }
-  };
   useLayoutEffect(() => {
     navigation.setOptions({headerTitle: 'Tin nhắn mới'});
   }, []);
 
-  const getDada = async () => {
-    // const uid = await AsyncStorage.getItem('uid');
-    // db.collection('Conversations').onSnapshot(onSnapshot => {
-    //   const list = [];
-    //   onSnapshot.docs.forEach(i => {
-    //     const group = {
-    //       id: i.id,
-    //       name: i.data().name,
-    //       avatar: i.data().avatar,
-    //       text: i.data().text,
-    //       timestamp: i.data().timestamp,
-    //     };
-    //     if (
-    //       i.data().type === 'Group' &&
-    //       i.data().member_id?.find(it => it === uid)
-    //     ) {
-    //       list.push(group);
-    //     }
-    //   });
-    //   setDataList(list);
-    // });
-  };
-
   useEffect(() => {
-    const filter = userFriends.sort(function (a, b) {
-      return a.data.name.localeCompare(b.name);
-    });
-    setDataList(filter);
-  }, []);
+    if (search.length != 0) {
+      const filter = userFriends.filter(
+        item =>
+          item.data.name.toLowerCase().includes(search.toLowerCase()) ||
+          item.data.phone.includes(search),
+      );
+      setdata(filter);
+    } else {
+      setdata(userFriends);
+    }
+  }, [search]);
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -89,63 +58,39 @@ export default function AddChat({route}) {
               marginVertical: 22,
             }}>
             <Text style={{...FONTS.h3}}>Đến: </Text>
-            <UITextInput style={{height: 30}} />
+            <UITextInput
+              style={{...FONTS.h3, height: 30}}
+              value={search}
+              onChangeText={setSearch}
+              underlineColor={COLORS.gray}
+            />
           </View>
           <View style={styles.underHeaderContainer}>
             <TouchableOpacity
               style={styles.underHeader}
-              onPress={() => setisVisible(true)}>
+              onPress={() => navigation.navigate('CreateGroup')}>
               <Avatar.Icon
                 icon="account-group"
                 size={44}
                 color="black"
                 style={{backgroundColor: COLORS.secondaryWhite}}
               />
-              <Text style={{...FONTS.h3}}>Tạo nhóm chat</Text>
+              <Text style={{...FONTS.h3, marginHorizontal: 10}}>
+                Tạo nhóm chat
+              </Text>
             </TouchableOpacity>
-            {/* <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              width: '90%',
-              justifyContent: 'space-between',
-            }}>
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              autoFocus
-              style={{width: 80}}
-            />
-            <Pressable onPress={onOpen}>
-              <MaterialCommunityIcons
-                name="plus-circle-outline"
-                size={30}
-                color="#fff"
-              />
-            </Pressable>
-          </View> */}
           </View>
           {/* -----------------------Body--------------------- */}
+          <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>Gợi ý</Text>
           <View style={styles.bodyContainer}>
-            <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
-              Gợi ý
-            </Text>
             <FlatList
-              data={dataList}
+              data={data}
               renderItem={({item, index}) => (
                 <Custom_item item={item} index={index} />
               )}
             />
           </View>
         </View>
-        <UIModals onClose={onClose} isVisible={isVisible}>
-          <Create_Group
-            isVisible={isVisible}
-            onClose={onClose}
-            friends={dataList}
-            input={input}
-          />
-        </UIModals>
       </PageContainer>
     </SafeAreaView>
   );
@@ -161,12 +106,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   underHeaderContainer: {
-    width: '80%',
+    width: SIZES.width * 0.8,
     marginVertical: 10,
   },
   underHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: SIZES.width ,
   },
   underHeaderText: {
     marginHorizontal: 20,
@@ -176,6 +122,7 @@ const styles = StyleSheet.create({
   },
   bodyContainer: {
     marginVertical: 22,
+    flex: 1,
   },
   groupChatsText: {
     textAlign: 'center',

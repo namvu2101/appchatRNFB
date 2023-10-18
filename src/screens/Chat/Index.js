@@ -23,6 +23,7 @@ import {authStore, profileStore} from '../../store';
 import {firebase} from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import {handlePickImage} from '../../components/ImagePicker';
+import Animated from 'react-native-reanimated';
 
 export default function Index({route}) {
   const navigation = useNavigation();
@@ -37,24 +38,19 @@ export default function Index({route}) {
   const [conversationData, setConversationData] = useState(recipient);
   const {profile} = profileStore();
   const {userId} = authStore();
-  useEffect(() => {
-    if (input.length == 0) {
-      setSubmit(false);
-    } else {
-      setSubmit(true);
-    }
-  }, [input]);
+  const timeSend = new Date();
 
   useLayoutEffect(() => {
     fetchConversationData();
-    setOptionNavigator();
     fetchData();
     checkConversation_exists();
-  }, []);
+  }, [conversation_id]);
   const fetchConversationData = () => {
     db.collection('Conversations')
       .doc(conversation_id)
-      .onSnapshot(query => {
+      .get()
+      .then(query => {
+        console.log('1');
         if (query.exists) {
           setConversationData(query.data());
         }
@@ -77,11 +73,6 @@ export default function Index({route}) {
         }
       });
   };
-  const setOptionNavigator = () => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  };
   const fetchData = () => {
     const unsubscribe = db
       .collection('Conversations')
@@ -97,7 +88,7 @@ export default function Index({route}) {
           };
           data.push(message);
         });
-
+        console.log('layy du lieu ok');
         setMessages(data);
       });
 
@@ -105,9 +96,10 @@ export default function Index({route}) {
   };
 
   const onSendMessage = (messageType, imageUri) => {
-    onViewSend(messageType);
+    const id = uuid.v4();
+    const timeSend = new Date();
     const formData = {
-      timeSend: timestamp,
+      timeSend: timeSend.toString(),
       senderId: userId,
       senderImage: profile.image,
       name: profile.name,
@@ -120,8 +112,10 @@ export default function Index({route}) {
     if (type === 'Person') {
       formData.recipientId = recipientId;
       sendPersonMessages(formData);
+      setMessages([{id: id, data: formData}, ...messages]);
     } else {
       sendGroup(formData);
+      setMessages([{id: id, data: formData}, ...messages]);
     }
     setInput('');
   };
@@ -136,7 +130,7 @@ export default function Index({route}) {
 
       if (conversation_exists) {
         db.collection('Conversations').doc(conversationId).update({
-          last_message: timestamp,
+          last_message: timeSend.toString(),
           messageText: input,
         });
       } else {
@@ -169,29 +163,16 @@ export default function Index({route}) {
       .collection('messages');
     await collectionRef.add(formData);
     await db.collection('Conversations').doc(conversation_id).update({
-      last_message: timestamp,
+      last_message: timeSend.toString(),
       messageText: input,
     });
   };
-  const updateUserConversation = id => {
-    const user = id === `${userId}-${recipientId}` ? userId : recipientId;
-    db.collection('conversations')
-      .doc(user)
-      .set(
-        {
-          list_conversations: firebase.firestore.FieldValue.arrayUnion(id),
-        },
-        {merge: true},
-      );
-  };
-
   const sendImage = async () => {
     const id = uuid.v4();
     Keyboard.dismiss();
     try {
       const newImagePath = await handlePickImage();
       if (newImagePath != 'Error') {
-        onViewSend('image', newImagePath);
         const reference = storage().ref(
           `Conversations/${conversation_id}/Files/${id}`,
         );
@@ -203,45 +184,40 @@ export default function Index({route}) {
       console.log('error', error);
     }
   };
-  const onViewSend = (messageType, imageUri) => {
-    const newMessage = {
-      senderId: userId,
-      senderImage: profile.image,
-      name: profile.name,
-      messageType: messageType === 'image' ? 'image' : 'text',
-      messageText: messageType === 'image' ? 'send photo' : input,
-    };
-    if (messageType === 'image') {
-      newMessage.photo = imageUri;
-    }
-    const message = {
-      id: `documentSnapshot.id`,
-      data: newMessage,
-    };
 
-    const copymessage = [...messages];
-    copymessage.unshift(message);
-    setMessages(copymessage);
-  };
   const list_icon = [
     {
       icon: 'video',
       onPress: () => {
-        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
-          text:'OK'
-        }], {
-          cancelable: true,
-        });
+        Alert.alert(
+          'Thông báo',
+          'Chức năng tạm thời chưa hoạt động',
+          [
+            {
+              text: 'OK',
+            },
+          ],
+          {
+            cancelable: true,
+          },
+        );
       },
     },
     {
       icon: 'phone',
       onPress: () => {
-        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
-          text:'OK'
-        }], {
-          cancelable: true,
-        });
+        Alert.alert(
+          'Thông báo',
+          'Chức năng tạm thời chưa hoạt động',
+          [
+            {
+              text: 'OK',
+            },
+          ],
+          {
+            cancelable: true,
+          },
+        );
       },
     },
     {
@@ -358,9 +334,13 @@ export default function Index({route}) {
               paddingLeft: 12,
               marginHorizontal: 10,
             }}
+            onSubmitEditing={() => onSendMessage('text')}
           />
-          {submit ? (
-            <TouchableOpacity onPress={() => onSendMessage('text')}>
+
+          {input.length != 0 ? (
+            <TouchableOpacity
+              onPress={() => onSendMessage('text')}
+              disabled={input.length != 0 ? false : true}>
               <MaterialCommunityIcons
                 name="send-circle"
                 size={44}
@@ -385,8 +365,6 @@ export default function Index({route}) {
               </TouchableOpacity>
             </>
           )}
-
-          <View style={styles._btnSend}></View>
         </View>
       </PageContainer>
     </SafeAreaView>

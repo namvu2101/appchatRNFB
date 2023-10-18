@@ -14,6 +14,7 @@ import UIModals from '../../components/UIModals';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {db} from '../../firebase/firebaseConfig';
 import ImageModals from '../Modals/ImageModals';
+import {firebase} from '@react-native-firebase/firestore';
 
 export default function List_Message({
   item,
@@ -25,11 +26,9 @@ export default function List_Message({
   const [isSelected, setisSelected] = React.useState(false);
   const [isVisible, setisVisible] = React.useState(false);
   const [isLongPress, setisLongPress] = React.useState(false);
-
   const formatTime = time => {
-    const jsDate = time.toDate();
-    const options = {hour: 'numeric', minute: 'numeric'};
-    return new Date(jsDate).toLocaleString('en-US', options);
+    const options = {hour: 'numeric', minute: 'numeric', hour12: true};
+    return new Date(time).toLocaleString('en-US', options);
   };
   const list = [
     {icon: 'arrow-down-thin', onPress: () => {}},

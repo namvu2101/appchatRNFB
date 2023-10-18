@@ -22,8 +22,11 @@ import {db, timestamp} from '../../firebase/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {profileStore} from '../../store';
 import {handleActions} from './actions';
+import UIModals from '../../components/UIModals';
+import ImageModals from '../Modals/ImageModals';
 
 export default function Information({route}) {
+  const [isVisible, setisVisible] = React.useState(false);
   const id = route.params.id;
   const [data, setData] = useState([]);
   const navigation = useNavigation();
@@ -52,7 +55,7 @@ export default function Information({route}) {
   };
   useEffect(() => {
     getStatus();
-  }, [sentRequestFriends,friends,friendRequests]);
+  }, [sentRequestFriends, friends, friendRequests]);
   const getStatus = async () => {
     if (friends.find(i => i == id)) {
       setStatus('Bạn bè');
@@ -128,7 +131,7 @@ export default function Information({route}) {
                 alignItems: 'center',
               }}>
               <Pressable
-                onPress={() => {}}
+                onPress={() => {setisVisible(true)}}
                 style={{
                   backgroundColor: 'white',
                   borderRadius: 55,
@@ -193,6 +196,15 @@ export default function Information({route}) {
           ) : (
             <ActivityIndicator size={30} color="black" />
           )}
+          <UIModals
+            isVisible={isVisible}
+            onClose={() => setisVisible(false)}
+            animationInTiming={100}>
+            <ImageModals
+              onClose={() => setisVisible(false)}
+              image={data.image}
+            />
+          </UIModals>
         </PageContainer>
       </ScrollView>
     </SafeAreaView>

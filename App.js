@@ -1,6 +1,6 @@
 import {StyleSheet, Text, View} from 'react-native';
 import StackNavigator from './src/navigations/StackNavigator';
-import {UserContext} from './UserContext';
+import {UserContext} from './src/contexts/UserContext';
 import {PaperProvider} from 'react-native-paper';
 
 export default function App() {

@@ -7,43 +7,42 @@ import UIButton from '../components/UIButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Welcome({navigation}) {
-  
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <View style={styles.container}>
-          <Image
-            source={images.illustration}
-            resizeMode="contain"
-            style={{
-              width: SIZES.width * 0.7,
-              height: SIZES.width * 0.7,
-              marginVertical: 48,
-            }}
-          />
-
-          <Text
-            style={{
-              ...(SIZES.width <= 360 ? {...FONTS.h2} : {...FONTS.h1}),
-              textAlign: 'center',
-              color: COLORS.black,
-              marginHorizontal: SIZES.padding * 0.8,
-            }}>
-            Connect easily with your family and friends over countries
-          </Text>
+          <View>
+            <Image
+              source={images.illustration}
+              resizeMode="contain"
+              style={{
+                width: SIZES.width * 0.7,
+                height: SIZES.width * 0.7,
+                marginVertical: 44,
+              }}
+            />
+            <Text
+              style={{
+                ...(SIZES.width <= 360 ? {...FONTS.h2} : {...FONTS.h1}),
+                textAlign: 'center',
+                fontWeight: 'bold',
+              }}>
+              Hãy khám phá và bắt đầu cuộc trò chuyện vui vẻ ngay bây giờ!
+            </Text>
+          </View>
 
           <View style={{width: '100%', alignItems: 'center'}}>
             <Text
               style={{
-                ...FONTS.h2,
+                ...FONTS.h3,
                 color: COLORS.black,
-                marginVertical: 12,
+                marginBottom: 33,
               }}>
-              Terms and Privacy
+              Chúc bạn có cuộc trò chuyện thú vị !
             </Text>
 
             <UIButton
-              title="Start Messaging"
+              title="Bắt đầu khám phá"
               onPress={() => navigation.navigate('Login')}
               style={{
                 width: SIZES.width - 44,
@@ -63,5 +62,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginHorizontal: 22,
+    paddingVertical: 22,
   },
 });

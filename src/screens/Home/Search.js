@@ -14,7 +14,7 @@ import PageContainer from '../../components/PageContainer';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {COLORS, SIZES, FONTS, images} from '../../constants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {UserType} from '../../../UserContext';
+import {UserType} from '../../contexts/UserContext';
 import {Avatar, List} from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {HistoryStore, authStore} from '../../store';

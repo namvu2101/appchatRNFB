@@ -8,7 +8,7 @@ import {COLORS, FONTS, SIZES} from '../../constants';
 import Custom_Item from './Custom_Item';
 import {profileStore} from '../../store';
 import {db} from '../../firebase/firebaseConfig';
-import {UserType} from '../../../UserContext';
+import {UserType} from '../../contexts/UserContext';
 
 export default function Index() {
   const {friendRequests} = profileStore();
