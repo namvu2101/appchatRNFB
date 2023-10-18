@@ -1,5 +1,5 @@
 import {StyleSheet, Text, View, Pressable, FlatList, Alert} from 'react-native';
-import React, {useEffect, useState,useContext} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import Animated, {useSharedValue, withSpring} from 'react-native-reanimated';
 import {Avatar, Button, Checkbox, TextInput} from 'react-native-paper';
 import {db, storage} from '../../firebase/firebaseConfig';
@@ -15,7 +15,7 @@ import {handlePickImage} from '../../components/ImagePicker';
 import {authStore, conversationStore} from '../../store';
 import uuid from 'react-native-uuid';
 import Loading from '../../components/Loading';
-import { UserType } from '../../contexts/UserContext';
+import {UserType} from '../../contexts/UserContext';
 
 export default function CreateGroup() {
   const navigation = useNavigation();
@@ -107,7 +107,7 @@ export default function CreateGroup() {
     const itemIndex = member.findIndex(m => m.id === item.id);
     if (itemIndex === -1) {
       // Nếu không có, thêm item vào danh sách member
-      setMember([...member, item]);
+      setMember([item, ...member]);
     } else {
       // Nếu có, loại bỏ item khỏi danh sách member
       const updatedMember = [...member];
@@ -130,12 +130,16 @@ export default function CreateGroup() {
           size={44}
         />
         <View style={{marginHorizontal: 10}}>
-          <Text style={{...FONTS.h3,width:SIZES.width * 0.44}} numberOfLines={2}>{item.data.name}</Text>
+          <Text
+            style={{...FONTS.h3, width: SIZES.width * 0.44}}
+            numberOfLines={2}>
+            {item.data.name}
+          </Text>
         </View>
         <Checkbox.Item
           status={member.some(m => m.id === item.id) ? 'checked' : 'unchecked'}
           onPress={() => onPress(item)}
-          color="red" // Màu khi đã chọn
+          color="red"
           uncheckedColor="blue"
         />
       </View>
@@ -146,9 +150,12 @@ export default function CreateGroup() {
     const height = useSharedValue(80);
     useEffect(() => {
       if (member.length == 0) {
-        height.value = withSpring(height.value - 80, {damping: 100,stiffness:300});
+        height.value = withSpring(height.value - 80, {
+          damping: 100,
+          stiffness: 300,
+        });
       } else {
-        height.value = withSpring(80, {damping: 100,stiffness:300});
+        height.value = withSpring(80, {damping: 100, stiffness: 300});
       }
     }, [member]);
     return (
@@ -202,7 +209,7 @@ export default function CreateGroup() {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-        <Pressable onPress={()=>navigation.goBack()}>
+        <Pressable onPress={() => navigation.goBack()}>
           <MaterialCommunityIcons name="arrow-left" size={25} color="#000" />
         </Pressable>
 
@@ -218,10 +225,10 @@ export default function CreateGroup() {
         </Pressable>
       </View>
       <UISearch
-          value={search}
-          onChangeText={setSearch}
-          onClear={() => setSearch('')}
-        />
+        value={search}
+        onChangeText={setSearch}
+        onClear={() => setSearch('')}
+      />
       {viewMember()}
       <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>Gợi ý</Text>
 

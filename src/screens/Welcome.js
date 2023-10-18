@@ -43,7 +43,7 @@ export default function Welcome({navigation}) {
 
             <UIButton
               title="Bắt đầu khám phá"
-              onPress={() => navigation.navigate('Login')}
+              onPress={() => navigation.replace('Login')}
               style={{
                 width: SIZES.width - 44,
                 paddingVertical: 12,

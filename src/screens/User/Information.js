@@ -34,7 +34,9 @@ export default function Information({route}) {
   const [status, setStatus] = useState('');
   const {friends, sentRequestFriends, friendRequests} = profileStore();
   const [icon, setIcon] = useState('');
+  
   useLayoutEffect(() => {
+    navigation.setOptions({headerTitle:'Thông tin người dùng'})
     getData();
     setTimeout(() => {
       setisLoading(true);

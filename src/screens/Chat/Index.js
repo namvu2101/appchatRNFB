@@ -16,7 +16,6 @@ import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Avatar, Badge} from 'react-native-paper';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
-import UITextInput from '../../components/UITextInput';
 import List_Message from './List_Message';
 import {db, storage, timestamp} from '../../firebase/firebaseConfig';
 import {authStore, profileStore} from '../../store';
@@ -173,12 +172,10 @@ export default function Index({route}) {
     try {
       const newImagePath = await handlePickImage();
       if (newImagePath != 'Error') {
-        const reference = storage().ref(
-          `Conversations/${conversation_id}/Files/${id}`,
-        );
+        const reference = storage().ref(`Conversations/Files/${id}`);
         await reference.putFile(newImagePath);
         const downloadURL = await reference.getDownloadURL();
-        await onSendMessage('image', downloadURL);
+        onSendMessage('image', downloadURL);
       }
     } catch (error) {
       console.log('error', error);
