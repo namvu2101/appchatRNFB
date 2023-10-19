@@ -12,7 +12,7 @@ import {
 import React, {useLayoutEffect, useState, useEffect, useContext} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Avatar, Badge} from 'react-native-paper';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
@@ -23,6 +23,7 @@ import {firebase} from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import {handlePickImage} from '../../components/ImagePicker';
 import Animated from 'react-native-reanimated';
+import {formatTime} from '../../components/Time_off';
 
 export default function Index({route}) {
   const navigation = useNavigation();
@@ -38,37 +39,36 @@ export default function Index({route}) {
   const {profile} = profileStore();
   const {userId} = authStore();
   const timeSend = new Date();
-
+  const isFocused = useIsFocused();
   useLayoutEffect(() => {
-    fetchConversationData();
     fetchData();
     checkConversation_exists();
-  }, [conversation_id]);
-  const fetchConversationData = () => {
-    db.collection('Conversations')
-      .doc(conversation_id)
-      .get()
-      .then(query => {
-        console.log('1');
-        if (query.exists) {
-          setConversationData(query.data());
-        }
-      });
-  };
+  }, [conversation_id, isFocused]);
+
   const checkConversation_exists = () => {
     db.collection('Conversations')
       .doc(conversation_id)
       .get()
       .then(doc => {
-        setConversation_exists(doc.exists);
-        if (
-          doc.exists &&
-          doc.data().type == 'Person' &&
-          doc.data().image != recipient.image
-        ) {
-          db.collection('Conversations').doc(conversation_id).update({
-            image: recipient.image,
-          });
+        if (doc.exists) {
+          setConversationData(doc.data());
+          if (
+            doc.data().type == 'Person' &&
+            doc.data().image != recipient.image
+          ) {
+            db.collection('Conversations').doc(conversation_id).update({
+              image: recipient.image,
+            });
+          }
+          if (
+            doc.data().type == 'Person' &&
+            doc.data.isOnline != recipient.isOnline
+          ) {
+            db.collection('Conversations').doc(conversation_id).update({
+              isOnline: recipient?.isOnline,
+              last_active_at: recipient?.last_active_at,
+            });
+          }
         }
       });
   };
@@ -87,7 +87,6 @@ export default function Index({route}) {
           };
           data.push(message);
         });
-        console.log('layy du lieu ok');
         setMessages(data);
       });
 
@@ -126,11 +125,12 @@ export default function Index({route}) {
 
     conversationIds.forEach(conversationId => {
       sendPerson(conversationId, formData);
-
       if (conversation_exists) {
         db.collection('Conversations').doc(conversationId).update({
           last_message: timeSend.toString(),
           messageText: input,
+          isOnline: recipient?.isOnline,
+          last_active_at: recipient?.last_active_at,
         });
       } else {
         createConversation(conversationId);
@@ -146,12 +146,18 @@ export default function Index({route}) {
       .doc(id)
       .set({
         type: 'Person',
-        last_message: timestamp,
+        isOnline:
+          id === `${userId}-${recipientId}` ? recipient?.isOnline : true,
+        last_message: timeSend.toString(),
         recipientId: id === `${userId}-${recipientId}` ? recipientId : userId,
         senderID: id === `${userId}-${recipientId}` ? userId : recipientId,
         name: id === `${userId}-${recipientId}` ? recipient.name : profile.name,
         image:
           id === `${userId}-${recipientId}` ? recipient.image : profile.image,
+        last_active_at:
+          id === `${userId}-${recipientId}`
+            ? recipient?.last_active_at
+            : timeSend.toString(),
       });
   };
 
@@ -259,7 +265,9 @@ export default function Index({route}) {
               size={15}
               style={{
                 position: 'absolute',
-                backgroundColor: COLORS.green,
+                backgroundColor: recipient?.isOnline
+                  ? COLORS.green
+                  : COLORS.gray,
                 borderColor: COLORS.white,
                 borderWidth: 2,
                 bottom: 0,
@@ -268,7 +276,12 @@ export default function Index({route}) {
             />
           </View>
 
-          <View style={{width: SIZES.width * 0.33, marginLeft: 12}}>
+          <View
+            style={{
+              width: SIZES.width * 0.33,
+              marginLeft: 12,
+              justifyContent: 'center',
+            }}>
             <Text
               numberOfLines={1}
               style={{
@@ -277,24 +290,27 @@ export default function Index({route}) {
               {conversationData?.name}
             </Text>
             <Text
-              numberOfLines={1}
               style={{
-                ...FONTS.h3,
-                color: COLORS.secondaryGray,
+                ...FONTS.h4,
+                color: conversationData?.isOnline ? 'red' : 'black',
               }}>
-              online
+              {conversationData?.isOnline
+                ? 'Đang hoạt động'
+                : `${formatTime(recipient?.last_active_at)}`}
             </Text>
           </View>
-          {list_icon.map(i => (
-            <TouchableOpacity onPress={i.onPress} key={i.icon}>
-              <Avatar.Icon
-                size={40}
-                icon={i.icon}
-                color={COLORS.primary}
-                style={{backgroundColor: '#fff'}}
-              />
-            </TouchableOpacity>
-          ))}
+          <View style={{flexDirection: 'row'}}>
+            {list_icon.map(i => (
+              <TouchableOpacity onPress={i.onPress} key={i.icon}>
+                <Avatar.Icon
+                  size={40}
+                  icon={i.icon}
+                  color={COLORS.primary}
+                  style={{backgroundColor: '#fff'}}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
         <FlatList
           inverted
@@ -378,6 +394,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginVertical: 5,
     paddingHorizontal: 22,
+    justifyContent: 'space-between',
   },
   _input_box: {
     height: 66,

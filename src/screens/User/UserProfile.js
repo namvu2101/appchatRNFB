@@ -43,25 +43,25 @@ export default function UserProfile() {
   }, []);
   const list = [
     {
-      name: 'Display Name',
+      name: 'Tên hiển thị',
       value: profile.name,
       editable: false,
       inputMode: 'text',
     },
     {
-      name: 'Email Address',
+      name: 'Địa chỉ email',
       value: profile?.email || 'Chưa cập nhật email',
       editable: false,
       inputMode: 'email',
     },
     {
-      name: 'Address',
+      name: 'Địa chỉ',
       value: profile?.add || 'Chưa cập nhật địa chỉ',
       editable: false,
       inputMode: 'text',
     },
     {
-      name: 'Phone Number',
+      name: 'SĐT đăng ký',
       value: profile.phone,
       editable: false,
       inputMode: 'numeric',
@@ -235,7 +235,7 @@ export default function UserProfile() {
                 </View>
               ))}
               <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
-                Date of Birth
+                Ngày sinh
               </Text>
               <Pressable
                 style={{

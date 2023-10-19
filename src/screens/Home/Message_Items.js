@@ -86,7 +86,7 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
                 height: 14,
                 width: 14,
                 borderRadius: 7,
-                backgroundColor: COLORS.green,
+                backgroundColor: item?.isOnline ? COLORS.green : COLORS.gray,
                 borderColor: COLORS.white,
                 borderWidth: 2,
                 position: 'absolute',

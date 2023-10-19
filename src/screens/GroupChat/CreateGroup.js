@@ -53,19 +53,20 @@ export default function CreateGroup() {
       try {
         setIsLoading(true);
         member_id.push(userId);
-        const reference = storage().ref(`Conversations/avatar/${idImage}`);
-        await reference.putFile(image);
-        const avatar = await reference.getDownloadURL();
-        await docRef
+        const reference = storage().ref(`Conversations/Group/files/${idImage}`);
+        const avatar = await uploadImage(reference, image);
+        const time = new Date();
+        docRef
           .add({
             type: 'Group',
             name: input,
             image: avatar,
-            last_message: firestore.FieldValue.serverTimestamp(),
+            last_message: time.toString(),
             messageText: 'Send somethings',
             create_id: userId,
             member_id: member_id,
             read: 'id da xem',
+            isOnline: true,
           })
           .then(async doc => {
             Alert.alert('Thông báo !', 'Tạo nhóm thành công', [
@@ -83,6 +84,10 @@ export default function CreateGroup() {
         console.log(error);
       }
     }
+  };
+  const uploadImage = async (reference, image) => {
+    await reference.putFile(image);
+    return await reference.getDownloadURL();
   };
 
   const addConversation = (data, id) => {
@@ -198,7 +203,9 @@ export default function CreateGroup() {
   };
   const ChangeAvatar = async () => {
     const avatar = await handlePickImage();
-    setImage(avatar);
+    if (avatar != 'Error') {
+      setImage(avatar);
+    }
   };
   return (
     <View style={{flex: 1, backgroundColor: '#FFF', paddingHorizontal: 22}}>

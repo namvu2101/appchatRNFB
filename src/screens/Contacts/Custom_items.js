@@ -1,16 +1,36 @@
 import {StyleSheet, Text, View, TouchableOpacity, Image} from 'react-native';
 import React from 'react';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
-import {useNavigation} from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useNavigationState,
+} from '@react-navigation/native';
 import {Avatar, List} from 'react-native-paper';
+import { formatTime } from '../../components/Time_off';
 
 export default function Custom_items({item, index, userId}) {
   const navigation = useNavigation();
-  const formatTime = time => {
-    const jsDate = time.toDate();
-    const options = {hour: 'numeric', minute: 'numeric'};
-    return new Date(jsDate).toLocaleString('en-US', options);
-  };
+  const isFocus = useIsFocused();
+  const navigationState = useNavigationState(state => state);
+  const [formattedTime, setFormattedTime] = React.useState(
+    formatTime(item.last_active_at),
+  );
+
+  React.useEffect(() => {
+    // Cập nhật thời gian sau mỗi giây
+    let interval;
+    if (navigationState.index == 1) {
+      interval = setInterval(() => {
+        const newFormattedTime = formatTime(item.last_active_at);
+        setFormattedTime(newFormattedTime);
+      }, 60000);
+    } else {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [isFocus]);
   return (
     <TouchableOpacity
       onPress={() => {
@@ -56,7 +76,7 @@ export default function Custom_items({item, index, userId}) {
                 height: 14,
                 width: 14,
                 borderRadius: 7,
-                backgroundColor: COLORS.green,
+                backgroundColor: item.isOnline ? COLORS.green : COLORS.gray,
                 borderColor: COLORS.white,
                 borderWidth: 2,
                 position: 'absolute',
@@ -74,7 +94,18 @@ export default function Custom_items({item, index, userId}) {
             />
           </View>
         )}
-        right={() => <Text style={{...FONTS.h3}}>Online</Text>}
+        right={() => (
+          <Text
+            style={{
+              ...FONTS.h4,
+              textAlignVertical: 'center',
+              textAlign: 'center',
+              width: '25%',
+              color: item.isOnline ? 'red' : 'black',
+            }}>
+            {item?.isOnline ? 'Đang hoạt động' : `${formattedTime}`}
+          </Text>
+        )}
       />
     </TouchableOpacity>
   );

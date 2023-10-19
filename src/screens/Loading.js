@@ -43,6 +43,7 @@ const LoadingScreen = ({navigation}) => {
           setConversations(userId),
           setProfile(userId),
           getUser(userId),
+          updateOnlineStatus(userId),
         ];
 
         await Promise.all(promises);
@@ -64,6 +65,14 @@ const LoadingScreen = ({navigation}) => {
 
     checkUserAndRedirect();
   }, [isFocused]);
+  const updateOnlineStatus = id => {
+    const time = new Date();
+    const onlineStatusRef = db.collection('users').doc(id);
+    onlineStatusRef.update({
+      isOnline: true,
+      last_active_at: time.toString(),
+    });
+  };
   const getUser = async id => {
     db.collection('users').onSnapshot(doc => {
       const data = doc.docs.map(i => {

@@ -16,9 +16,10 @@ import {COLORS, SIZES, FONTS} from '../../constants';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {conversationStore, profileStore} from '../../store';
+import {authStore, conversationStore, profileStore} from '../../store';
 import SettingItems from './SettingItems';
 import {UserType} from '../../contexts/UserContext';
+import { db } from '../../firebase/firebaseConfig';
 
 export default function More() {
   const navigation = useNavigation();
@@ -26,6 +27,7 @@ export default function More() {
   const {profile} = profileStore();
   const {setConversations} = conversationStore();
   const listItem = SettingItems();
+  const {userId} = authStore();
   const handleLogOut = () => {
     Alert.alert(
       'Thông báo!',
@@ -34,6 +36,7 @@ export default function More() {
         {
           text: 'Ok',
           onPress: () => {
+            updateOnlineStatus(userId);
             AsyncStorage.setItem('userId', '');
             setConversations([]);
             setUserFriends([]);
@@ -47,7 +50,14 @@ export default function More() {
       {cancelable: true},
     );
   };
-
+  const updateOnlineStatus = id => {
+    const time = new Date();
+    const onlineStatusRef = db.collection('users').doc(id);
+    onlineStatusRef.update({
+      isOnline: false,
+      last_active_at: time.toString(),
+    });
+  };
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>

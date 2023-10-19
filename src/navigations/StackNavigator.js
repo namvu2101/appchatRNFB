@@ -1,5 +1,5 @@
-import {StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import {AppState, StyleSheet, Text, View} from 'react-native';
+import React, {useState, useRef, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Welcome from '../screens/Welcome';
@@ -17,8 +17,36 @@ import ChangePass from '../screens/User/ChangePass';
 import Information from '../screens/User/Information';
 import Search from '../screens/Home/Search';
 import CreateGroup from '../screens/GroupChat/CreateGroup';
+import {db} from '../firebase/firebaseConfig';
+import {authStore} from '../store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
+  const {userId} = authStore();
+  useEffect(() => {
+    AppState.addEventListener('change', _handleAppStateChange);
+    return () => {
+      AppState.addEventListener('change', _handleAppStateChange);
+    };
+  }, []);
+  const _handleAppStateChange = async nextAppstate => {
+    const userId = await AsyncStorage.getItem('userId');
+    if (userId) {
+      if (nextAppstate === 'background') {
+        updateOnlineStatus(userId, false);
+      } else {
+        updateOnlineStatus(userId, true);
+      }
+    }
+  };
+  const updateOnlineStatus = (id, status) => {
+    const time = new Date();
+    const onlineStatusRef = db.collection('users').doc(id);
+    onlineStatusRef.update({
+      isOnline: status,
+      last_active_at: time.toString(),
+    });
+  };
   return (
     <NavigationContainer>
       <Stack.Navigator

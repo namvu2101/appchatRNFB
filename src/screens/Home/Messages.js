@@ -17,6 +17,7 @@ import UISearch from '../../components/UISearch';
 import {authStore, conversationStore, profileStore} from '../../store';
 import Message_Items from './Message_Items';
 import {UserType} from '../../contexts/UserContext';
+import Friend_Item from './Friend_Item';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends, users, userConversations} =
@@ -33,7 +34,7 @@ const Messages = ({navigation}) => {
       setUserFriends(list_friend);
     };
     getData();
-  }, [friends]);
+  }, [friends,users]);
 
   useLayoutEffect(() => {
     const getConversations = async () => {
@@ -46,56 +47,6 @@ const Messages = ({navigation}) => {
     getConversations();
   }, [userConversations]);
 
-  const renderItem = ({item}) => {
-    return (
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('Chats', {
-            item: item.data,
-            type: 'Person',
-            conversation_id: `${userId}-${item.id}`,
-            recipientId: item.id,
-          })
-        }
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 66,
-          height: 77,
-        }}>
-        <View
-          style={{
-            borderColor: 'blue',
-            height: 54,
-            width: 54,
-            borderWidth: 1,
-            borderRadius: 27,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Avatar.Image
-            source={{uri: item.data.image || images.imageLoading}}
-            size={50}
-          />
-          <Badge
-            size={15}
-            style={{
-              position: 'absolute',
-              backgroundColor: COLORS.green,
-              borderColor: COLORS.white,
-              borderWidth: 2,
-              bottom: 0,
-              right: 0,
-            }}
-          />
-        </View>
-
-        <Text style={{color: COLORS.black, flex: 1}} numberOfLines={1}>
-          {item.data.name}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
@@ -162,7 +113,7 @@ const Messages = ({navigation}) => {
             horizontal={true}
             data={userFriends}
             keyExtractor={item => item.id}
-            renderItem={renderItem}
+            renderItem={({item}) => <Friend_Item item={item} userId={userId} />}
           />
         </View>
 

@@ -77,22 +77,22 @@ export default function Login() {
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <View style={styles.container}>
-          <Text style={{...FONTS.h3, color: COLORS.black, fontWeight: 'bold'}}>
-            Log in to Chatbox
+          <Text style={{...FONTS.h2, color: COLORS.black, fontWeight: 'bold'}}>
+            Đăng nhập Chatbox
           </Text>
-          <Text style={{...FONTS.h4, color: COLORS.black, textAlign: 'center'}}>
-            Welcome back! Sign in using your social account or acount to
-            continue us
+          <Text style={{...FONTS.h3, color: COLORS.black, textAlign: 'center'}}>
+            Chào mừng trở lại! Đăng nhập bằng tài khoản xã hội hoặc tài khoản
+            của bạn
           </Text>
           <View>
             <UITextInput
-              title="Account/Phone number"
+              title="Số Điện Thoại"
               value={account}
               inputMode="numeric"
               onChangeText={setAccount}
             />
             <UITextInput
-              title="Password"
+              title="Mật khẩu"
               value={password}
               onChangeText={setPassword}
               secure={secure}
@@ -129,7 +129,7 @@ export default function Login() {
                   }}
                 />
                 <Text style={{color: COLORS.black, marginHorizontal: 10}}>
-                  OR
+                  Hoặc
                 </Text>
                 <View
                   style={{
@@ -140,8 +140,8 @@ export default function Login() {
                 />
               </View>
               <Text
-                style={{...FONTS.h4, color: COLORS.black, textAlign: 'center'}}>
-                Social Account
+                style={{...FONTS.h3, color: COLORS.black, textAlign: 'center'}}>
+                Đăng nhập bằng tài khoản
               </Text>
               <View
                 style={{
