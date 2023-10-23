@@ -71,7 +71,7 @@ export function getIconItems(type, isNotify) {
     {
       icon: type === 'Group' ? 'account-plus' : 'account',
       color: '#000',
-      title: type === 'Group' ? 'Thêm' : 'Xem',
+      title: type === 'Group' ? 'Thêm' : 'Thồng tin',
     },
     {
       icon: isNotify ? 'bell' : 'bell-off',

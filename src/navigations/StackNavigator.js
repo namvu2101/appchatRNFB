@@ -17,9 +17,10 @@ import ChangePass from '../screens/User/ChangePass';
 import Information from '../screens/User/Information';
 import Search from '../screens/Home/Search';
 import CreateGroup from '../screens/GroupChat/CreateGroup';
-import {db} from '../firebase/firebaseConfig';
+import {db, timestamp} from '../firebase/firebaseConfig';
 import {authStore} from '../store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { firebase } from '@react-native-firebase/auth';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const {userId} = authStore();
@@ -40,11 +41,10 @@ const StackNavigator = () => {
     }
   };
   const updateOnlineStatus = (id, status) => {
-    const time = new Date();
     const onlineStatusRef = db.collection('users').doc(id);
     onlineStatusRef.update({
       isOnline: status,
-      last_active_at: time.toString(),
+      last_active_at: timestamp,
     });
   };
   return (

@@ -2,7 +2,7 @@ import {StyleSheet, Text, View, Pressable, FlatList, Alert} from 'react-native';
 import React, {useEffect, useState, useContext} from 'react';
 import Animated, {useSharedValue, withSpring} from 'react-native-reanimated';
 import {Avatar, Button, Checkbox, TextInput} from 'react-native-paper';
-import {db, storage} from '../../firebase/firebaseConfig';
+import {db, storage, timestamp} from '../../firebase/firebaseConfig';
 import firestore, {firebase} from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -61,12 +61,13 @@ export default function CreateGroup() {
             type: 'Group',
             name: input,
             image: avatar,
-            last_message: time.toString(),
+            last_message: timestamp,
             messageText: 'Send somethings',
             create_id: userId,
             member_id: member_id,
             read: 'id da xem',
             isOnline: true,
+            admin: [userId],
           })
           .then(async doc => {
             Alert.alert('Thông báo !', 'Tạo nhóm thành công', [

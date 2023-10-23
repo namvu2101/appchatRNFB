@@ -19,17 +19,16 @@ import {COLORS, FONTS, SIZES, images} from '../../constants';
 import List_Message from './List_Message';
 import {db, storage, timestamp} from '../../firebase/firebaseConfig';
 import {authStore, profileStore} from '../../store';
-import {firebase} from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import {handlePickImage} from '../../components/ImagePicker';
-import Animated from 'react-native-reanimated';
 import {formatTime} from '../../components/Time_off';
-
+import {UserType} from '../../contexts/UserContext';
+import {getConversationMessages} from './FetchData';
 export default function Index({route}) {
   const navigation = useNavigation();
   const [input, setInput] = useState('');
+  const {users} = useContext(UserType);
   const [conversation_exists, setConversation_exists] = useState(false);
-  const [submit, setSubmit] = useState(false);
   const [messages, setMessages] = useState([]);
   const recipient = route.params.item;
   const recipientId = route.params.recipientId;
@@ -38,66 +37,63 @@ export default function Index({route}) {
   const [conversationData, setConversationData] = useState(recipient);
   const {profile} = profileStore();
   const {userId} = authStore();
-  const timeSend = new Date();
   const isFocused = useIsFocused();
   useLayoutEffect(() => {
-    fetchData();
     checkConversation_exists();
+    getConversationMessages(conversation_id, data => {
+      setMessages(data);
+    });
   }, [conversation_id, isFocused]);
 
-  const checkConversation_exists = () => {
+  const checkConversation_exists = async () => {
     db.collection('Conversations')
       .doc(conversation_id)
       .get()
       .then(doc => {
         if (doc.exists) {
           setConversationData(doc.data());
-          if (
-            doc.data().type == 'Person' &&
-            doc.data().image != recipient.image
-          ) {
-            db.collection('Conversations').doc(conversation_id).update({
-              image: recipient.image,
-            });
-          }
-          if (
-            doc.data().type == 'Person' &&
-            doc.data.isOnline != recipient.isOnline
-          ) {
-            db.collection('Conversations').doc(conversation_id).update({
-              isOnline: recipient?.isOnline,
-              last_active_at: recipient?.last_active_at,
-            });
+          if (doc.data().type == 'Person') {
+            const res = users.find(i => i.id == recipientId);
+            if (doc.data().last_active_at != res.data.last_active_at) {
+              db.collection('Conversations').doc(conversation_id).update({
+                isOnline: res.data.isOnline,
+                last_active_at: res.data.last_active_at,
+              });
+            } else if (doc.data().image != res.data.image) {
+              db.collection('Conversations').doc(conversation_id).update({
+                image: recipient.image,
+              });
+            }
           }
         }
       });
   };
-  const fetchData = () => {
-    const unsubscribe = db
-      .collection('Conversations')
-      .doc(conversation_id)
-      .collection('messages')
-      .orderBy('timeSend', 'desc')
-      .onSnapshot(querySnapshot => {
-        const data = [];
-        querySnapshot.forEach(documentSnapshot => {
-          const message = {
-            id: documentSnapshot.id,
-            data: documentSnapshot.data(),
-          };
-          data.push(message);
-        });
-        setMessages(data);
-      });
 
-    return () => unsubscribe();
-  };
+  // const fetchData = () => {
+  //   const unsubscribe = db
+  //     .collection('Conversations')
+  //     .doc(conversation_id)
+  //     .collection('messages')
+  //     .orderBy('timeSend', 'desc')
+  //     .onSnapshot(querySnapshot => {
+  //       const data = [];
+  //       querySnapshot.forEach(documentSnapshot => {
+  //         const message = {
+  //           id: documentSnapshot.id,
+  //           data: documentSnapshot.data(),
+  //         };
+  //         data.push(message);
+  //       });
+  //       setMessages(data);
+  //     });
+
+  //   return () => unsubscribe();
+  // };
 
   const onSendMessage = (messageType, imageUri) => {
     const id = uuid.v4();
-    const timeSend = new Date();
     const formData = {
-      timeSend: timeSend.toString(),
+      timeSend: timestamp,
       senderId: userId,
       senderImage: profile.image,
       name: profile.name,
@@ -127,10 +123,8 @@ export default function Index({route}) {
       sendPerson(conversationId, formData);
       if (conversation_exists) {
         db.collection('Conversations').doc(conversationId).update({
-          last_message: timeSend.toString(),
+          last_message: timestamp,
           messageText: input,
-          isOnline: recipient?.isOnline,
-          last_active_at: recipient?.last_active_at,
         });
       } else {
         createConversation(conversationId);
@@ -148,7 +142,7 @@ export default function Index({route}) {
         type: 'Person',
         isOnline:
           id === `${userId}-${recipientId}` ? recipient?.isOnline : true,
-        last_message: timeSend.toString(),
+        last_message: timestamp,
         recipientId: id === `${userId}-${recipientId}` ? recipientId : userId,
         senderID: id === `${userId}-${recipientId}` ? userId : recipientId,
         name: id === `${userId}-${recipientId}` ? recipient.name : profile.name,
@@ -157,7 +151,7 @@ export default function Index({route}) {
         last_active_at:
           id === `${userId}-${recipientId}`
             ? recipient?.last_active_at
-            : timeSend.toString(),
+            : timestamp,
       });
   };
 
@@ -168,13 +162,14 @@ export default function Index({route}) {
       .collection('messages');
     await collectionRef.add(formData);
     await db.collection('Conversations').doc(conversation_id).update({
-      last_message: timeSend.toString(),
+      last_message: timestamp,
       messageText: input,
     });
   };
   const sendImage = async () => {
     const id = uuid.v4();
     Keyboard.dismiss();
+
     try {
       const newImagePath = await handlePickImage();
       if (newImagePath != 'Error') {
@@ -292,9 +287,9 @@ export default function Index({route}) {
             <Text
               style={{
                 ...FONTS.h4,
-                color: conversationData?.isOnline ? 'red' : 'black',
+                color: recipient?.isOnline ? 'red' : 'black',
               }}>
-              {conversationData?.isOnline
+              {recipient?.isOnline
                 ? 'Đang hoạt động'
                 : `${formatTime(recipient?.last_active_at)}`}
             </Text>

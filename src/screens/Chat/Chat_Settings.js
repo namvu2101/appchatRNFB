@@ -62,7 +62,6 @@ export default function ChatSettings({route}) {
         break;
       case 'Background':
         onOpen(action);
-        setType(action);
         break;
       case 'Biệt danh':
         onOpen(action);
@@ -118,26 +117,46 @@ export default function ChatSettings({route}) {
     }
   };
   const handleIconClick = index => {
-    console.log(index);
     switch (index) {
       case 0:
-        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
-          text:'OK'
-        }], {
-          cancelable: true,
-        });
+        Alert.alert(
+          'Thông báo',
+          'Chức năng tạm thời chưa hoạt động',
+          [
+            {
+              text: 'OK',
+            },
+          ],
+          {
+            cancelable: true,
+          },
+        );
         break;
       case 1:
-        Alert.alert('Thông báo', 'Chức năng tạm thời chưa hoạt động', [{
-          text:'OK'
-        }], {
-          cancelable: true,
-        });
+        Alert.alert(
+          'Thông báo',
+          'Chức năng tạm thời chưa hoạt động',
+          [
+            {
+              text: 'OK',
+            },
+          ],
+          {
+            cancelable: true,
+          },
+        );
         break;
       case 2:
+        if (data.type == 'Person') {
+          navigation.navigate('Information', {
+            id: item.recipientId,
+          });
+        } else {
+          onOpen('add_member');
+        }
         break;
       case 3:
-        setIsNotify(!isNotify)
+        setIsNotify(!isNotify);
         break;
 
       default:
@@ -228,7 +247,10 @@ export default function ChatSettings({route}) {
           </Text>
           <View style={styles.iconBox}>
             {listIcon.map((item, index) => (
-              <Pressable onPress={() => handleIconClick(index)} key={item.icon}>
+              <Pressable
+                onPress={() => handleIconClick(index)}
+                key={item.icon}
+                style={{alignItems: 'center'}}>
                 <Avatar.Icon
                   icon={item.icon}
                   size={40}

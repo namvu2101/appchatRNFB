@@ -53,6 +53,7 @@ export default function Custom_Item({item, data, setData, id}) {
       <Button
         mode="elevated"
         textColor={COLORS.white}
+        buttonColor={COLORS.red}
         onPress={() => handleReject()}>
         Xóa
       </Button>

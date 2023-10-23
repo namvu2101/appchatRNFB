@@ -5,7 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Avatar, ProgressBar} from 'react-native-paper';
 import {authStore, conversationStore, profileStore} from '../store';
 import NetInfo from '@react-native-community/netinfo';
-import {db} from '../firebase/firebaseConfig';
+import {db, timestamp} from '../firebase/firebaseConfig';
 import {UserType} from '../contexts/UserContext';
 
 const LoadingScreen = ({navigation}) => {
@@ -66,11 +66,9 @@ const LoadingScreen = ({navigation}) => {
     checkUserAndRedirect();
   }, [isFocused]);
   const updateOnlineStatus = id => {
-    const time = new Date();
     const onlineStatusRef = db.collection('users').doc(id);
     onlineStatusRef.update({
       isOnline: true,
-      last_active_at: time.toString(),
     });
   };
   const getUser = async id => {
@@ -94,7 +92,6 @@ const LoadingScreen = ({navigation}) => {
             data: i.data(),
           };
         });
-
         setUserConversations(res);
       });
   };

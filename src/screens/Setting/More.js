@@ -19,7 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {authStore, conversationStore, profileStore} from '../../store';
 import SettingItems from './SettingItems';
 import {UserType} from '../../contexts/UserContext';
-import { db } from '../../firebase/firebaseConfig';
+import { db, timestamp } from '../../firebase/firebaseConfig';
 
 export default function More() {
   const navigation = useNavigation();
@@ -51,11 +51,10 @@ export default function More() {
     );
   };
   const updateOnlineStatus = id => {
-    const time = new Date();
     const onlineStatusRef = db.collection('users').doc(id);
     onlineStatusRef.update({
       isOnline: false,
-      last_active_at: time.toString(),
+      last_active_at: timestamp,
     });
   };
   return (
