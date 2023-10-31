@@ -27,7 +27,7 @@ import DatePicker from 'react-native-date-picker';
 
 export default function UserProfile() {
   const navigation = useNavigation();
-  const {profile} = profileStore();
+  const {profile, updateProfile} = profileStore();
   const [isVisible, setisVisible] = React.useState(false);
   const [image, setImage] = useState(profile.image);
   const [type, setType] = useState('');
@@ -41,6 +41,13 @@ export default function UserProfile() {
       headerShown: false,
     });
   }, []);
+  const ChangeAvatar = async () => {
+    setisVisible(false);
+    const avatar = await handlePickImage();
+    if (avatar != 'Error') {
+      setImage(avatar);
+    }
+  };
   const list = [
     {
       name: 'Tên hiển thị',
@@ -86,25 +93,26 @@ export default function UserProfile() {
     const idImage = uuid.v4();
     const userId = await AsyncStorage.getItem('userId');
     const docRef = db.collection('users').doc(userId);
+
     try {
       setIsLoading(true);
       const reference = storage().ref(`users/Avatar/${idImage}`);
       const avatarUrl = image.includes('http')
         ? image
         : await uploadImage(reference, image);
-      docRef
-        .update({
-          image: avatarUrl,
-          name: profileFields[0].value,
-          email: profileFields[1].value,
-          add: profileFields[2].value,
-          phone: profileFields[3].value,
-          date: newDate,
-        })
-        .then(() => {
-          setIsLoading(false);
-          Alert.alert('Thông báo', 'Cập nhật thành công');
-        });
+      const newProfile = {
+        image: avatarUrl,
+        name: profileFields[0].value,
+        email: profileFields[1].value,
+        add: profileFields[2].value,
+        phone: profileFields[3].value,
+        date: newDate,
+      };
+      docRef.update(newProfile).then(() => {
+        setIsLoading(false);
+        updateProfile(newProfile);
+        Alert.alert('Thông báo', 'Cập nhật thành công');
+      });
     } catch (error) {
       console.log(error);
     }
@@ -137,13 +145,6 @@ export default function UserProfile() {
       ]);
     } else {
       navigation.goBack();
-    }
-  };
-  const ChangeAvatar = async () => {
-    const avatar = await handlePickImage();
-    if (avatar != 'Error') {
-      setisVisible(false);
-      setImage(avatar);
     }
   };
 

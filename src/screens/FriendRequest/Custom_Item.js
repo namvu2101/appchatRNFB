@@ -26,17 +26,14 @@ export default function Custom_Item({item, data, setData, id}) {
           id: id,
         })
       }
-      style={{
-        width: SIZES.width,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-evenly',
-        marginVertical: 10,
-      }}>
-      <Avatar.Image
-        source={{uri: item?.image || images.imageLoading}}
-        size={55}
-      />
+      style={styles.items}>
+      <View style={styles.image}>
+        <Avatar.Image
+          source={{uri: item?.image || images.imageLoading}}
+          size={55}
+        />
+      </View>
+
       <View style={{width: 100, alignItems: 'center'}}>
         <Text style={{...FONTS.h4, color: COLORS.black}} numberOfLines={1}>
           {item?.name}
@@ -47,18 +44,40 @@ export default function Custom_Item({item, data, setData, id}) {
           {item?.phone}
         </Text>
       </View>
-      <Button mode="outlined" textColor="blue" onPress={() => handleAccept()}>
-        Thêm
-      </Button>
+
       <Button
         mode="elevated"
         textColor={COLORS.white}
-        buttonColor={COLORS.red}
-        onPress={() => handleReject()}>
+        buttonColor={COLORS.primary}
+        onPress={() => handleAccept()}>
+        Thêm
+      </Button>
+      <Button
+        mode="outlined"
+        textColor={COLORS.primary}
+        onPress={() => handleReject()}
+        style={{borderColor: COLORS.primary}}>
         Xóa
       </Button>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  items: {
+    width: SIZES.width,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    marginVertical: 10,
+  },
+  image: {
+    height: 60,
+    width: 60,
+    borderRadius: 30,
+    borderColor: COLORS.primary,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

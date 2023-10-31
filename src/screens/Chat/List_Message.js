@@ -27,9 +27,16 @@ export default function List_Message({
   const [isVisible, setisVisible] = React.useState(false);
   const [isLongPress, setisLongPress] = React.useState(false);
   const formatTime = time => {
-    const options = {hour: 'numeric', minute: 'numeric', hour12: true};
-    return new Date(time).toLocaleString('en-US', options);
+    if (time instanceof firebase.firestore.Timestamp) {
+      const jsDate = time.toDate();
+      const options = {hour: 'numeric', minute: 'numeric'};
+      return new Date(jsDate).toLocaleString('en-US', options);
+    } else {
+      const options = {hour: 'numeric', minute: 'numeric'};
+      return new Date(time).toLocaleString('en-US', options);
+    }
   };
+
   const list = [
     {icon: 'arrow-down-thin', onPress: () => {}},
     {icon: 'pin-outline', onPress: () => {}},

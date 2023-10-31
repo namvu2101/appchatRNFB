@@ -70,7 +70,7 @@ export default function Login() {
   };
   const handleLogin = userId => {
     AsyncStorage.setItem('userId', userId);
-    navigation.replace('Loading');
+    navigation.replace('Splash');
   };
 
   return (

@@ -8,10 +8,6 @@ import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
 import UISearch from '../../components/UISearch';
-import UIModals from '../../components/UIModals';
-import UITextInput from '../../components/UITextInput';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {handlePickImage} from '../../components/ImagePicker';
 import {authStore, conversationStore} from '../../store';
 import uuid from 'react-native-uuid';
 import Loading from '../../components/Loading';
@@ -19,15 +15,10 @@ import {UserType} from '../../contexts/UserContext';
 
 export default function CreateGroup() {
   const navigation = useNavigation();
-  const [isvisible, setIsVisible] = useState(false);
   const [member, setMember] = useState([]);
-  const [input, setInput] = useState('');
-  const [image, setImage] = useState('');
   const [submit, setSubmit] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const {userFriends} = useContext(UserType);
   const [data, setdata] = useState(userFriends);
-  const {userId} = authStore();
   const [search, setSearch] = useState('');
   useEffect(() => {
     if (search.length != 0) {
@@ -41,55 +32,6 @@ export default function CreateGroup() {
       setdata(userFriends);
     }
   }, [search]);
-  const handleCreate = async input => {
-    const idImage = uuid.v4();
-    const docRef = db.collection('Conversations');
-    if (input.length == 0) {
-      Alert.alert('Thông báo !', 'Chưa nhập tên nhóm');
-    } else if (image.length == 0) {
-      Alert.alert('Thông báo !', 'Chưa chọn ảnh nhóm');
-    } else {
-      const member_id = member.map(i => i.id);
-      try {
-        setIsLoading(true);
-        member_id.push(userId);
-        const reference = storage().ref(`Conversations/Group/files/${idImage}`);
-        const avatar = await uploadImage(reference, image);
-        const time = new Date();
-        docRef
-          .add({
-            type: 'Group',
-            name: input,
-            image: avatar,
-            last_message: timestamp,
-            messageText: 'Send somethings',
-            create_id: userId,
-            member_id: member_id,
-            read: 'id da xem',
-            isOnline: true,
-            admin: [userId],
-          })
-          .then(async doc => {
-            Alert.alert('Thông báo !', 'Tạo nhóm thành công', [
-              {
-                text: 'OK',
-                onPress: () => {
-                  setIsLoading(false);
-                  navigation.replace('BottomTabs');
-                },
-              },
-            ]);
-            // addConversation(member_id, doc.id);
-          });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
-  const uploadImage = async (reference, image) => {
-    await reference.putFile(image);
-    return await reference.getDownloadURL();
-  };
 
   const addConversation = (data, id) => {
     data.map(i => {
@@ -100,12 +42,6 @@ export default function CreateGroup() {
           {merge: true},
         );
     });
-  };
-
-  const onHide = () => {
-    setInput('');
-    setImage('');
-    setIsVisible(false);
   };
 
   const onPress = item => {
@@ -131,10 +67,22 @@ export default function CreateGroup() {
   const renderItem = ({item}) => {
     return (
       <View style={styles.memberItem}>
-        <Avatar.Image
-          source={{uri: item.data.image || images.imageLoading}}
-          size={44}
-        />
+        <View
+          style={{
+            height: 50,
+            width: 50,
+            borderRadius: 25,
+            borderColor: COLORS.primary,
+            borderWidth: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Avatar.Image
+            source={{uri: item.data.image || images.imageLoading}}
+            size={44}
+          />
+        </View>
+
         <View style={{marginHorizontal: 10}}>
           <Text
             style={{...FONTS.h3, width: SIZES.width * 0.44}}
@@ -202,12 +150,7 @@ export default function CreateGroup() {
       </Animated.View>
     );
   };
-  const ChangeAvatar = async () => {
-    const avatar = await handlePickImage();
-    if (avatar != 'Error') {
-      setImage(avatar);
-    }
-  };
+
   return (
     <View style={{flex: 1, backgroundColor: '#FFF', paddingHorizontal: 22}}>
       <View
@@ -222,7 +165,9 @@ export default function CreateGroup() {
         </Pressable>
 
         <Text style={{...FONTS.h2}}>Thêm thành viên</Text>
-        <Pressable disabled={!submit} onPress={() => setIsVisible(true)}>
+        <Pressable
+          disabled={!submit}
+          onPress={() => navigation.navigate('CreateInforGroup', member)}>
           <Text
             style={{
               ...FONTS.h3,
@@ -241,50 +186,6 @@ export default function CreateGroup() {
       <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>Gợi ý</Text>
 
       <FlatList data={data} renderItem={renderItem} />
-
-      <UIModals isVisible={isvisible} onClose={onHide}>
-        <View
-          style={{
-            backgroundColor: '#fff',
-            padding: 22,
-            marginHorizontal: 22,
-            alignItems: 'center',
-          }}>
-          <Pressable
-            onPress={() => {
-              ChangeAvatar();
-            }}
-            style={styles.avatarContainer}>
-            {image.length != 0 ? (
-              <Avatar.Image source={{uri: image}} size={66} />
-            ) : (
-              <Icon
-                name="person-circle-outline"
-                size={66}
-                color={COLORS.black}
-              />
-            )}
-            <Text style={styles.changeAvatarText}>Ảnh nhóm</Text>
-          </Pressable>
-          <Text style={{...FONTS.h4}}>Đặt tên cho đoạn chat mới</Text>
-          <UITextInput
-            style={{height: 44}}
-            placeholder="Tên nhóm (Bắt buộc)"
-            value={input}
-            onChangeText={setInput}
-            onSubmit={() => handleCreate(input)}
-          />
-          <View style={styles.buttonContainer}>
-            <Button textColor="#2C6BED" onPress={onHide}>
-              Hủy
-            </Button>
-            <Button textColor="#2C6BED" onPress={() => handleCreate(input)}>
-              Tạo
-            </Button>
-          </View>
-        </View>
-      </UIModals>
-      <Loading isVisible={isLoading} />
     </View>
   );
 }

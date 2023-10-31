@@ -1,9 +1,10 @@
 import {StyleSheet, Text, View, TouchableOpacity, Image} from 'react-native';
 import React, {useEffect} from 'react';
 import {FONTS, COLORS, images, SIZES} from '../../constants';
-import {ActivityIndicator, Avatar, List} from 'react-native-paper';
+import {ActivityIndicator, List} from 'react-native-paper';
 import {db} from '../../firebase/firebaseConfig';
 import {authStore} from '../../store';
+import {Avatar} from '@rneui/base/dist/Avatar/Avatar';
 
 export default function Message_Items({item, index, onPress, conversation_id}) {
   const [chatmessages, setChatMessages] = React.useState([]);
@@ -45,6 +46,8 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
       <List.Item
         title={item.name}
         titleStyle={{...FONTS.h3}}
+        titleNumberOfLines={1}
+        descriptionNumberOfLines={1}
         description={
           isLoading ? (
             messageText
@@ -96,7 +99,8 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
               }}
             />
 
-            <Avatar.Image
+            <Avatar
+              rounded
               source={{
                 uri: item?.image || images.imageLoading,
               }}

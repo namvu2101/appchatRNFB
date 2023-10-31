@@ -24,20 +24,29 @@ const profileStore = create(set => ({
   setProfile: id => {
     db.collection('users')
       .doc(id)
-      .onSnapshot(doc => {
+      .get()
+      .then(doc => {
         console.log('Update User Profile');
         const user = {
-          name: doc.data()?.name,
+          name: doc.data().name,
           image: doc.data()?.image,
           phone: doc.data()?.phone,
           add: doc.data()?.add,
           email: doc.data()?.email,
           date: doc.data()?.date,
           status: doc.data()?.status,
+          service: doc.data()?.service,
         };
         set({profile: user});
       });
   },
+  updateProfile: newProfile => set({profile: newProfile}),
+  updateService: (newService, profile) => {
+    const currentProfile = profile;
+    const updatedProfile = {...currentProfile, service: newService};
+    set({profile: updatedProfile});
+  },
+
   setFriendRequest: createActions(set, 'friendRequests'),
   setFriends: createActions(set, 'friends'),
   setSentRequest: createActions(set, 'sentRequestFriends'),
@@ -52,4 +61,4 @@ const conversationStore = create(set => ({
   setConversations: createActions(set, 'conversations'),
 }));
 
-export {authStore, profileStore, conversationStore,HistoryStore};
+export {authStore, profileStore, conversationStore, HistoryStore};

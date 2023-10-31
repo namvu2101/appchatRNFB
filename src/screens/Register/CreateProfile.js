@@ -45,11 +45,12 @@ const CreateProfile = ({navigation, route}) => {
       password: password,
       image: avatarUrl,
       status: true,
-      last_active_at: timestamp,
+      last_active_at: date,
       add: '',
       email: email,
       date: newDate,
       isOnline: true,
+      service: [],
     };
 
     usersCollection

@@ -19,7 +19,7 @@ export default function SettingItems() {
       name: 'Dịch vụ Chat',
       dec: 'Đăng ký nhận tin nhắn dịch vụ',
       onPress: () => {
-        Alert.alert('Thông báo', 'Chức năng chưa hoàn tiện');
+        navigation.navigate('Service');
       },
     },
     {
@@ -27,7 +27,7 @@ export default function SettingItems() {
       name: 'Quản lý dịch vụ Chat',
       dec: 'Quản lý và đăng ký dịch vụ Chat',
       onPress: () => {
-        Alert.alert('Thông báo', 'Chức năng chưa hoàn tiện');
+        navigation.navigate('ManageServices');
       },
     },
 

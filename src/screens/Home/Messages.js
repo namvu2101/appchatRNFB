@@ -5,6 +5,7 @@ import {
   Image,
   ScrollView,
   FlatList,
+  AppState,
 } from 'react-native';
 import React, {useContext, useLayoutEffect, useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -18,6 +19,8 @@ import {authStore, conversationStore, profileStore} from '../../store';
 import Message_Items from './Message_Items';
 import {UserType} from '../../contexts/UserContext';
 import Friend_Item from './Friend_Item';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {db, timestamp} from '../../firebase/firebaseConfig';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends, users, userConversations} =
@@ -26,15 +29,37 @@ const Messages = ({navigation}) => {
   const {profile, friends} = profileStore();
   const {userId} = authStore();
   const {conversations} = conversationStore();
-  const [isLayoutEffectDone, setIsLayoutEffectDone] = useState(false);
+  useEffect(() => {
+    AppState.addEventListener('change', _handleAppStateChange);
+    return () => {
+      AppState.addEventListener('change', _handleAppStateChange);
+    };
+  }, [AppState]);
+  const _handleAppStateChange = async nextAppstate => {
+    const userId = await AsyncStorage.getItem('userId');
+    if (userId) {
+      if (nextAppstate === 'background') {
+        updateOnlineStatus(userId, false);
+      } else {
+        updateOnlineStatus(userId, true);
+      }
+    }
+  };
 
+  const updateOnlineStatus = (id, status) => {
+    const onlineStatusRef = db.collection('users').doc(id);
+    onlineStatusRef.update({
+      isOnline: status,
+      last_active_at: new Date(),
+    });
+  };
   useLayoutEffect(() => {
     const getData = async () => {
       const list_friend = users.filter(item => friends.includes(item.id));
       setUserFriends(list_friend);
     };
     getData();
-  }, [friends,users]);
+  }, [friends, users]);
 
   useLayoutEffect(() => {
     const getConversations = async () => {
@@ -42,11 +67,20 @@ const Messages = ({navigation}) => {
         i => i.data?.senderID == userId || i.data?.member_id?.includes(userId),
       );
       setMessage(filter);
-      setIsLayoutEffectDone(true);
     };
     getConversations();
   }, [userConversations]);
-
+  const greetingMessage = () => {
+    const currentTime = new Date().getHours();
+    if (currentTime < 12) {
+      return 'Chào buổi sáng';
+    } else if (currentTime < 16) {
+      return 'Chào buổi chiều';
+    } else {
+      return 'Chào buổi tối';
+    }
+  };
+  const messageText = greetingMessage();
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
@@ -65,7 +99,7 @@ const Messages = ({navigation}) => {
             }}
             size={44}
           />
-          <Text style={{...FONTS.h2}}>Đoạn chat</Text>
+          <Text style={{...FONTS.h2, marginLeft: -30}}>{messageText}</Text>
           <View
             style={{
               flexDirection: 'row',

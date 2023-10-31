@@ -93,7 +93,7 @@ export default function Index({route}) {
   const onSendMessage = (messageType, imageUri) => {
     const id = uuid.v4();
     const formData = {
-      timeSend: timestamp,
+      timeSend: new Date(),
       senderId: userId,
       senderImage: profile.image,
       name: profile.name,
@@ -103,13 +103,15 @@ export default function Index({route}) {
     if (messageType === 'image') {
       formData.photo = imageUri;
     }
+    if (messageType == 'text') {
+      setMessages([{id: id, data: formData}, ...messages]);
+    }
+
     if (type === 'Person') {
       formData.recipientId = recipientId;
       sendPersonMessages(formData);
-      setMessages([{id: id, data: formData}, ...messages]);
     } else {
       sendGroup(formData);
-      setMessages([{id: id, data: formData}, ...messages]);
     }
     setInput('');
   };
@@ -169,10 +171,10 @@ export default function Index({route}) {
   const sendImage = async () => {
     const id = uuid.v4();
     Keyboard.dismiss();
-
     try {
       const newImagePath = await handlePickImage();
       if (newImagePath != 'Error') {
+        sendPhotoBackgroud(newImagePath);
         const reference = storage().ref(`Conversations/Files/${id}`);
         await reference.putFile(newImagePath);
         const downloadURL = await reference.getDownloadURL();
@@ -182,7 +184,20 @@ export default function Index({route}) {
       console.log('error', error);
     }
   };
+  const sendPhotoBackgroud = image => {
+    const id = uuid.v4();
 
+    const formData = {
+      timeSend: new Date(),
+      senderId: userId,
+      senderImage: profile.image,
+      name: profile.name,
+      messageType: 'image',
+      messageText: 'đã gửi hình ảnh',
+      photo: image,
+    };
+    setMessages([{id: id, data: formData}, ...messages]);
+  };
   const list_icon = [
     {
       icon: 'video',
@@ -352,7 +367,7 @@ export default function Index({route}) {
               <MaterialCommunityIcons
                 name="send-circle"
                 size={44}
-                color={'#20A090'}
+                color={COLORS.primary}
               />
             </TouchableOpacity>
           ) : (

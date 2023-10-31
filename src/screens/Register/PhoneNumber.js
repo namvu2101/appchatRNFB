@@ -262,7 +262,7 @@ export default function PhoneNumber({navigation, route}) {
                 fontSize: 12,
                 color: '#111',
               }}
-              placeholder="Enter your phone number"
+              placeholder="Nhập SĐT của bạn"
               placeholderTextColor={COLORS.secondaryGray}
               inputMode="numeric"
             />

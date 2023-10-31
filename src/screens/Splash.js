@@ -7,8 +7,18 @@ import {authStore, conversationStore, profileStore} from '../store';
 import NetInfo from '@react-native-community/netinfo';
 import {db, timestamp} from '../firebase/firebaseConfig';
 import {UserType} from '../contexts/UserContext';
+import {COLORS} from '../constants';
+import {Text, View} from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  Easing,
+  withSpring,
+} from 'react-native-reanimated';
 
-const LoadingScreen = ({navigation}) => {
+const Splash = ({navigation}) => {
   const isFocused = useIsFocused();
   const {setUserId} = authStore();
   const {setUsers, setUserConversations} = useContext(UserType);
@@ -28,36 +38,30 @@ const LoadingScreen = ({navigation}) => {
           return;
         }
         const userId = await AsyncStorage.getItem('userId');
-        if (!userId || !isFocused) {
-          navigation.replace('Welcome');
+        if (!userId) {
+          setTimeout(() => {
+            navigation.replace('Welcome');
+          }, 1000);
           return;
-        }
-
-        await setUserId(userId);
-
-        const promises = [
-          getConversations(),
-          setFriends(userId),
-          setFriendRequest(userId),
-          setSentRequest(userId),
-          setConversations(userId),
-          setProfile(userId),
-          getUser(userId),
-          updateOnlineStatus(userId),
-        ];
-
-        await Promise.all(promises);
-
-        let newProgress = 0.1;
-        const intervalId = setInterval(() => {
-          newProgress += 0.1;
-          setProgress(newProgress);
-
-          if (newProgress >= 1) {
-            clearInterval(intervalId);
+        } else {
+          await setUserId(userId);
+          const promises = [
+            startAnimation(),
+            getConversations(),
+            setFriends(userId),
+            setFriendRequest(userId),
+            setSentRequest(userId),
+            setConversations(userId),
+            setProfile(userId),
+            getUser(userId),
+            updateOnlineStatus(userId),
+          ];
+          await Promise.all(promises);
+          setTimeout(() => {
+            stopAnimation();
             navigation.replace('BottomTabs');
-          }
-        }, 200);
+          }, 3000);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -95,29 +99,45 @@ const LoadingScreen = ({navigation}) => {
         setUserConversations(res);
       });
   };
+  const size = useSharedValue(92);
+  const increasing = useSharedValue(1);
+  const startAnimation = () => {
+    size.value = withRepeat(
+      withSpring(110, {
+        damping: 500,
+        stiffness: 300,
+      }),
+      -1,
+      1,
+    );
+    increasing.value = -increasing.value; // Đảo chiều tăng/giảm
+  };
+  const stopAnimation = () => {
+    size.value = 92;
+    increasing.value = 1;
+  };
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: size.value,
+    width: size.value,
+    borderColor: '#fff',
+    borderWidth: 2,
+    borderRadius: size.value / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }));
   return (
-    <LinearGradient
-      colors={['#3777F0', '#FFFFFF']}
+    <View
       style={{
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'red',
+        backgroundColor: '#208FE9',
       }}>
-      <Avatar.Image source={require('../assets/iconapp.jpg')} size={88} />
-      <ProgressBar
-        progress={progress}
-        color={'#FFFFFF'}
-        style={{
-          height: 10,
-          width: 150,
-          borderRadius: 5,
-          backgroundColor: '#477FEE',
-          marginVertical: 10,
-        }}
-      />
-    </LinearGradient>
+      <Animated.View style={animatedStyle}>
+        <Avatar.Image source={require('../assets/iconapp.jpg')} size={88} />
+      </Animated.View>
+    </View>
   );
 };
 
-export default LoadingScreen;
+export default Splash;

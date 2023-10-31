@@ -7,7 +7,7 @@ import {
   useNavigationState,
 } from '@react-navigation/native';
 import {Avatar, List} from 'react-native-paper';
-import { formatTime } from '../../components/Time_off';
+import {formatTime} from '../../components/Time_off';
 
 export default function Custom_items({item, index, userId}) {
   const navigation = useNavigation();
@@ -41,6 +41,7 @@ export default function Custom_items({item, index, userId}) {
       <List.Item
         title={item.name}
         titleStyle={{...FONTS.h3}}
+        titleNumberOfLines={1}
         description={item.phone}
         descriptionStyle={{
           marginTop: 5,

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {db} from '../../firebase/firebaseConfig';
 import {firebase} from '@react-native-firebase/firestore';
+import {Alert} from 'react-native';
 
 export const handleActions = async (action, id) => {
   const userId = await AsyncStorage.getItem('userId');
@@ -21,6 +22,22 @@ export const handleActions = async (action, id) => {
       break;
 
     default:
+      Alert.alert(
+        'Thông báo !',
+        'Bạn có muốn hủy kết bạn ?',
+        [
+          {
+            text: 'Xác nhận',
+            onPress: () => del(userId, id),
+          },
+          {
+            text: 'Hủy',
+          },
+        ],
+        {
+          cancelable: true,
+        },
+      );
       break;
   }
 };
@@ -42,6 +59,20 @@ const remove = (userId, id) => {
 const reject = (userId, id) => {
   updateRequests(userId, id);
   updateSentRequests(id, userId);
+};
+const del = (userId, id) => {
+  deleteFriend(userId, id);
+  deleteFriend(id, userId);
+};
+const deleteFriend = (id, data) => {
+  db.collection('friends')
+    .doc(id)
+    .set(
+      {
+        list_friends: firebase.firestore.FieldValue.arrayRemove(data),
+      },
+      {merge: true},
+    );
 };
 const updateFriends = (id, data) => {
   db.collection('friends')

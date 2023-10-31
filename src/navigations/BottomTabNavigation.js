@@ -1,5 +1,5 @@
-import {View, Text} from 'react-native';
-import React from 'react';
+import {View, Text, AppState} from 'react-native';
+import React, {useState, useRef, useEffect} from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -11,6 +11,7 @@ import Notifycation from '../screens/Notifycation';
 const Tab = createBottomTabNavigator();
 
 const MyTabs = () => {
+ 
   return (
     <Tab.Navigator
       screenOptions={{

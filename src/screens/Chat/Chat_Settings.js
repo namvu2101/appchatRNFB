@@ -242,6 +242,7 @@ export default function ChatSettings({route}) {
               ...FONTS.h1,
               fontWeight: 'bold',
               marginVertical: 10,
+              textAlign:'center'
             }}>
             {data?.name}
           </Text>

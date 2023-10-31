@@ -10,13 +10,10 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import Custom_item from './Custom_item';
-import Create_Group from './CreateGroup';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {db} from '../../firebase/firebaseConfig';
 import {useNavigation} from '@react-navigation/native';
 import {COLORS, FONTS, SIZES} from '../../constants';
 import UITextInput from '../../components/UITextInput';
@@ -112,7 +109,7 @@ const styles = StyleSheet.create({
   underHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: SIZES.width ,
+    width: SIZES.width,
   },
   underHeaderText: {
     marginHorizontal: 20,
