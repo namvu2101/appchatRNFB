@@ -14,7 +14,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Avatar, Badge} from 'react-native-paper';
+import {Avatar, Badge, Icon} from 'react-native-paper';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
 import List_Message from './List_Message';
 import {db, storage, timestamp} from '../../firebase/firebaseConfig';
@@ -24,6 +24,8 @@ import {handlePickImage} from '../../components/ImagePicker';
 import {formatTime} from '../../components/Time_off';
 import {UserType} from '../../contexts/UserContext';
 import {getConversationMessages} from './FetchData';
+import {ListItem} from '@rneui/themed';
+import LinearGradient from 'react-native-linear-gradient';
 export default function Index({route}) {
   const navigation = useNavigation();
   const [input, setInput] = useState('');
@@ -69,27 +71,6 @@ export default function Index({route}) {
       });
   };
 
-  // const fetchData = () => {
-  //   const unsubscribe = db
-  //     .collection('Conversations')
-  //     .doc(conversation_id)
-  //     .collection('messages')
-  //     .orderBy('timeSend', 'desc')
-  //     .onSnapshot(querySnapshot => {
-  //       const data = [];
-  //       querySnapshot.forEach(documentSnapshot => {
-  //         const message = {
-  //           id: documentSnapshot.id,
-  //           data: documentSnapshot.data(),
-  //         };
-  //         data.push(message);
-  //       });
-  //       setMessages(data);
-  //     });
-
-  //   return () => unsubscribe();
-  // };
-
   const onSendMessage = (messageType, imageUri) => {
     const id = uuid.v4();
     const formData = {
@@ -109,13 +90,15 @@ export default function Index({route}) {
 
     if (type === 'Person') {
       formData.recipientId = recipientId;
-      sendPersonMessages(formData);
+      sendPersonMessages(formData, messageType);
     } else {
-      sendGroup(formData);
+      sendGroup(formData, messageType);
     }
     setInput('');
   };
-  const sendPersonMessages = formData => {
+  const sendPersonMessages = (formData, type) => {
+    const messageText = type == 'image' ? 'Đã gửi một ảnh' : input;
+
     const conversationIds = [
       `${userId}-${recipientId}`,
       `${recipientId}-${userId}`,
@@ -124,12 +107,18 @@ export default function Index({route}) {
     conversationIds.forEach(conversationId => {
       sendPerson(conversationId, formData);
       if (conversation_exists) {
-        db.collection('Conversations').doc(conversationId).update({
-          last_message: timestamp,
-          messageText: input,
-        });
+        db.collection('Conversations')
+          .doc(conversationId)
+          .update({
+            last_message: new Date(),
+            message: {
+              messageText,
+              name: profile.name,
+              id: userId,
+            },
+          });
       } else {
-        createConversation(conversationId);
+        createConversation(conversationId, messageText);
       }
     });
   };
@@ -137,7 +126,7 @@ export default function Index({route}) {
   const sendPerson = (id, data) => {
     db.collection('Conversations').doc(id).collection('messages').add(data);
   };
-  const createConversation = id => {
+  const createConversation = (id, messageText) => {
     db.collection('Conversations')
       .doc(id)
       .set({
@@ -154,19 +143,33 @@ export default function Index({route}) {
           id === `${userId}-${recipientId}`
             ? recipient?.last_active_at
             : timestamp,
+        message: {
+          messageText,
+          name:
+            id === `${userId}-${recipientId}` ? profile.name : recipient.name,
+          id: id === `${userId}-${recipientId}` ? userId : recipientId,
+        },
       });
   };
 
-  const sendGroup = async formData => {
+  const sendGroup = async (formData, type) => {
+    const messageText = type === 'image' ? 'Đã gửi một ảnh' : input;
     const collectionRef = db
       .collection('Conversations')
       .doc(conversation_id)
       .collection('messages');
     await collectionRef.add(formData);
-    await db.collection('Conversations').doc(conversation_id).update({
-      last_message: timestamp,
-      messageText: input,
-    });
+    await db
+      .collection('Conversations')
+      .doc(conversation_id)
+      .update({
+        last_message: timestamp,
+        message: {
+          messageText,
+          name: profile.name,
+          id: userId,
+        },
+      });
   };
   const sendImage = async () => {
     const id = uuid.v4();
@@ -247,81 +250,60 @@ export default function Index({route}) {
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={{marginRight: 10}}>
-            <MaterialCommunityIcons
-              name="arrow-left"
-              size={25}
-              color={'#000E08'}
-            />
+        <ListItem bottomDivider containerStyle={styles.header}>
+          <Pressable onPress={() => navigation.goBack()}>
+            <Icon source={'arrow-left'} size={25} color="#000000" />
           </Pressable>
-          <View
-            style={{
-              borderColor: 'blue',
-              height: 50,
-              width: 50,
-              borderWidth: 1,
-              borderRadius: 27,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
+
+          <View style={styles.avatar}>
             <Avatar.Image
-              size={49}
+              size={50}
               source={{uri: conversationData?.image || images.imageLoading}}
             />
             <Badge
               size={15}
               style={{
-                position: 'absolute',
+                ...styles._badge,
                 backgroundColor: recipient?.isOnline
                   ? COLORS.green
                   : COLORS.gray,
-                borderColor: COLORS.white,
-                borderWidth: 2,
-                bottom: 0,
-                right: 0,
               }}
             />
           </View>
-
-          <View
-            style={{
-              width: SIZES.width * 0.33,
-              marginLeft: 12,
-              justifyContent: 'center',
-            }}>
-            <Text
-              numberOfLines={1}
-              style={{
-                ...FONTS.h3,
-              }}>
+          <ListItem.Content>
+            <ListItem.Title numberOfLines={1} style={{fontWeight: 'bold'}}>
               {conversationData?.name}
-            </Text>
-            <Text
-              style={{
-                ...FONTS.h4,
-                color: recipient?.isOnline ? 'red' : 'black',
-              }}>
+            </ListItem.Title>
+            <ListItem.Subtitle
+              style={{color: recipient?.isOnline ? 'red' : 'black'}}>
               {recipient?.isOnline
                 ? 'Đang hoạt động'
                 : `${formatTime(recipient?.last_active_at)}`}
-            </Text>
-          </View>
-          <View style={{flexDirection: 'row'}}>
-            {list_icon.map(i => (
-              <TouchableOpacity onPress={i.onPress} key={i.icon}>
-                <Avatar.Icon
-                  size={40}
-                  icon={i.icon}
-                  color={COLORS.primary}
-                  style={{backgroundColor: '#fff'}}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+            </ListItem.Subtitle>
+          </ListItem.Content>
+          {type === 'Service' ? (
+            <Pressable
+              onPress={() => {
+                navigation.navigate('ChatSettings', {
+                  item: recipient,
+                  id: conversation_id,
+                });
+              }}>
+              <Icon source={'text-long'} size={30} color={COLORS.secondaryGray} />
+            </Pressable>
+          ) : (
+            <View style={{flexDirection: 'row'}}>
+              {list_icon.map(i => (
+                <TouchableOpacity
+                  onPress={i.onPress}
+                  key={i.icon}
+                  style={{marginRight: 10}}>
+                  <Icon source={i.icon} size={25} color={COLORS.primary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </ListItem>
         <FlatList
           inverted
           showsVerticalScrollIndicator={false}
@@ -346,17 +328,7 @@ export default function Index({route}) {
           <TextInput
             value={input}
             onChangeText={setInput}
-            style={{
-              ...FONTS.h4,
-              width: '70%',
-              paddingHorizontal: 5,
-              height: 50,
-              borderColor: COLORS.primary,
-              borderWidth: 2,
-              borderRadius: 25,
-              paddingLeft: 12,
-              marginHorizontal: 10,
-            }}
+            style={styles._input}
             onSubmitEditing={() => onSendMessage('text')}
           />
 
@@ -395,16 +367,27 @@ export default function Index({route}) {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
+  avatar: {
+    borderColor: 'blue',
+    height: 54,
+    width: 54,
+    borderWidth: 1,
+    borderRadius: 27,
     alignItems: 'center',
-    height: 55,
+    justifyContent: 'center',
+    marginLeft: -10,
+  },
+  _badge: {
+    position: 'absolute',
+
+    borderColor: COLORS.white,
+    borderWidth: 2,
+    bottom: 0,
+    right: 0,
+  },
+  header: {
     width: SIZES.width,
-    borderBottomColor: COLORS.gray,
-    borderBottomWidth: 1,
-    marginVertical: 5,
-    paddingHorizontal: 22,
-    justifyContent: 'space-between',
+    height: 60,
   },
   _input_box: {
     height: 66,
@@ -419,6 +402,17 @@ const styles = StyleSheet.create({
     width: 50,
     justifyContent: 'center',
     flexDirection: 'row',
+    marginHorizontal: 10,
+  },
+  _input: {
+    ...FONTS.h4,
+    width: '70%',
+    paddingHorizontal: 5,
+    height: 50,
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+    borderRadius: 25,
+    paddingHorizontal: 12,
     marginHorizontal: 10,
   },
 });

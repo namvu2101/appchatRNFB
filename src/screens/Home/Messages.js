@@ -6,6 +6,8 @@ import {
   ScrollView,
   FlatList,
   AppState,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
 import React, {useContext, useLayoutEffect, useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -21,6 +23,8 @@ import {UserType} from '../../contexts/UserContext';
 import Friend_Item from './Friend_Item';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {db, timestamp} from '../../firebase/firebaseConfig';
+import UIBottomSheet from '../../components/UIBottomSheet';
+import {ListItem} from '@rneui/themed';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends, users, userConversations} =
@@ -73,40 +77,36 @@ const Messages = ({navigation}) => {
   const greetingMessage = () => {
     const currentTime = new Date().getHours();
     if (currentTime < 12) {
-      return 'Chào buổi sáng';
+      return 'Chào buổi sáng ⛅';
     } else if (currentTime < 16) {
-      return 'Chào buổi chiều';
+      return 'Chào buổi chiều 🌞' ;
     } else {
-      return 'Chào buổi tối';
+      return 'Chào buổi tối 🌛';
     }
   };
   const messageText = greetingMessage();
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingHorizontal: 22,
-            width: SIZES.width,
-            marginTop: 10,
-          }}>
-          <Avatar.Image
-            source={{
-              uri: profile?.image || images.imageLoading,
-            }}
-            size={44}
-          />
-          <Text style={{...FONTS.h2, marginLeft: -30}}>{messageText}</Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              width: '20%',
-              justifyContent: 'space-between',
-            }}>
+        <ListItem containerStyle={styles._header}>
+          <View style={styles._avatar}>
+            <Avatar.Image
+              size={49}
+              source={{uri: profile?.image || images.imageLoading}}
+            />
+            <Badge
+              size={15}
+              style={{
+                ...styles._badge,
+              }}
+            />
+          </View>
+          <ListItem.Content>
+            <ListItem.Title style={{fontWeight: 'bold', ...FONTS.h3}}>
+              {messageText}
+            </ListItem.Title>
+          </ListItem.Content>
+          <View style={styles._icon}>
             <TouchableOpacity onPress={() => navigation.navigate('AddContact')}>
               <MaterialCommunityIcons
                 name="account-plus-outline"
@@ -127,41 +127,35 @@ const Messages = ({navigation}) => {
               />
             </TouchableOpacity>
           </View>
-        </View>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('Search', {conversations: message})
-          }>
-          <UISearch editable={false} />
-        </TouchableOpacity>
+        </ListItem>
+        <ScrollView contentContainerStyle={{alignItems: 'center'}}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('Search', {conversations: message})
+            }>
+            <UISearch editable={false} />
+          </TouchableOpacity>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginLeft: 22,
-            marginBottom: 10,
-          }}>
-          <FlatList
-            showsHorizontalScrollIndicator={false}
-            horizontal={true}
-            data={userFriends}
-            keyExtractor={item => item.id}
-            renderItem={({item}) => <Friend_Item item={item} userId={userId} />}
-          />
-        </View>
+          <View style={styles._listFriend}>
+            <FlatList
+              showsHorizontalScrollIndicator={false}
+              horizontal={true}
+              data={userFriends}
+              keyExtractor={item => item.id}
+              renderItem={({item}) => (
+                <Friend_Item item={item} userId={userId} />
+              )}
+            />
+          </View>
 
-        {message.length == 0 && (
-          <Text style={{...FONTS.h3, color: COLORS.black}}>
-            Chưa có tin nhắn
-          </Text>
-        )}
-
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          data={message}
-          renderItem={({item, index}) => (
+          {message.length == 0 && (
+            <Text style={{...FONTS.h3, color: COLORS.black}}>
+              Chưa có tin nhắn
+            </Text>
+          )}
+          {message.map((item, index) => (
             <Message_Items
+              key={item.id}
               item={item.data}
               conversation_id={item.id}
               index={index}
@@ -174,12 +168,73 @@ const Messages = ({navigation}) => {
                 });
               }}
             />
-          )}
-          keyExtractor={item => item.id.toString()}
-        />
+          ))}
+          {/* <FlatList
+            showsVerticalScrollIndicator={false}
+            data={message}
+            contentContainerStyle={styles._flatlist}
+            renderItem={({item, index}) => (
+              <Message_Items
+                item={item.data}
+                conversation_id={item.id}
+                index={index}
+                onPress={() => {
+                  navigation.navigate('Chats', {
+                    item: item.data,
+                    type: item?.data?.type,
+                    conversation_id: item.id,
+                    recipientId: item?.data?.recipientId,
+                  });
+                }}
+              />
+            )}
+            keyExtractor={item => item.id.toString()}
+          /> */}
+        </ScrollView>
       </PageContainer>
     </SafeAreaView>
   );
 };
+const styles = StyleSheet.create({
+  _avatar: {
+    borderColor: 'blue',
+    height: 54,
+    width: 54,
+    borderWidth: 1,
+    borderRadius: 27,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -10,
+  },
+  _badge: {
+    position: 'absolute',
+    borderColor: COLORS.white,
+    borderWidth: 2,
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.green,
+  },
+  _header: {
+    height: 60,
+    width: SIZES.width,
+    paddingHorizontal: 22,
+  },
+  _flatlist: {
+    width: SIZES.width,
+    padding: 10,
+    borderRadius: 12,
+  },
+  _listFriend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 22,
+  },
+  _icon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '20%',
+    justifyContent: 'space-between',
+  },
+});
 
 export default Messages;

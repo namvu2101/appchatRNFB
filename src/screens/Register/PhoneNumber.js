@@ -33,7 +33,6 @@ export default function PhoneNumber({navigation, route}) {
   const [errorMessage, setErrorMessage] = useState('');
   const [isdisable, setIsdisable] = useState(true);
   const action = route.params;
-  console.log(action);
   useLayoutEffect(() => {
     let areaData = flagcode.map(item => {
       return {

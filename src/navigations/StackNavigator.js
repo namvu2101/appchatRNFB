@@ -21,6 +21,7 @@ import Createinformation from '../screens/GroupChat/Createinformation';
 import ManageServices from '../screens/Service/ManageServices';
 import Service from '../screens/Service/Service';
 import ServiceChat from '../screens/Service/ServiceChat';
+import ViewMember from '../screens/Modals/viewMember';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
 
@@ -44,7 +45,7 @@ const StackNavigator = () => {
         <Stack.Screen name="ManageServices" component={ManageServices} />
         <Stack.Screen name="Service" component={Service} />
         <Stack.Screen name="ServiceChat" component={ServiceChat} />
-
+        <Stack.Screen name="AddMember" component={ViewMember} />
         <Stack.Screen
           name="BottomTabs"
           component={MyTabs}

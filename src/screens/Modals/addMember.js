@@ -9,12 +9,13 @@ import {
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import {SIZES, COLORS, FONTS, images} from '../../constants';
-import {Avatar, Checkbox} from 'react-native-paper';
+import {Avatar} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Animated, {useSharedValue, withSpring} from 'react-native-reanimated';
 import UISearch from '../../components/UISearch';
 import {UserType} from '../../contexts/UserContext';
 import {db} from '../../firebase/firebaseConfig';
+import {CheckBox} from '@rneui/themed';
 
 export default function AddNewMember({data, onClose, id}) {
   const [member, setMember] = useState([]);
@@ -144,11 +145,11 @@ export default function AddNewMember({data, onClose, id}) {
             {item.data.phone}
           </Text>
         </View>
-        <Checkbox.Item
-          status={member.some(m => m.id === item.id) ? 'checked' : 'unchecked'}
-          onPress={() => onPress(item)}
-          color="red"
+        <CheckBox
           uncheckedColor="blue"
+          checkedColor="#05FF05"
+          checked={member.some(m => m.id === item.id) ? true : false}
+          onPress={() => onPress(item)}
         />
       </View>
     );

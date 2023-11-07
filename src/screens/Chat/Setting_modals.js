@@ -14,9 +14,9 @@ import PageContainer from '../../components/PageContainer';
 
 export default function Setting_modals(props) {
   const [isLoading, setisLoading] = useState(false);
- 
+
   return (
-    <PageContainer style={{justifyContent:'center',backgroundColor:'grey'}}>
+    <PageContainer style={{justifyContent: 'center', backgroundColor: 'grey'}}>
       {(() => {
         switch (props.type) {
           case 'Đổi tên nhóm':
@@ -30,11 +30,13 @@ export default function Setting_modals(props) {
             );
           case 'add_member':
             return (
-              <AddNewMember
-                data={props.item.member_id}
-                onClose={props.onClose}
-                id={props.conversation_id}
-              />
+              <PageContainer>
+                <AddNewMember
+                  data={props.item.member_id}
+                  onClose={props.onClose}
+                  id={props.conversation_id}
+                />
+              </PageContainer>
             );
           case 'Thành viên':
             return (

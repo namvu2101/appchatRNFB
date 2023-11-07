@@ -30,7 +30,7 @@ const Contacts = ({navigation}) => {
     } else {
       setdata(userFriends);
     }
-  }, [search,userFriends]);
+  }, [search, userFriends]);
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
@@ -61,6 +61,12 @@ const Contacts = ({navigation}) => {
           renderItem={({item, index}) => (
             <Custom_items item={item.data} index={index} userId={item.id} />
           )}
+          contentContainerStyle={{
+            width: SIZES.width,
+            paddingHorizontal: 10,
+            backgroundColor: COLORS.secondaryWhite,
+            borderRadius:20
+          }}
           keyExtractor={item => item.id.toString()}
         />
       </PageContainer>

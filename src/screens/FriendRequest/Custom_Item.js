@@ -1,12 +1,20 @@
-import {Pressable, StyleSheet, Text, View, Image} from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useContext} from 'react';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
-import {Avatar, Button} from 'react-native-paper';
+import {Avatar, Button, List} from 'react-native-paper';
 import {authStore, profileStore} from '../../store';
 import {useNavigation} from '@react-navigation/native';
 import {handleActions} from '../User/actions';
+import {ListItem} from '@rneui/themed';
 
-export default function Custom_Item({item, data, setData, id}) {
+export default function Custom_Item({item, data, setData, id, index}) {
   const navigation = useNavigation();
 
   const handleAccept = () => {
@@ -20,46 +28,57 @@ export default function Custom_Item({item, data, setData, id}) {
   };
 
   return (
-    <Pressable
-      onPressOut={() =>
+    <ListItem
+      onPress={() =>
         navigation.navigate('Information', {
           id: id,
         })
       }
-      style={styles.items}>
+      containerStyle={{
+        height: 90,
+        backgroundColor: COLORS.secondaryWhite,
+        marginBottom: 10,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 10,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+      }}>
       <View style={styles.image}>
         <Avatar.Image
           source={{uri: item?.image || images.imageLoading}}
-          size={55}
+          size={60}
         />
       </View>
-
-      <View style={{width: 100, alignItems: 'center'}}>
-        <Text style={{...FONTS.h4, color: COLORS.black}} numberOfLines={1}>
-          {item?.name}
-        </Text>
-        <Text
-          style={{...FONTS.h4, color: COLORS.secondaryGray}}
-          numberOfLines={1}>
-          {item?.phone}
-        </Text>
+      <ListItem.Content style={{width: 200}}>
+        <ListItem.Title style={{fontWeight: 'bold'}} numberOfLines={1}>
+          {item.name}
+        </ListItem.Title>
+        <ListItem.Subtitle style={{marginTop: 5, color: COLORS.secondaryGray}}>
+          {item.phone}
+        </ListItem.Subtitle>
+      </ListItem.Content>
+      <View>
+        <Button
+          mode="elevated"
+          textColor={COLORS.white}
+          buttonColor={'blue'}
+          style={{borderRadius: 10, marginBottom: 5}}
+          onPress={() => handleAccept()}>
+          Thêm
+        </Button>
+        <Button
+          mode="outlined"
+          textColor={'blue'}
+          onPress={() => handleReject()}
+          style={{borderColor: COLORS.primary, borderRadius: 10}}>
+          Xóa
+        </Button>
       </View>
-
-      <Button
-        mode="elevated"
-        textColor={COLORS.white}
-        buttonColor={COLORS.primary}
-        onPress={() => handleAccept()}>
-        Thêm
-      </Button>
-      <Button
-        mode="outlined"
-        textColor={COLORS.primary}
-        onPress={() => handleReject()}
-        style={{borderColor: COLORS.primary}}>
-        Xóa
-      </Button>
-    </Pressable>
+    </ListItem>
   );
 }
 
@@ -72,9 +91,9 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   image: {
-    height: 60,
-    width: 60,
-    borderRadius: 30,
+    height: 66,
+    width: 66,
+    borderRadius: 33,
     borderColor: COLORS.primary,
     borderWidth: 1,
     alignItems: 'center',

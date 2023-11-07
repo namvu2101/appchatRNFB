@@ -7,6 +7,7 @@ import {COLORS, SIZES, FONTS} from '../../constants';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {db} from '../../firebase/firebaseConfig';
+import dispath from './dispath';
 
 export default function ServiceChat({route}) {
   const navigation = useNavigation();
@@ -18,23 +19,50 @@ export default function ServiceChat({route}) {
     });
   }, []);
   const handleSend = async (messageType, imageUri) => {
+    const messageText = messageType === 'image' ? 'đã gửi hình ảnh' : input;
+
     const formData = {
       timeSend: new Date(),
       senderId: service.id,
       senderImage: service.data.image,
       name: service.data.name,
       messageType: messageType === 'image' ? 'image' : 'text',
-      messageText: messageType === 'image' ? 'đã gửi hình ảnh' : input,
+      messageText: messageText,
     };
 
-    service.data.follower.map(i => {
-      db.collection('Conversations')
-        .doc(`${i}-${service.id}`)
-        .collection('messages')
-        .add(formData);
-    });
+    try {
+      service.data.follower.map(i => {
+        const docRef = db.collection('Conversations').doc(`${i}-${service.id}`);
+
+        docRef
+          .set({
+            type: 'Service',
+            isOnline: true,
+            last_message: new Date(),
+            recipientId: service.id,
+            senderID: i,
+            name: service.data.name,
+            image: service.data.image,
+            last_active_at: '',
+            last_message: new Date(),
+            message: {
+              messageText: messageText,
+              name: service.data.name,
+              id: service.id,
+            },
+          })
+          .then(() => console.log('Thong bao thanh cong'))
+          .catch(e => console.log('loi update', e));
+
+        dispath(docRef, formData);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
     setInput('');
   };
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer style={{justifyContent: 'space-between'}}>
@@ -89,7 +117,7 @@ export default function ServiceChat({route}) {
             style={{
               ...FONTS.h4,
               width: '70%',
-              paddingHorizontal: 5,
+              paddingHorizontal: 10,
               height: 50,
               borderColor: COLORS.primary,
               borderWidth: 2,

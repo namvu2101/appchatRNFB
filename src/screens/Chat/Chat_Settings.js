@@ -10,7 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Avatar, Button, TextInput} from 'react-native-paper';
+import {Avatar, Button, Icon, TextInput} from 'react-native-paper';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {useNavigation} from '@react-navigation/native';
@@ -21,10 +21,12 @@ import {db, storage} from '../../firebase/firebaseConfig';
 import UIModals from '../../components/UIModals';
 import uuid from 'react-native-uuid';
 import Setting_modals from './Setting_modals';
-import Loading from '../../components/Loading';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/firestore';
 import {UserType} from '../../contexts/UserContext';
+import ChangeNameChat from '../Modals/ChangeNameChat';
+import ChangeChatName from '../Dialog/changeChatName';
+import Loading from '../Dialog/Loading';
 
 export default function ChatSettings({route}) {
   const navigation = useNavigation();
@@ -112,7 +114,11 @@ export default function ChatSettings({route}) {
           userConversations.filter(i => i.id != conversation_id),
         );
         break;
+      case 'Bỏ theo dõi':
+        handleUnFollow(data.recipientId, data.name);
+        break;
       default:
+        console.log('chuc nang khac');
         break;
     }
   };
@@ -151,8 +157,21 @@ export default function ChatSettings({route}) {
           navigation.navigate('Information', {
             id: item.recipientId,
           });
-        } else {
+        } else if (data.type == 'Group') {
           onOpen('add_member');
+        } else {
+          Alert.alert(
+            'Thông tin',
+            `Dịch vụ thông tin: ${data.name}`,
+            [
+              {
+                text: 'OK',
+              },
+            ],
+            {
+              cancelable: true,
+            },
+          );
         }
         break;
       case 3:
@@ -164,7 +183,7 @@ export default function ChatSettings({route}) {
     }
   };
   useLayoutEffect(() => {
-    navigation.setOptions({});
+    navigation.setOptions({headerTitle: 'Tùy chọn'});
   }, []);
 
   const onClose = () => {
@@ -183,7 +202,7 @@ export default function ChatSettings({route}) {
       'Bạn muốn xóa đoạn chat này ?',
       [
         {
-          text: 'OK',
+          text: 'Đồng ý',
           onPress: async () => {
             setisLoading(true);
             await removeChat(conversation_id);
@@ -212,17 +231,16 @@ export default function ChatSettings({route}) {
       }
     } catch (error) {
       console.log('error', error);
+      setisLoading(false);
     }
   };
   const renderItem = ({item}) => {
     return (
       <TouchableOpacity
         style={styles.items}
-        onPressOut={() => handleItemClick(item.title)}>
+        onPress={() => handleItemClick(item.title)}>
         <Text style={{...FONTS.h4}}>{item.title}</Text>
-        {item.icon && (
-          <MaterialCommunityIcons name={item.icon} size={30} color={'#000'} />
-        )}
+        {item.icon && <Icon size={25} source={item.icon} color={item.color} />}
       </TouchableOpacity>
     );
   };
@@ -242,7 +260,7 @@ export default function ChatSettings({route}) {
               ...FONTS.h1,
               fontWeight: 'bold',
               marginVertical: 10,
-              textAlign:'center'
+              textAlign: 'center',
             }}>
             {data?.name}
           </Text>
@@ -252,12 +270,8 @@ export default function ChatSettings({route}) {
                 onPress={() => handleIconClick(index)}
                 key={item.icon}
                 style={{alignItems: 'center'}}>
-                <Avatar.Icon
-                  icon={item.icon}
-                  size={40}
-                  color={item.color}
-                  style={{backgroundColor: COLORS.secondaryWhite}}
-                />
+                <Icon source={item.icon} size={25} color={item.color} />
+
                 <Text style={{...FONTS.h4, textAlign: 'center'}}>
                   {item.title}
                 </Text>
@@ -269,7 +283,6 @@ export default function ChatSettings({route}) {
           data={listItems}
           style={{
             flex: 1,
-            marginVertical: 15,
             width: SIZES.width,
             paddingHorizontal: 22,
           }}
@@ -285,7 +298,9 @@ export default function ChatSettings({route}) {
             conversation_id={conversation_id}
           />
         </UIModals>
+        
         <Loading isVisible={isLoading} />
+        {/* <Loading isVisible={isLoading} /> */}
       </PageContainer>
     </SafeAreaView>
   );
@@ -318,6 +333,23 @@ const outConversation = async id => {
       member_id: firebase.firestore.FieldValue.arrayRemove(`${userId}`),
     });
 };
+
+const handleUnFollow = async (id, name) => {
+  const userId = await AsyncStorage.getItem('userId');
+
+  try {
+    db.collection('Service')
+      .doc(id)
+      .update({
+        follower: firebase.firestore.FieldValue.arrayRemove(userId),
+      })
+      .then(() => {
+        Alert.alert('Thông báo !', `Đã Bỏ theo dõi ${name}`);
+      });
+  } catch (error) {
+    console.log(error);
+  }
+};
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#000000'},
 
@@ -334,5 +366,6 @@ const styles = StyleSheet.create({
     width: SIZES.width,
     justifyContent: 'space-around',
     paddingHorizontal: 20,
+    marginVertical: 20,
   },
 });

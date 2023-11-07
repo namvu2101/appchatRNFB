@@ -12,6 +12,7 @@ import {authStore, conversationStore} from '../../store';
 import uuid from 'react-native-uuid';
 import Loading from '../../components/Loading';
 import {UserType} from '../../contexts/UserContext';
+import {CheckBox} from '@rneui/themed';
 
 export default function CreateGroup() {
   const navigation = useNavigation();
@@ -90,11 +91,11 @@ export default function CreateGroup() {
             {item.data.name}
           </Text>
         </View>
-        <Checkbox.Item
-          status={member.some(m => m.id === item.id) ? 'checked' : 'unchecked'}
-          onPress={() => onPress(item)}
-          color="red"
+        <CheckBox
           uncheckedColor="blue"
+          checkedColor="#05FF05"
+          checked={member.some(m => m.id === item.id) ? true : false}
+          onPress={() => onPress(item)}
         />
       </View>
     );

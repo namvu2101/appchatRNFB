@@ -5,6 +5,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import {COLORS, FONTS, SIZES} from '../../constants';
 import {auth, db} from '../../firebase/firebaseConfig';
 import {authStore} from '../../store';
+import PageContainer from '../../components/PageContainer';
 
 export default function ViewMember({onClose, member_id, create_id}) {
   const [isSelect, setisSelect] = useState('1');
@@ -19,18 +20,17 @@ export default function ViewMember({onClose, member_id, create_id}) {
           const user = {
             id: i.id,
             name: i.data().name,
-            image:i.data().image,
+            image: i.data().image,
           };
-          list.push(user)
+          list.push(user);
         });
         const filteredList = list.filter(item => member_id.includes(item.id));
-         setMember(filteredList)
+        setMember(filteredList);
       });
-     
   }, []);
 
   return (
-    <View style={{backgroundColor: COLORS.white, height: SIZES.height}}>
+    <PageContainer>
       <View
         style={{
           flexDirection: 'row',
@@ -100,7 +100,7 @@ export default function ViewMember({onClose, member_id, create_id}) {
           </Pressable>
         )}
       />
-    </View>
+    </PageContainer>
   );
 }
 

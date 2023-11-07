@@ -59,8 +59,10 @@ export default function Index() {
         )}
         <FlatList
           data={filteredUsers}
-          renderItem={({item}) => (
+          contentContainerStyle={{padding: 10, width: SIZES.width}}
+          renderItem={({item, index}) => (
             <Custom_Item
+              index={index}
               item={item.data}
               id={item.id}
               setData={setFilteredUsers}

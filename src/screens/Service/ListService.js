@@ -54,6 +54,7 @@ export default function ListService({setIndex}) {
     }
   }, [search]);
   const handleFollow = (id, name, image) => {
+    setData(data.filter(i => i.id != id));
     try {
       db.collection('Service')
         .doc(id)
@@ -62,21 +63,28 @@ export default function ListService({setIndex}) {
         })
         .then(() => {
           const conversation_id = `${userId}-${id}`;
-          db.collection('Conversations').doc(conversation_id).set(
-            {
-              type: 'Service',
-              isOnline: true,
-              last_message: new Date(),
-              recipientId: id,
-              senderID: userId,
-              name,
-              image,
-              last_active_at: '',
-            },
-            {merge: true},
-          );
+          db.collection('Conversations')
+            .doc(conversation_id)
+            .set(
+              {
+                type: 'Service',
+                isOnline: true,
+                last_message: new Date(),
+                recipientId: id,
+                senderID: userId,
+                name,
+                image,
+                last_active_at: '',
+                message: {
+                  messageText: name,
+                  name: 'Dịch vụ',
+                  id,
+                },
+              },
+              {merge: true},
+            );
           Alert.alert('Thông báo !', `Theo dõi ${name}`, [
-            {text: 'Đồng ý', onPress: () => setIndex(1)},
+            {text: 'Đồng ý'},
           ]);
         });
     } catch (error) {

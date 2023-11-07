@@ -37,7 +37,7 @@ export default function createGroup({onHide, member}) {
             name: input,
             image: avatar,
             last_message: timestamp,
-            messageText: 'Send somethings',
+            message: {},
             create_id: userId,
             member_id: member_id,
             read: 'id da xem',

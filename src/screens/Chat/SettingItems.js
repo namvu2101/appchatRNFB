@@ -52,31 +52,76 @@ export function getInitialItems(type) {
       },
     );
   }
-
-  return items;
+  const service = [
+  
+    {
+      icon: 'bookmark-off-outline',
+      color: 'red',
+      title: 'Bỏ theo dõi',
+    },
+    {
+      icon: 'delete-forever-outline',
+      color: '#000',
+      title: 'Xóa đoạn chat',
+    },
+    {
+      icon: 'magnify',
+      color: '#000',
+      title: 'Tìm kiếm trong đoạn chat',
+    },
+   
+  ];
+  if (type === 'Service') {
+    return service;
+  } else return items;
 }
 
 export function getIconItems(type, isNotify) {
-  return [
-    {
-      icon: 'phone',
-      color: '#000',
-      title: 'Gọi',
-    },
-    {
-      icon: 'video',
-      color: '#000',
-      title: 'Video',
-    },
-    {
-      icon: type === 'Group' ? 'account-plus' : 'account',
-      color: '#000',
-      title: type === 'Group' ? 'Thêm' : 'Thồng tin',
-    },
-    {
-      icon: isNotify ? 'bell' : 'bell-off',
-      color: isNotify ? '#000' : '#3777F0',
-      title: isNotify ? 'Tắt' : 'Bật',
-    },
-  ];
+  if (type === 'Service') {
+    return [
+      {
+        icon: 'alert-octagon',
+        color: '#000',
+        title: 'Báo cáo',
+      },
+      {
+        icon: 'share',
+        color: '#000',
+        title: 'Chia sẻ',
+      },
+      {
+        icon: 'account',
+        color: '#000',
+        title: 'Thồng tin',
+      },
+      {
+        icon: isNotify ? 'bell' : 'bell-off',
+        color: !isNotify ? '#000' : '#3777F0',
+        title: isNotify ? 'Tắt' : 'Bật',
+      },
+    ];
+  } else {
+    return [
+      {
+        icon: 'phone',
+        color: '#000',
+        title: 'Gọi',
+      },
+      {
+        icon: 'video',
+        color: '#000',
+        title: 'Video',
+      },
+      {
+        icon: type === 'Group' ? 'account-plus' : 'account',
+        color: '#000',
+        title: type === 'Group' ? 'Thêm' : 'Thồng tin',
+      },
+      {
+        icon: isNotify ? 'bell' : 'bell-off',
+        color: isNotify ? '#000' : '#3777F0',
+        title: isNotify ? 'Tắt' : 'Bật',
+      },
+    ];
+  }
 }
