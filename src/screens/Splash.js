@@ -26,13 +26,13 @@ const Splash = ({navigation}) => {
   const {setProfile, setFriendRequest, setFriends, setSentRequest} =
     profileStore();
   const [progress, setProgress] = React.useState(0);
+
   useEffect(() => {
     async function checkUserAndRedirect() {
       try {
         const isConnected = await NetInfo.fetch().then(
           state => state.isConnected,
         );
-
         if (!isConnected) {
           console.error('Không có kết nối internet');
           return;
@@ -68,7 +68,7 @@ const Splash = ({navigation}) => {
     }
 
     checkUserAndRedirect();
-  }, [isFocused]);
+  }, [isFocused, NetInfo]);
   const updateOnlineStatus = id => {
     const onlineStatusRef = db.collection('users').doc(id);
     onlineStatusRef.update({

@@ -8,11 +8,19 @@ import {
   AppState,
   Pressable,
   StyleSheet,
+  RefreshControl,
 } from 'react-native';
 import React, {useContext, useLayoutEffect, useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {ActivityIndicator, Avatar, Badge, Searchbar} from 'react-native-paper';
+import {
+  ActivityIndicator,
+  Avatar,
+  Badge,
+  Button,
+  Icon,
+  Searchbar,
+} from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {FONTS, COLORS, images, SIZES} from '../../constants';
 import {contacts} from '../../constants/data';
@@ -24,11 +32,12 @@ import Friend_Item from './Friend_Item';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {db, timestamp} from '../../firebase/firebaseConfig';
 import UIBottomSheet from '../../components/UIBottomSheet';
-import {ListItem} from '@rneui/themed';
+import {ListItem, SpeedDial} from '@rneui/themed';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends, users, userConversations} =
     useContext(UserType);
+  const [refreshing, setRefreshing] = React.useState(false);
   const [message, setMessage] = useState([]);
   const {profile, friends} = profileStore();
   const {userId} = authStore();
@@ -66,27 +75,35 @@ const Messages = ({navigation}) => {
   }, [friends, users]);
 
   useLayoutEffect(() => {
-    const getConversations = async () => {
-      const filter = userConversations.filter(
-        i => i.data?.senderID == userId || i.data?.member_id?.includes(userId),
-      );
-      setMessage(filter);
-    };
     getConversations();
   }, [userConversations]);
-  const greetingMessage = () => {
+  const gettingMessage = () => {
     const currentTime = new Date().getHours();
     if (currentTime < 12) {
       return 'Chào buổi sáng ⛅';
     } else if (currentTime < 16) {
-      return 'Chào buổi chiều 🌞' ;
+      return 'Chào buổi chiều 🌞';
     } else {
       return 'Chào buổi tối 🌛';
     }
   };
-  const messageText = greetingMessage();
+  const getConversations = async () => {
+    const filter = userConversations.filter(
+      i => i.data?.senderID == userId || i.data?.member_id?.includes(userId),
+    );
+    setMessage(filter);
+  };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      // getConversations();
+      setRefreshing(false);
+    }, 200);
+  }, []);
+  const [open, setOpen] = React.useState(false);
+  const messageText = gettingMessage();
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={styles._container}>
       <PageContainer>
         <ListItem containerStyle={styles._header}>
           <View style={styles._avatar}>
@@ -106,29 +123,24 @@ const Messages = ({navigation}) => {
               {messageText}
             </ListItem.Title>
           </ListItem.Content>
-          <View style={styles._icon}>
-            <TouchableOpacity onPress={() => navigation.navigate('AddContact')}>
-              <MaterialCommunityIcons
-                name="account-plus-outline"
-                size={25}
-                color={COLORS.secondaryBlack}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('AddChat', {
-                  group: message.filter(i => i.data.type == 'Group'),
-                })
-              }>
-              <MaterialCommunityIcons
-                name="chat-plus-outline"
-                size={25}
-                color={COLORS.secondaryBlack}
-              />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('AddContact')}>
+            <Icon
+              source="account-plus-outline"
+              size={30}
+              color={COLORS.secondaryBlack}
+            />
+          </TouchableOpacity>
         </ListItem>
-        <ScrollView contentContainerStyle={{alignItems: 'center'}}>
+        <ScrollView
+          contentContainerStyle={{alignItems: 'center'}}
+          refreshControl={
+            <RefreshControl
+              colors={[COLORS.primary]}
+              progressBackgroundColor={'white'}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('Search', {conversations: message})
@@ -192,10 +204,20 @@ const Messages = ({navigation}) => {
           /> */}
         </ScrollView>
       </PageContainer>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate('AddChat', {
+            group: message.filter(i => i.data.type == 'Group'),
+          })
+        }
+        style={styles._button_add}>
+        <Icon source={'pencil'} size={25} color="white" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
 const styles = StyleSheet.create({
+  _container: {flex: 1, alignItems: 'flex-end', justifyContent: 'flex-end'},
   _avatar: {
     borderColor: 'blue',
     height: 54,
@@ -215,7 +237,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.green,
   },
   _header: {
-    height: 60,
+    height: 70,
     width: SIZES.width,
     paddingHorizontal: 22,
   },
@@ -234,6 +256,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '20%',
     justifyContent: 'space-between',
+  },
+  _button_add: {
+    backgroundColor: COLORS.primary,
+    position: 'absolute',
+    height: 60,
+    width: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 30,
+    right: 20,
+    bottom: 20,
   },
 });
 

@@ -16,7 +16,7 @@ import {ListItem} from '@rneui/themed';
 
 export default function Custom_Item({item, data, setData, id, index}) {
   const navigation = useNavigation();
-
+  const {userId} = authStore();
   const handleAccept = () => {
     handleActions('Chấp nhận', id);
     setData(data.filter(i => i.id != id));
@@ -26,7 +26,7 @@ export default function Custom_Item({item, data, setData, id, index}) {
     setData(data.filter(i => i.id != id));
     handleActions('Từ chối', id);
   };
-
+ 
   return (
     <ListItem
       onPress={() =>
@@ -35,7 +35,7 @@ export default function Custom_Item({item, data, setData, id, index}) {
         })
       }
       containerStyle={{
-        height: 90,
+        height: 80,
         backgroundColor: COLORS.secondaryWhite,
         marginBottom: 10,
         borderRadius: 12,
@@ -50,34 +50,44 @@ export default function Custom_Item({item, data, setData, id, index}) {
       <View style={styles.image}>
         <Avatar.Image
           source={{uri: item?.image || images.imageLoading}}
-          size={60}
+          size={55}
         />
       </View>
       <ListItem.Content style={{width: 200}}>
-        <ListItem.Title style={{fontWeight: 'bold'}} numberOfLines={1}>
+        <ListItem.Title
+          style={{fontWeight: 'bold', paddingVertical: 5}}
+          numberOfLines={1}>
           {item.name}
         </ListItem.Title>
-        <ListItem.Subtitle style={{marginTop: 5, color: COLORS.secondaryGray}}>
-          {item.phone}
+        <ListItem.Subtitle>
+          <View
+            style={{
+              flexDirection: 'row',
+              width: SIZES.width / 1.8,
+              justifyContent: 'space-between',
+            }}>
+            <Button
+              mode="elevated"
+              textColor={COLORS.white}
+              buttonColor={'blue'}
+              style={{borderRadius: 10, width: '45%'}}
+              onPress={() => handleAccept()}>
+              Thêm
+            </Button>
+            <Button
+              mode="outlined"
+              textColor={'blue'}
+              onPress={() => handleReject()}
+              style={{
+                borderColor: COLORS.primary,
+                borderRadius: 10,
+                width: '45%',
+              }}>
+              Xóa
+            </Button>
+          </View>
         </ListItem.Subtitle>
       </ListItem.Content>
-      <View>
-        <Button
-          mode="elevated"
-          textColor={COLORS.white}
-          buttonColor={'blue'}
-          style={{borderRadius: 10, marginBottom: 5}}
-          onPress={() => handleAccept()}>
-          Thêm
-        </Button>
-        <Button
-          mode="outlined"
-          textColor={'blue'}
-          onPress={() => handleReject()}
-          style={{borderColor: COLORS.primary, borderRadius: 10}}>
-          Xóa
-        </Button>
-      </View>
     </ListItem>
   );
 }
@@ -91,8 +101,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   image: {
-    height: 66,
-    width: 66,
+    height: 60,
+    width: 60,
     borderRadius: 33,
     borderColor: COLORS.primary,
     borderWidth: 1,

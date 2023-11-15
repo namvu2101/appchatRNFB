@@ -26,6 +26,8 @@ import {UserType} from '../../contexts/UserContext';
 import {getConversationMessages} from './FetchData';
 import {ListItem} from '@rneui/themed';
 import LinearGradient from 'react-native-linear-gradient';
+import {pickDocument} from '../../components/DocumentPicker';
+import {BgColors} from '../../constants/colors';
 export default function Index({route}) {
   const navigation = useNavigation();
   const [input, setInput] = useState('');
@@ -40,12 +42,13 @@ export default function Index({route}) {
   const {profile} = profileStore();
   const {userId} = authStore();
   const isFocused = useIsFocused();
+  const [sendSuccess, setSendSuccess] = useState(true);
   useLayoutEffect(() => {
     checkConversation_exists();
     getConversationMessages(conversation_id, data => {
       setMessages(data);
     });
-  }, [conversation_id, isFocused]);
+  }, [isFocused]);
 
   const checkConversation_exists = async () => {
     db.collection('Conversations')
@@ -71,48 +74,79 @@ export default function Index({route}) {
       });
   };
 
-  const onSendMessage = (messageType, imageUri) => {
+  const onSendMessage = async (Type, url) => {
+    setSendSuccess(false);
     const id = uuid.v4();
+    let messageType = '';
+    let messageText = '';
+
+    switch (Type) {
+      case 'image':
+        messageType = 'image';
+        messageText = 'đã gửi hình ảnh';
+        photo = url;
+        uri = '';
+        break;
+      case 'video':
+        messageType = 'video';
+        messageText = 'đã gửi video';
+        photo = url;
+        uri = '';
+        break;
+      case 'text':
+        messageType = 'text';
+        messageText = input;
+        photo = '';
+        uri = '';
+        break;
+      default:
+        messageType = 'doc';
+        messageText = 'đã gửi tệp';
+        photo = '';
+        uri = url;
+        break;
+    }
     const formData = {
       timeSend: new Date(),
       senderId: userId,
       senderImage: profile.image,
       name: profile.name,
-      messageType: messageType === 'image' ? 'image' : 'text',
-      messageText: messageType === 'image' ? 'đã gửi hình ảnh' : input,
+      messageType,
+      messageText: (messageType = 'text' && input),
+      recipientId: type === 'Person' && recipientId,
+      photo,
+      uri,
     };
-    if (messageType === 'image') {
-      formData.photo = imageUri;
-    }
-    if (messageType == 'text') {
+    if (messageType === 'text' || 'doc') {
       setMessages([{id: id, data: formData}, ...messages]);
     }
-
-    if (type === 'Person') {
-      formData.recipientId = recipientId;
-      sendPersonMessages(formData, messageType);
-    } else {
-      sendGroup(formData, messageType);
-    }
+    checkMessage(type, formData, messageType, messageText);
     setInput('');
   };
-  const sendPersonMessages = (formData, type) => {
-    const messageText = type == 'image' ? 'Đã gửi một ảnh' : input;
-
+  const checkMessage = async (type, formData, messageType, messageText) => {
+    switch (type) {
+      case 'Person':
+        sendPersonMessages(formData, messageType, messageText);
+        break;
+      default:
+        sendGroup(formData, messageType, messageText);
+        break;
+    }
+  };
+  const sendPersonMessages = (formData, type, messageText) => {
     const conversationIds = [
       `${userId}-${recipientId}`,
       `${recipientId}-${userId}`,
     ];
 
     conversationIds.forEach(conversationId => {
-      sendPerson(conversationId, formData);
       if (conversation_exists) {
         db.collection('Conversations')
           .doc(conversationId)
           .update({
             last_message: new Date(),
             message: {
-              messageText,
+              messageText: messageText,
               name: profile.name,
               id: userId,
             },
@@ -120,11 +154,17 @@ export default function Index({route}) {
       } else {
         createConversation(conversationId, messageText);
       }
+      sendPerson(conversationId, formData);
     });
   };
 
   const sendPerson = (id, data) => {
-    db.collection('Conversations').doc(id).collection('messages').add(data);
+    db.collection('Conversations')
+      .doc(id)
+      .collection('messages')
+      .add(data)
+      .then(() => setSendSuccess(true))
+      .catch(e => console.error('Gửi không thành công', e));
   };
   const createConversation = (id, messageText) => {
     db.collection('Conversations')
@@ -152,13 +192,11 @@ export default function Index({route}) {
       });
   };
 
-  const sendGroup = async (formData, type) => {
-    const messageText = type === 'image' ? 'Đã gửi một ảnh' : input;
+  const sendGroup = async (formData, type, messageText) => {
     const collectionRef = db
       .collection('Conversations')
       .doc(conversation_id)
       .collection('messages');
-    await collectionRef.add(formData);
     await db
       .collection('Conversations')
       .doc(conversation_id)
@@ -170,36 +208,62 @@ export default function Index({route}) {
           id: userId,
         },
       });
+    await collectionRef
+      .add(formData)
+      .then(() => setSendSuccess(true))
+      .catch(e => console.error('Gửi không thành công', e));
   };
   const sendImage = async () => {
-    const id = uuid.v4();
     Keyboard.dismiss();
     try {
-      const newImagePath = await handlePickImage();
+      const newImagePath = await handlePickImage('message');
       if (newImagePath != 'Error') {
-        sendPhotoBackgroud(newImagePath);
-        const reference = storage().ref(`Conversations/Files/${id}`);
-        await reference.putFile(newImagePath);
+        const mediaType = newImagePath.type === 'video/mp4' ? 'video' : 'image';
+        sendPhotoBackgroud(mediaType, newImagePath.uri);
+        const reference = storage().ref(
+          `Conversations/Files/${newImagePath.fileName}`,
+        );
+        await reference.putFile(newImagePath.uri);
         const downloadURL = await reference.getDownloadURL();
-        onSendMessage('image', downloadURL);
+        if (downloadURL != true || false) {
+          await onSendMessage(mediaType, downloadURL);
+        }
       }
     } catch (error) {
       console.log('error', error);
     }
   };
-  const sendPhotoBackgroud = image => {
-    const id = uuid.v4();
-
+  const sendPhotoBackgroud = (mediaType, image) => {
     const formData = {
       timeSend: new Date(),
       senderId: userId,
       senderImage: profile.image,
       name: profile.name,
-      messageType: 'image',
-      messageText: 'đã gửi hình ảnh',
+      messageType: mediaType === 'image' ? 'image' : 'video',
+      messageText: mediaType === 'image' ? 'đã gửi hình ảnh' : 'đã gửi video',
       photo: image,
     };
-    setMessages([{id: id, data: formData}, ...messages]);
+    setMessages(prevMessages => [{id: image, data: formData}, ...prevMessages]);
+  };
+
+  const sendDocument = async () => {
+    const newDoc = await pickDocument();
+    if (newDoc != 'Error') {
+      const reference = storage().ref(`Conversations/Documents/${newDoc.name}`);
+      await reference.putFile(newDoc.fileCopyUri);
+      const downLoadUrl = await reference.getDownloadURL();
+
+      if (newDoc.type.includes('image')) {
+        sendPhotoBackgroud('image', newDoc.fileCopyUri);
+        await onSendMessage('image', downLoadUrl);
+      } else if (newDoc.type.includes('video')) {
+        sendPhotoBackgroud('video', newDoc.fileCopyUri);
+        await onSendMessage('video', downLoadUrl);
+      } else {
+        newDoc.fileCopyUri = downLoadUrl;
+        await onSendMessage('doc', newDoc);
+      }
+    }
   };
   const list_icon = [
     {
@@ -242,6 +306,7 @@ export default function Index({route}) {
         navigation.navigate('ChatSettings', {
           item: recipient,
           id: conversation_id,
+          backgroundColor: conversationData?.bgColor || COLORS.primary,
         });
       },
     },
@@ -251,7 +316,7 @@ export default function Index({route}) {
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <ListItem bottomDivider containerStyle={styles.header}>
-          <Pressable onPress={() => navigation.goBack()}>
+          <Pressable onPress={() => navigation.replace('BottomTabs')}>
             <Icon source={'arrow-left'} size={25} color="#000000" />
           </Pressable>
 
@@ -289,7 +354,7 @@ export default function Index({route}) {
                   id: conversation_id,
                 });
               }}>
-              <Icon source={'text-long'} size={30} color={COLORS.secondaryGray} />
+              <Icon source={'text-long'} size={30} color={'#000'} />
             </Pressable>
           ) : (
             <View style={{flexDirection: 'row'}}>
@@ -298,7 +363,11 @@ export default function Index({route}) {
                   onPress={i.onPress}
                   key={i.icon}
                   style={{marginRight: 10}}>
-                  <Icon source={i.icon} size={25} color={COLORS.primary} />
+                  <Icon
+                    source={i.icon}
+                    size={25}
+                    color={conversationData?.bgColor || COLORS.primary}
+                  />
                 </TouchableOpacity>
               ))}
             </View>
@@ -309,22 +378,28 @@ export default function Index({route}) {
           showsVerticalScrollIndicator={false}
           data={messages}
           style={{width: SIZES.width, paddingHorizontal: 10}}
-          renderItem={({item}) => (
+          renderItem={({item, index}) => (
             <List_Message
+              index={index}
+              sendSuccess={sendSuccess}
               item={item.data}
               id={item.id}
               userId={userId}
               user={recipient}
               conversation_id={conversation_id}
+              backgroundColor={conversationData?.bgColor || COLORS.primary}
             />
           )}
         />
+
         <View style={styles._input_box}>
-          <MaterialCommunityIcons
-            name="paperclip"
-            size={25}
-            color={'#000E08'}
-          />
+          <TouchableOpacity onPress={sendDocument}>
+            <Icon
+              source="paperclip"
+              size={25}
+              color={conversationData?.bgColor || COLORS.primary}
+            />
+          </TouchableOpacity>
           <TextInput
             value={input}
             onChangeText={setInput}
@@ -339,7 +414,7 @@ export default function Index({route}) {
               <MaterialCommunityIcons
                 name="send-circle"
                 size={44}
-                color={COLORS.primary}
+                color={conversationData?.bgColor || COLORS.primary}
               />
             </TouchableOpacity>
           ) : (
@@ -348,14 +423,14 @@ export default function Index({route}) {
                 <MaterialCommunityIcons
                   name="camera-outline"
                   size={25}
-                  color={'#000E08'}
+                  color={conversationData?.bgColor || COLORS.primary}
                 />
               </TouchableOpacity>
               <TouchableOpacity>
                 <MaterialCommunityIcons
                   name="microphone"
                   size={25}
-                  color={'#000E08'}
+                  color={conversationData?.bgColor || COLORS.primary}
                 />
               </TouchableOpacity>
             </>
@@ -387,7 +462,7 @@ const styles = StyleSheet.create({
   },
   header: {
     width: SIZES.width,
-    height: 60,
+    height: 70,
   },
   _input_box: {
     height: 66,

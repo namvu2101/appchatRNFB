@@ -8,29 +8,34 @@ import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {COLORS, FONTS, SIZES, images} from '../../constants';
 import UISearch from '../../components/UISearch';
-import {authStore, conversationStore} from '../../store';
-import uuid from 'react-native-uuid';
-import Loading from '../../components/Loading';
+import {authStore, conversationStore, profileStore} from '../../store';
 import {UserType} from '../../contexts/UserContext';
 import {CheckBox} from '@rneui/themed';
+import Loading from '../Dialog/Loading';
 
-export default function CreateGroup() {
+export default function CreateGroup({route}) {
   const navigation = useNavigation();
   const [member, setMember] = useState([]);
   const [submit, setSubmit] = useState(false);
   const {userFriends} = useContext(UserType);
-  const [data, setdata] = useState(userFriends);
+  const [data, setdata] = useState([]);
   const [search, setSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const {profile} = profileStore();
+  const {userId} = authStore();
   useEffect(() => {
+    const res = route.params
+      ? userFriends.filter(item => !route.params.data.includes(item.id))
+      : userFriends;
     if (search.length != 0) {
-      const filter = userFriends.filter(
+      const filter = res.filter(
         item =>
           item.data.name.toLowerCase().includes(search.toLowerCase()) ||
           item.data.phone.includes(search),
       );
       setdata(filter);
     } else {
-      setdata(userFriends);
+      setdata(res);
     }
   }, [search]);
 
@@ -44,7 +49,38 @@ export default function CreateGroup() {
         );
     });
   };
-
+  const handleAdd = () => {
+    setIsLoading(true);
+    const member_id = member.map(i => i.id);
+    const newMember = member_id.concat(route.params.data);
+    setSubmit(false);
+    db.collection('Conversations')
+      .doc(route.params.id)
+      .update({
+        member_id: newMember,
+        last_message: new Date(),
+        message: {
+          messageText: `đã thêm +${member_id.length} người vào`,
+          name: profile.name,
+          id: userId,
+        },
+      })
+      .then(() => {
+        Alert.alert('Thông báo!', 'Thêm thành công', [
+          {
+            text: 'Đồng ý',
+            onPress: () => {
+              setIsLoading(false);
+              navigation.replace('BottomTabs');
+            },
+          },
+        ]);
+      })
+      .catch(e => {
+        console.error('Đã xảy ra lỗi', e);
+        setIsLoading(false);
+      });
+  };
   const onPress = item => {
     // Kiểm tra xem item có trong danh sách member không
     const itemIndex = member.findIndex(m => m.id === item.id);
@@ -59,7 +95,7 @@ export default function CreateGroup() {
     }
   };
   useEffect(() => {
-    if (member.length > 1) {
+    if ((route.params && member.length > 0) || member.length > 1) {
       setSubmit(true);
     } else {
       setSubmit(false);
@@ -102,15 +138,15 @@ export default function CreateGroup() {
   };
 
   const viewMember = () => {
-    const height = useSharedValue(80);
+    const height = useSharedValue(0);
     useEffect(() => {
-      if (member.length == 0) {
-        height.value = withSpring(height.value - 80, {
+      if (member.length != 0) {
+        height.value = withSpring(80, {
           damping: 100,
           stiffness: 300,
         });
       } else {
-        height.value = withSpring(80, {damping: 100, stiffness: 300});
+        height.value = withSpring(0, {damping: 100, stiffness: 300});
       }
     }, [member]);
     return (
@@ -168,13 +204,19 @@ export default function CreateGroup() {
         <Text style={{...FONTS.h2}}>Thêm thành viên</Text>
         <Pressable
           disabled={!submit}
-          onPress={() => navigation.navigate('CreateInforGroup', member)}>
+          onPress={() => {
+            if (route.params) {
+              handleAdd();
+            } else {
+              navigation.navigate('CreateInforGroup', member);
+            }
+          }}>
           <Text
             style={{
               ...FONTS.h3,
               color: submit ? COLORS.secondaryBlack : COLORS.secondaryGray,
             }}>
-            Tiếp
+            {route.params ? 'Thêm' : 'Tiếp'}
           </Text>
         </Pressable>
       </View>
@@ -184,9 +226,11 @@ export default function CreateGroup() {
         onClear={() => setSearch('')}
       />
       {viewMember()}
+
       <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>Gợi ý</Text>
 
       <FlatList data={data} renderItem={renderItem} />
+      <Loading isVisible={isLoading} />
     </View>
   );
 }

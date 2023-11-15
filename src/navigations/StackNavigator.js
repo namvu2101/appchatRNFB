@@ -21,7 +21,8 @@ import Createinformation from '../screens/GroupChat/Createinformation';
 import ManageServices from '../screens/Service/ManageServices';
 import Service from '../screens/Service/Service';
 import ServiceChat from '../screens/Service/ServiceChat';
-import ViewMember from '../screens/Modals/viewMember';
+import ViewMember from '../screens/GroupChat/MemberOfGroup';
+import MediaScreen from '../screens/Chat/MediaScreen';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
 
@@ -51,6 +52,7 @@ const StackNavigator = () => {
           component={MyTabs}
           options={{headerShown: false}}
         />
+        <Stack.Screen name="MemberScreen" component={ViewMember} />
         <Stack.Screen
           name="Splash"
           component={Splash}
@@ -77,6 +79,14 @@ const StackNavigator = () => {
           name="Search"
           component={Search}
           options={{animation: 'fade', headerShown: false}}
+        />
+        <Stack.Screen
+          name="MediaScreen"
+          component={MediaScreen}
+          options={{
+            animation:'fade_from_bottom',
+            headerShown: false,
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

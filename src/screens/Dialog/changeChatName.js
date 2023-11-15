@@ -3,27 +3,40 @@ import React from 'react';
 import {Dialog} from '@rneui/themed';
 import UITextInput from '../../components/UITextInput';
 import {FONTS, SIZES} from '../../constants';
+import Loading from './Loading';
+import {authStore, profileStore} from '../../store';
 
 export default function ChangeChatName(props) {
   const [newName, setnewName] = React.useState(props.name);
-
+  const [isLoading, setisLoading] = React.useState(false);
+  const {userId} = authStore();
+  const {profile} = profileStore();
   const handleUpdateName = async () => {
     if (newName.length == 0) {
-      console.error('khong dc de trong');
+      console.error('Không được để trống');
+    } else if (newName.length > 40) {
+      console.error('Tên quá dài');
     } else {
-      await props.docRef.update({name: newName});
       props.onClose();
+      setisLoading(true);
+      await props.docRef.update({
+        name: newName,
+        last_message: new Date(),
+        message: {
+          messageText: `đã cập nhật tên đoạn chat`,
+          name: profile.name,
+          id: userId,
+        },
+      });
+      setisLoading(false);
     }
   };
   return (
-    <Dialog
-      isVisible={props.isVisible}
-      onBackdropPress={props.onClose}
-      overlayStyle={{width: SIZES.width}}>
+    <View>
       <Dialog.Title title="Tên nhóm mới" titleStyle={FONTS.h2} />
       <UITextInput
         autoFocus={true}
-        style={{height: 55}}
+        style={{height: 55, width: '100%', padding: 0, ...FONTS.h3}}
         placeholder="Nhập tên (Bắt buộc)"
         value={newName}
         onChangeText={setnewName}
@@ -40,8 +53,9 @@ export default function ChangeChatName(props) {
           titleStyle={{color: '#2C6BED'}}
           onPress={handleUpdateName}
         />
+        <Loading isVisible={isLoading} />
       </Dialog.Actions>
-    </Dialog>
+    </View>
   );
 }
 

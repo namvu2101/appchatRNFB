@@ -19,8 +19,8 @@ import {handlePickImage} from '../../components/ImagePicker';
 import UIButton from '../../components/UIButton';
 import uuid from 'react-native-uuid';
 import {db, storage, timestamp} from '../../firebase/firebaseConfig';
-import Loading from '../../components/Loading';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Loading from '../Dialog/Loading';
 
 export default function Createinformation({route}) {
   const navigation = useNavigation();
@@ -28,15 +28,15 @@ export default function Createinformation({route}) {
   const [image, setImage] = useState('');
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [photo, setPhoto] = useState();
   useLayoutEffect(() => {
     navigation.setOptions({headerTitle: 'Thông tin nhóm trò chuyện'});
   }, []);
   const ChangeAvatar = async () => {
     const avatar = await handlePickImage();
-    setImage(images.imageLoading);
     if (avatar != 'Error') {
-      setImage(avatar);
+      setImage(avatar.uri);
+      setPhoto(avatar);
     }
   };
   const handleCreate = async () => {
@@ -52,7 +52,9 @@ export default function Createinformation({route}) {
       try {
         setIsLoading(true);
         member_id.push(userId);
-        const reference = storage().ref(`Conversations/Group/files/${idImage}`);
+        const reference = storage().ref(
+          `Conversations/Group/files/${photo.fileName}`,
+        );
         const avatar = await uploadImage(reference, image);
         docRef
           .add({

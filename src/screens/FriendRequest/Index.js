@@ -9,6 +9,7 @@ import Custom_Item from './Custom_Item';
 import {profileStore} from '../../store';
 import {db} from '../../firebase/firebaseConfig';
 import {UserType} from '../../contexts/UserContext';
+import {useNavigation} from '@react-navigation/native';
 
 export default function Index() {
   const {friendRequests} = profileStore();
@@ -16,6 +17,7 @@ export default function Index() {
   const {users} = useContext(UserType);
   const [search, setSearch] = useState('');
   const [data, setData] = useState([]);
+  const navigation = useNavigation();
   useEffect(() => {
     if (search.length == 0) {
       const filter = users.filter(item => friendRequests.includes(item.id));
@@ -30,6 +32,7 @@ export default function Index() {
       setFilteredUsers(res);
     }
   }, [search]);
+
 
   return (
     <SafeAreaView style={{flex: 1}}>

@@ -105,43 +105,12 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
       onPress={onPress}
       onLongPress={() => setIsVisible(true)}
       style={{paddingHorizontal: 10, width: SIZES.width}}>
-      <ListItem
-        containerStyle={{
-          height: 80,
-          backgroundColor: COLORS.secondaryWhite,
-          marginVertical: 5,
-          borderRadius: 12,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: 10,
-          },
-          shadowOpacity: 0.3,
-          shadowRadius: 20,
-        }}>
-        <View
-          style={{
-            borderColor: 'blue',
-            height: 60,
-            width: 60,
-            borderWidth: 1,
-            borderRadius: 30,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
+      <ListItem containerStyle={styles._items}>
+        <View style={styles._image}>
           <View
             style={{
-              flex: 1,
-              height: 14,
-              width: 14,
-              borderRadius: 7,
+              ...styles._badge,
               backgroundColor: item?.isOnline ? COLORS.green : COLORS.gray,
-              borderColor: COLORS.white,
-              borderWidth: 2,
-              position: 'absolute',
-              bottom: 0,
-              right: 2,
-              zIndex: 1000,
             }}
           />
 
@@ -173,4 +142,39 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  _items: {
+    height: 80,
+    backgroundColor: COLORS.secondaryWhite,
+    marginVertical: 5,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  _image: {
+    borderColor: 'blue',
+    height: 60,
+    width: 60,
+    borderWidth: 1,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  _badge: {
+    flex: 1,
+    height: 14,
+    width: 14,
+    borderRadius: 7,
+    borderColor: COLORS.white,
+    borderWidth: 2,
+    position: 'absolute',
+    bottom: 0,
+    right: 2,
+    zIndex: 1000,
+  },
+});

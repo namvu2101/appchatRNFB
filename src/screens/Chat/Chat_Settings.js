@@ -9,7 +9,6 @@ import {
   FlatList,
   Keyboard,
 } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Avatar, Button, Icon, TextInput} from 'react-native-paper';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
@@ -18,14 +17,12 @@ import {COLORS, FONTS, SIZES, images} from '../../constants';
 import {getInitialItems, getGroupItems, getIconItems} from './SettingItems';
 import {handlePickImage} from '../../components/ImagePicker';
 import {db, storage} from '../../firebase/firebaseConfig';
-import UIModals from '../../components/UIModals';
 import uuid from 'react-native-uuid';
-import Setting_modals from './Setting_modals';
+import Setting_modals from './Setting_dialog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/firestore';
 import {UserType} from '../../contexts/UserContext';
-import ChangeNameChat from '../Modals/ChangeNameChat';
-import ChangeChatName from '../Dialog/changeChatName';
+
 import Loading from '../Dialog/Loading';
 
 export default function ChatSettings({route}) {
@@ -41,6 +38,7 @@ export default function ChatSettings({route}) {
   const listIcon = getIconItems(item.type, isNotify);
   const docRef = db.collection('Conversations').doc(conversation_id);
   const {userConversations, setUserConversations} = React.useContext(UserType);
+  const [bgColor, setBgColor] = useState(route.params.backgroundColor);
   useLayoutEffect(() => {
     docRef.onSnapshot(doc => {
       if (doc.exists) {
@@ -51,12 +49,10 @@ export default function ChatSettings({route}) {
   const handleItemClick = async action => {
     switch (action) {
       case 'Đổi tên nhóm':
-        console.log('Đổi tên');
         onOpen(action);
         break;
       case 'Thành viên':
-        console.log('Thành viên');
-        onOpen(action);
+        navigation.navigate('MemberScreen', item);
         break;
       case 'Đổi ảnh nhóm':
         console.log(' Đổi ảnh nhóm');
@@ -158,7 +154,10 @@ export default function ChatSettings({route}) {
             id: item.recipientId,
           });
         } else if (data.type == 'Group') {
-          onOpen('add_member');
+          navigation.navigate('CreateGroup', {
+            data: item.member_id,
+            id: conversation_id,
+          });
         } else {
           Alert.alert(
             'Thông tin',
@@ -221,8 +220,8 @@ export default function ChatSettings({route}) {
       const newImage = await handlePickImage();
       if (newImage != 'Error') {
         setisLoading(true);
-        const reference = storage().ref(`Conversations/${doc.id}/Avatar/${id}`);
-        await reference.putFile(newImage);
+        const reference = storage().ref(`Conversations/Group/${doc.id}/Avatar/${newImage.fileName}`);
+        await reference.putFile(newImage.uri);
         const downloadURL = await reference.getDownloadURL();
         await doc
           .update({image: downloadURL})
@@ -240,7 +239,13 @@ export default function ChatSettings({route}) {
         style={styles.items}
         onPress={() => handleItemClick(item.title)}>
         <Text style={{...FONTS.h4}}>{item.title}</Text>
-        {item.icon && <Icon size={25} source={item.icon} color={item.color} />}
+        {item.icon && (
+          <Icon
+            size={25}
+            source={item.icon}
+            color={item?.color || bgColor}
+          />
+        )}
       </TouchableOpacity>
     );
   };
@@ -260,6 +265,7 @@ export default function ChatSettings({route}) {
               ...FONTS.h1,
               fontWeight: 'bold',
               marginVertical: 10,
+              marginHorizontal: 10,
               textAlign: 'center',
             }}>
             {data?.name}
@@ -270,7 +276,11 @@ export default function ChatSettings({route}) {
                 onPress={() => handleIconClick(index)}
                 key={item.icon}
                 style={{alignItems: 'center'}}>
-                <Icon source={item.icon} size={25} color={item.color} />
+                <Icon
+                  source={item.icon}
+                  size={25}
+                  color={bgColor}
+                />
 
                 <Text style={{...FONTS.h4, textAlign: 'center'}}>
                   {item.title}
@@ -288,19 +298,17 @@ export default function ChatSettings({route}) {
           }}
           renderItem={renderItem}
         />
-        <UIModals isVisible={isVisible} onClose={onClose}>
-          <Setting_modals
-            isVisible={isVisible}
-            onClose={onClose}
-            type={type}
-            docRef={docRef}
-            item={data}
-            conversation_id={conversation_id}
-          />
-        </UIModals>
-        
+        <Setting_modals
+          isVisible={isVisible}
+          onClose={onClose}
+          type={type}
+          docRef={docRef}
+          item={data}
+          conversation_id={conversation_id}
+          setBgColor={setBgColor}
+        />
+
         <Loading isVisible={isLoading} />
-        {/* <Loading isVisible={isLoading} /> */}
       </PageContainer>
     </SafeAreaView>
   );

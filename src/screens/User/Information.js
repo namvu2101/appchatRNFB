@@ -34,9 +34,9 @@ export default function Information({route}) {
   const [status, setStatus] = useState('');
   const {friends, sentRequestFriends, friendRequests} = profileStore();
   const [icon, setIcon] = useState('');
-  
+
   useLayoutEffect(() => {
-    navigation.setOptions({headerTitle:'Thông tin người dùng'})
+    navigation.setOptions({headerTitle: 'Thông tin người dùng'});
     getData();
     setTimeout(() => {
       setisLoading(true);
@@ -100,10 +100,11 @@ export default function Information({route}) {
     },
     {
       name: 'SĐT',
-      value: data.phone,
+      value: data?.phone,
       editable: false,
       inputMode: 'numeric',
     },
+    
   ];
 
   return (
@@ -116,15 +117,23 @@ export default function Information({route}) {
               width: SIZES.width,
               height: '40%',
             }}>
-            <Image
-              source={{
-                uri:
-                  data?.backgroud ||
-                  'https://th.bing.com/th/id/R.31a057b002e52be3a87c1554ab0df61f?rik=pUq4kE2yAahmbg&riu=http%3a%2f%2f4.bp.blogspot.com%2f-cFrX94jbehk%2fUQgQyh66j3I%2fAAAAAAAAAk4%2fqFaJ1jjlMV8%2fs1600%2f9b516f4441a7bfb5174b33ebf74fc1d6_49102622.freebackgrounds5.jpg&ehk=Koj52Q69rFc9d4z9WglpPOi%2fpBSpUT3sFBd9r1fhnok%3d&risl=&pid=ImgRaw&r=0]',
-              }}
+            <Pressable
               style={{width: '100%', height: '80%'}}
-              resizeMode="cover"
-            />
+              onPress={() =>
+                navigation.navigate('MediaScreen', {
+                  uri: data?.backgroundImage || images.imageBackground,
+                  mediaType: 'photo',
+                })
+              }>
+              <Image
+                source={{
+                  uri: data?.backgroundImage || images.imageBackground,
+                }}
+                style={{width: '100%', height: '100%'}}
+                resizeMode="cover"
+              />
+            </Pressable>
+
             <View
               style={{
                 position: 'absolute',
@@ -133,7 +142,12 @@ export default function Information({route}) {
                 alignItems: 'center',
               }}>
               <Pressable
-                onPress={() => {setisVisible(true)}}
+                onPress={() =>
+                  navigation.navigate('MediaScreen', {
+                    uri: data?.image,
+                    mediaType: 'photo',
+                  })
+                }
                 style={{
                   backgroundColor: 'white',
                   borderRadius: 55,
@@ -150,6 +164,7 @@ export default function Information({route}) {
               <Text style={{...FONTS.h2}}>{data.name}</Text>
             </View>
           </View>
+
           <View
             style={{
               flexDirection: 'row',
@@ -198,15 +213,6 @@ export default function Information({route}) {
           ) : (
             <ActivityIndicator size={30} color="black" />
           )}
-          <UIModals
-            isVisible={isVisible}
-            onClose={() => setisVisible(false)}
-            animationInTiming={100}>
-            <ImageModals
-              onClose={() => setisVisible(false)}
-              image={data.image}
-            />
-          </UIModals>
         </PageContainer>
       </ScrollView>
     </SafeAreaView>

@@ -24,7 +24,7 @@ export default function AddChat({route}) {
   const [dataList, setDataList] = useState([]);
   const {userFriends, users} = useContext(UserType);
   const [search, setSearch] = useState('');
-  const [data, setdata] = useState(userFriends.concat(route.params.group));
+  const [data, setdata] = useState([]);
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
@@ -33,11 +33,11 @@ export default function AddChat({route}) {
 
   useEffect(() => {
     if (search.length != 0) {
-      const filter = userFriends.filter(
-        item =>
-          item.data.name.toLowerCase().includes(search.toLowerCase()) ||
-          item.data.phone.includes(search),
-      );
+      const filter = userFriends
+        .concat(route.params.group)
+        .filter(item =>
+          item.data.name.toLowerCase().includes(search.toLowerCase()),
+        );
       setdata(filter);
     } else {
       setdata(userFriends);

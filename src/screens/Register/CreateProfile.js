@@ -1,5 +1,5 @@
 import {Pressable, View, Alert, Text} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {COLORS, SIZES, FONTS, images} from '../../constants';
@@ -15,7 +15,7 @@ import {validatePassword} from '../../constants/validate';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UIModals from '../../components/UIModals';
 import ListAvatar from '../../components/ListAvatar';
-import Loading from '../../components/Loading';
+import Loading from '../../screens/Dialog/Loading';
 
 const CreateProfile = ({navigation, route}) => {
   const phoneNumber = route.params;
@@ -28,6 +28,12 @@ const CreateProfile = ({navigation, route}) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: 'Điền thông tin tài khoản',
+    });
+  }, []);
   const handleRegister = async () => {
     const date = new Date();
     const newDate = `${date.getDate()}/${
@@ -50,7 +56,9 @@ const CreateProfile = ({navigation, route}) => {
       email: email,
       date: newDate,
       isOnline: true,
+      backgroundImage: avatarUrl,
       service: [],
+      sex: '',
     };
 
     usersCollection
@@ -59,7 +67,7 @@ const CreateProfile = ({navigation, route}) => {
         const userId = docRef.id;
         AsyncStorage.setItem('userId', userId);
         setIsLoading(false);
-        navigation.replace('Loading');
+        navigation.replace('Splash');
       })
       .catch(error => console.error('Lỗi khi thêm người dùng:', error));
   };
@@ -132,7 +140,7 @@ const CreateProfile = ({navigation, route}) => {
         </Pressable>
 
         <UITextInput
-          title="Nhập email"
+          title="Email"
           value={email}
           inputMode="email"
           onChangeText={setemail}

@@ -6,26 +6,37 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import React from 'react';
-import {Avatar, IconButton} from 'react-native-paper';
-import {COLORS, SIZES, images} from '../../constants';
+import {Avatar, Icon, IconButton} from 'react-native-paper';
+import {COLORS, FONTS, SIZES, images} from '../../constants';
 import UIModals from '../../components/UIModals';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {db} from '../../firebase/firebaseConfig';
 import ImageModals from '../Modals/ImageModals';
 import {firebase} from '@react-native-firebase/firestore';
-
+import Video from 'react-native-video';
+import {useNavigation} from '@react-navigation/native';
+import {BottomSheet, ListItem} from '@rneui/themed';
+import {BgColors, LIGHT_COLORS} from '../../constants/colors';
+import {downloadFile} from '../../components/DownFile';
 export default function List_Message({
   item,
   userId,
   user,
   conversation_id,
   id,
+  backgroundColor,
+  sendSuccess,
+  index,
 }) {
   const [isSelected, setisSelected] = React.useState(false);
   const [isVisible, setisVisible] = React.useState(false);
   const [isLongPress, setisLongPress] = React.useState(false);
+  const [mediaType, setMediaType] = React.useState('');
+  const navigation = useNavigation();
   const formatTime = time => {
     if (time instanceof firebase.firestore.Timestamp) {
       const jsDate = time.toDate();
@@ -36,10 +47,37 @@ export default function List_Message({
       return new Date(time).toLocaleString('en-US', options);
     }
   };
-
+  const textColor =
+    LIGHT_COLORS.find(i => i == backgroundColor) || item?.senderId != userId
+      ? 'black'
+      : 'white';
   const list = [
-    {icon: 'arrow-down-thin', onPress: () => {}},
-    {icon: 'pin-outline', onPress: () => {}},
+    {
+      icon: item.messageType === 'text' ? 'content-copy' : 'arrow-down-thin',
+      onPress: () => {
+        switch (item.messageType) {
+          case 'text':
+            setisLongPress(false);
+            console.warn('Đã sao chép');
+            break;
+          case 'image':
+            setisLongPress(false);
+            downloadFile('.png', item.photo);
+            break;
+          case 'video':
+            setisLongPress(false);
+            downloadFile('.mp4', item.photo);
+            break;
+          default:
+            console.warn('Không rõ lệnh thực thi');
+            break;
+        }
+      },
+    },
+    {
+      icon: 'pin-outline',
+      onPress: () => {},
+    },
     {
       icon: 'delete-outline',
       onPress: () => {
@@ -47,6 +85,7 @@ export default function List_Message({
       },
     },
   ];
+
   const handleDelete = () => {
     Alert.alert(
       'Thông báo',
@@ -70,10 +109,123 @@ export default function List_Message({
       .doc(id)
       .delete();
   };
+
   const messageContainerStyle =
     item?.senderId === userId
-      ? styles.senderMessageContainer
+      ? {
+          ...styles.senderMessageContainer,
+          backgroundColor: backgroundColor,
+          color: textColor,
+        }
       : styles.receiverMessageContainer;
+  const renderMessageContent = () => {
+    const navigateToMediaScreen = (uri, mediaType) => {
+      navigation.navigate('MediaScreen', {
+        uri,
+        mediaType,
+      });
+    };
+    const commonProps = {
+      onLongPress: () => setisLongPress(true),
+      style: [messageContainerStyle, styles.messageContainer],
+    };
+
+    const renderTextMessage = () => (
+      <Pressable {...commonProps} onPress={() => setisSelected(!isSelected)}>
+        <Text style={{...messageContainerStyle, margin: 8}}>
+          {item?.messageText}
+        </Text>
+        {isSelected && (
+          <Text
+            style={{
+              ...styles.timestampText,
+              textAlign: item?.senderId === userId ? 'right' : 'left',
+              color: textColor,
+            }}>
+            {formatTime(item.timeSend)}
+          </Text>
+        )}
+      </Pressable>
+    );
+
+    const renderPhotoMessage = () => (
+      <Pressable
+        {...commonProps}
+        onPress={() => navigateToMediaScreen(item.photo, 'photo')}>
+        <Image
+          source={{
+            uri: item?.photo || images.imageLoading,
+          }}
+          style={styles.image}
+          resizeMode="stretch"
+        />
+      </Pressable>
+    );
+    const renderVideoMessage = () => (
+      <Pressable
+        {...commonProps}
+        onPress={() => navigateToMediaScreen(item.photo, 'video')}>
+        <Image
+          source={require('../../assets/images/video.png')}
+          style={styles._video}
+          resizeMode="stretch"
+        />
+      </Pressable>
+    );
+
+    const renderDocMessage = () => (
+      <ListItem
+        containerStyle={[messageContainerStyle, styles._document]}
+        onPress={() => downloadFile(item.uri.name, item.uri.fileCopyUri)}
+        onLongPress={() => setisSelected(!isSelected)}>
+        <Icon
+          source={
+            item.uri.name.includes('.doc')
+              ? 'file-word'
+              : item.uri.name.includes('.pdf')
+              ? 'file-pdf-box'
+              : 'file-download'
+          }
+          size={30}
+          color={textColor}
+        />
+        <ListItem.Content>
+          <ListItem.Title numberOfLines={1} style={{color: textColor}}>
+            {item.uri.name}
+          </ListItem.Title>
+          <ListItem.Subtitle style={{color: textColor}}>
+            {item.uri.size > 1048575
+              ? `${(item.uri.size / 1000000).toFixed(2)} MB`
+              : `${(item.uri.size / 1000).toFixed(1)} KB`}
+          </ListItem.Subtitle>
+          {isSelected && (
+            <Text
+              style={{
+                ...styles.timestampText,
+                textAlign: item?.senderId === userId ? 'right' : 'left',
+                color: textColor,
+                width: '90%',
+              }}>
+              {formatTime(item.timeSend)}
+            </Text>
+          )}
+        </ListItem.Content>
+      </ListItem>
+    );
+
+    switch (item.messageType) {
+      case 'text':
+        return renderTextMessage();
+      case 'image':
+        return renderPhotoMessage();
+      case 'video':
+        return renderVideoMessage();
+      case 'doc':
+        return renderDocMessage();
+      default:
+        return null;
+    }
+  };
 
   return (
     <View>
@@ -91,127 +243,74 @@ export default function List_Message({
           <Text style={styles.senderNameText}>{item.name}</Text>
         </View>
       )}
-      {item.messageType === 'text' ? (
-        <>
-          <Pressable
-            onPress={() => setisSelected(!isSelected)}
-            onLongPress={() => setisLongPress(!isLongPress)}
-            style={[styles.messageContainer, messageContainerStyle]}>
-            <Text style={styles.messageText}>{item?.messageText}</Text>
-
-            {isSelected && (
-              <Text
-                style={{
-                  ...styles.timestampText,
-                  textAlign: item?.senderId === userId ? 'right' : 'left',
-                }}>
-                {formatTime(item.timeSend)}
-              </Text>
-            )}
-          </Pressable>
-
-          {isLongPress && (
-            <View
-              style={[
-                messageContainerStyle,
-                {
-                  flexDirection: 'row',
-                  justifyContent: 'space-evenly',
-                  borderRadius: 20,
-                  borderColor: 'green',
-                  borderWidth: 1,
-                  marginTop: 10,
-                  paddingVertical: 5,
-                  width: 200,
-                  backgroundColor: 'white',
-                },
-              ]}>
-              {list.map(i => (
-                <Pressable onPress={i.onPress} key={i.icon}>
-                  <Avatar.Icon icon={i.icon} size={33} color="white" />
-                </Pressable>
-              ))}
-            </View>
-          )}
-        </>
-      ) : (
-        item.messageType === 'image' && (
-          <>
-            <Pressable
-              onPress={() => setisVisible(true)}
-              onLongPress={() => setisLongPress(!isLongPress)}
-              style={[messageContainerStyle, styles.imageMessageContainer]}>
-              <Image
-                source={{
-                  uri: item?.photo || images.imageLoading,
-                }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-              {isLongPress && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-evenly',
-                    borderRadius: 20,
-                    borderColor: 'green',
-                    borderWidth: 1,
-                    marginTop: 10,
-                    paddingVertical: 5,
-                    width: 200,
-                  }}>
-                  {list.map(i => (
-                    <Pressable
-                      onPress={i.onPress}
-                      key={i.icon}
-                      style={{justifyContent: 'space-between'}}>
-                      <Avatar.Icon icon={i.icon} size={33} color="white" />
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </Pressable>
-          </>
-        )
+      {renderMessageContent()}
+      {item?.senderId == userId && index == 0 && (
+        <View
+          style={{
+            ...styles._success,
+            borderColor: backgroundColor || COLORS.primary,
+            backgroundColor: sendSuccess ? backgroundColor : 'white',
+          }}>
+          {sendSuccess && <Icon source={'check'} size={13} color="#fff" />}
+        </View>
       )}
 
       <UIModals
         isVisible={isVisible}
         onClose={() => setisVisible(false)}
         animationInTiming={100}>
-        <ImageModals onClose={() => setisVisible(false)} image={item.photo} />
+        <ImageModals
+          onClose={() => setisVisible(false)}
+          uri={item.photo}
+          mediaType={mediaType}
+        />
       </UIModals>
+      <BottomSheet
+        containerStyle={{backgroundColor: null}}
+        modalProps={{
+          animationType: 'slide',
+        }}
+        isVisible={isLongPress}
+        onBackdropPress={() => setisLongPress(false)}>
+        <View style={styles._bottomSheet}>
+          {list.map(i => (
+            <TouchableOpacity onPress={i.onPress} key={i.icon}>
+              <Avatar.Icon icon={i.icon} size={40} color="white" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </BottomSheet>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   messageContainer: {
-    padding: 8,
-    maxWidth: '60%',
     borderRadius: 7,
     margin: 10,
   },
   senderMessageContainer: {
     alignSelf: 'flex-end',
-    backgroundColor: '#DCF8C6',
+    fontSize: 16,
   },
   receiverMessageContainer: {
     alignSelf: 'flex-start',
     backgroundColor: '#F0F0F0',
+    color: '#000',
+    fontSize: 16,
   },
   imageMessageContainer: {
     marginVertical: 10,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   messageText: {
     fontSize: 15,
-    color: '#000',
+    color: '#fff',
   },
   timestampText: {
     fontSize: 9,
-    color: '#000',
   },
   senderTimestampText: {
     textAlign: 'right',
@@ -220,11 +319,9 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   image: {
-    width: 150,
-    height: 300,
-    borderColor: COLORS.secondaryGray,
-    borderWidth: 1,
-    borderRadius: 10,
+    width: SIZES.width / 2.5,
+    height: SIZES.height / 3.5,
+    borderRadius: 8,
   },
   userInfoContainer: {
     flexDirection: 'row',
@@ -234,5 +331,36 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#000',
     marginHorizontal: 5,
+  },
+  _video: {
+    width: SIZES.width / 2,
+    height: SIZES.width / 2,
+    
+  },
+  _document: {
+    width: SIZES.width / 2,
+    marginVertical: 10,
+    borderRadius: 20,
+    padding: 5,
+  },
+  _success: {
+    height: 18,
+    width: 18,
+    borderRadius: 15,
+    borderWidth: 2,
+    alignSelf: 'flex-end',
+    marginBottom: 5,
+    marginTop: -5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  _bottomSheet: {
+    height: 100,
+    backgroundColor: 'white',
+    borderColor: COLORS.gray,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
 });

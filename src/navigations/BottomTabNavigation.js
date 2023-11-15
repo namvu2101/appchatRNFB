@@ -8,10 +8,12 @@ import Contacts from '../screens/Contacts/Contacts';
 import More from '../screens/Setting/More';
 import Index from '../screens/FriendRequest/Index';
 import Notifycation from '../screens/Notifycation';
+import {profileStore} from '../store';
 const Tab = createBottomTabNavigator();
 
 const MyTabs = () => {
- 
+  const {friendRequests} = profileStore();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -58,9 +60,11 @@ const MyTabs = () => {
               size={size}
             />
           ),
+
+          tabBarBadge: friendRequests.length > 0 ? friendRequests.length : null,
         }}
       />
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Notifycation"
         component={Notifycation}
         options={{
@@ -72,7 +76,7 @@ const MyTabs = () => {
             />
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name="More"
         component={More}

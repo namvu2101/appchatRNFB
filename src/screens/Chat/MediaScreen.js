@@ -10,11 +10,37 @@ import React from 'react';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {COLORS, SIZES, images} from '../../constants';
 import Video from 'react-native-video';
+import {useNavigation} from '@react-navigation/native';
+import {Icon} from 'react-native-paper';
+import {downloadFile} from '../../components/DownFile';
 
-export default function ImageModals({onClose, uri, mediaType}) {
+export default function MediaScreen({route}) {
+  const uri = route.params.uri;
+  const mediaType = route.params.mediaType;
+  const navigation = useNavigation();
+  const icons = [
+    {
+      icon: 'arrow-collapse-down',
+      onPress: () => {
+        switch (mediaType) {
+          case 'photo':
+            downloadFile('.png', uri);
+            break;
+          case 'video':
+            downloadFile('.mp4', uri);
+            break;
+          default:
+            console.warn('Không tìm thấy phương tiện');
+            break;
+        }
+      },
+    },
+    {icon: 'draw-pen', onPress: () => {}},
+    {icon: 'dots-vertical', onPress: () => {}},
+  ];
   return (
     <View style={{flex: 1, alignItems: 'center', backgroundColor: '#000000'}}>
-      {mediaType === 'image' ? (
+      {mediaType === 'photo' ? (
         <Image
           source={{uri: uri || images.imageLoading}}
           style={{
@@ -25,13 +51,10 @@ export default function ImageModals({onClose, uri, mediaType}) {
         />
       ) : (
         <Video
-          ref={ref => {
-            this.player = ref;
+          source={{
+            uri: uri,
           }}
-          onBuffer={this.onBuffer}
-          onError={this.videoError}
-          source={{uri: uri}}
-          resizeMode="contain"
+          resizeMode="cover"
           controls
           style={{
             height: SIZES.height,
@@ -50,7 +73,9 @@ export default function ImageModals({onClose, uri, mediaType}) {
           paddingHorizontal: 22,
           justifyContent: 'space-between',
         }}>
-        <Pressable onPress={onClose} style={{marginRight: 10}}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={{marginRight: 10}}>
           <MaterialCommunityIcons name="close" size={25} color={'#fff'} />
         </Pressable>
         <View
@@ -59,29 +84,14 @@ export default function ImageModals({onClose, uri, mediaType}) {
             width: '40%',
             justifyContent: 'space-around',
           }}>
-          <TouchableOpacity
-            onPress={() => console.log('down')}
-            style={{marginRight: 10}}>
-            <MaterialCommunityIcons
-              name="arrow-collapse-down"
-              size={25}
-              color={'#fff'}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => console.log('edit')}
-            style={{marginRight: 10}}>
-            <MaterialCommunityIcons name="draw-pen" size={25} color={'#fff'} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => console.log('more')}
-            style={{marginRight: 10}}>
-            <MaterialCommunityIcons
-              name="dots-vertical"
-              size={25}
-              color={'#fff'}
-            />
-          </TouchableOpacity>
+          {icons.map(i => (
+            <TouchableOpacity
+              key={i.icon}
+              onPress={i.onPress}
+              style={{marginRight: 10}}>
+              <Icon source={i.icon} size={25} color={'#fff'} />
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     </View>

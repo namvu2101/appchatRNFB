@@ -1,6 +1,7 @@
 import {create} from 'zustand';
 import {db} from './firebase/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { images } from './constants';
 const authStore = create(set => ({
   userId: null,
   setUserId: userID => {
@@ -36,6 +37,8 @@ const profileStore = create(set => ({
           date: doc.data()?.date,
           status: doc.data()?.status,
           service: doc.data()?.service,
+          sex:doc.data()?.sex || 'Chưa chọn Giới tính',
+          backgroundImage:doc.data()?.backgroundImage || images.imageBackground
         };
         set({profile: user});
       });

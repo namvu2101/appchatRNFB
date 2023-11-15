@@ -45,7 +45,7 @@ export default function AddContact() {
   const handleSearch = () => {
     const filter = users.filter(user => user.data.phone == search);
     setRes(filter);
-    console.log(filter);
+
     if (filter.length != 0) {
       setFinded(true);
     } else {

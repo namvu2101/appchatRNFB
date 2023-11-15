@@ -51,6 +51,9 @@ export default function PhoneNumber({navigation, route}) {
         setSelectedArea(defaultData[0]);
       }
     }
+    navigation.setOptions({
+      headerTitle:'Nhập Số điện thoại'
+    });
   }, []);
   useEffect(() => {
     setErrorMessage('');

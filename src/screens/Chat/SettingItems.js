@@ -2,7 +2,7 @@ import uuid from 'react-native-uuid';
 import React, {useState} from 'react';
 export function getInitialItems(type) {
   const items = [
-    {icon: 'pencil', color: '#000', title: 'Background', onPress: () => {}},
+    {icon: 'checkbox-blank-circle', title: 'Background', onPress: () => {}},
 
     {
       icon: 'emoticon-cool-outline',
@@ -115,7 +115,7 @@ export function getIconItems(type, isNotify) {
       {
         icon: type === 'Group' ? 'account-plus' : 'account',
         color: '#000',
-        title: type === 'Group' ? 'Thêm' : 'Thồng tin',
+        title: type === 'Group' ? 'Thêm' : 'Thông tin',
       },
       {
         icon: isNotify ? 'bell' : 'bell-off',
