@@ -58,7 +58,7 @@ export default function SettingItems() {
     {
       icon: 'account-lock-outline',
       name: 'Khóa tài khoản tạm thời',
-      dec: '',
+      dec: 'Khóa tài khoản của bạn ',
       onPress: () => {
         Alert.alert('Thông báo', 'Chức năng chưa hoàn tiện');
       },
@@ -66,7 +66,7 @@ export default function SettingItems() {
     {
       icon: 'help-circle-outline',
       name: 'Hỗ trợ',
-      dec: '',
+      dec: 'Liên hệ hỗ trợ nếu có lỗi xảy ra',
       onPress: () => {
         Alert.alert('Thông báo', 'Vui lòng liên hệ Nam đẹp trai 0974046550');
       },

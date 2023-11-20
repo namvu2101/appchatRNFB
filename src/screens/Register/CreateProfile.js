@@ -1,4 +1,4 @@
-import {Pressable, View, Alert, Text} from 'react-native';
+import {Pressable, View, Alert, Text, StyleSheet} from 'react-native';
 import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
@@ -8,13 +8,11 @@ import UIButton from '../../components/UIButton';
 import UITextInput from '../../components/UITextInput';
 import {Avatar, Button, TextInput} from 'react-native-paper';
 import {handlePickImage} from '../../components/ImagePicker';
-import uuid from 'react-native-uuid';
 import storage from '@react-native-firebase/storage';
-import {db, timestamp} from '../../firebase/firebaseConfig';
+import {db} from '../../firebase/firebaseConfig';
 import {validatePassword} from '../../constants/validate';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import UIModals from '../../components/UIModals';
-import ListAvatar from '../../components/ListAvatar';
+
 import Loading from '../../screens/Dialog/Loading';
 
 const CreateProfile = ({navigation, route}) => {
@@ -27,8 +25,7 @@ const CreateProfile = ({navigation, route}) => {
   const [submit, setsubmit] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-
+  const [file, setFile] = useState();
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: 'Điền thông tin tài khoản',
@@ -39,49 +36,43 @@ const CreateProfile = ({navigation, route}) => {
     const newDate = `${date.getDate()}/${
       date.getMonth() + 1
     }/${date.getFullYear()}`;
-    const idImage = uuid.v4();
-    const usersCollection = db.collection('users');
-    const reference = storage().ref(`users/Avatar/${idImage}`);
-    const avatarUrl = image.includes('http')
-      ? image
-      : await uploadImage(reference, image);
+
     const user = {
       name: userName,
       phone: phoneNumber,
       password: password,
-      image: avatarUrl,
       status: true,
       last_active_at: date,
       add: '',
       email: email,
       date: newDate,
       isOnline: true,
-      backgroundImage: avatarUrl,
       service: [],
       sex: '',
     };
-
+    const usersCollection = db.collection('users');
     usersCollection
       .add(user)
-      .then(docRef => {
+      .then(async docRef => {
         const userId = docRef.id;
+        const newAvatar = await uploadImage(userId, image);
+        await docRef.update({image: newAvatar, backgroundImage: newAvatar});
         AsyncStorage.setItem('userId', userId);
         setIsLoading(false);
         navigation.replace('Splash');
       })
-      .catch(error => console.error('Lỗi khi thêm người dùng:', error));
+      .catch(error => console.error('Đăng ký không thành công:', error));
   };
   useEffect(() => {
     if (email.length == 0 || userName.length == 0 || password.length == 0) {
       setsubmit(true);
     } else setsubmit(false);
   }, [email, userName, password]);
-
   const CheckValue = async () => {
     const validationResult = validatePassword(password);
     if (validationResult === null) {
       if (image.length == 0) {
-        setErrorMessage('chua chon avatar');
+        setErrorMessage('Chưa chọn ảnh đại diện');
       } else {
         setIsLoading(true);
         await handleRegister();
@@ -91,40 +82,25 @@ const CreateProfile = ({navigation, route}) => {
     }
   };
 
-  const uploadImage = async (reference, image) => {
+  const uploadImage = async (id, image) => {
+    const reference = storage().ref(`Users/${id}/Files/${file.fileName}`);
     await reference.putFile(image);
     return await reference.getDownloadURL();
   };
-  const onClose = () => {
-    setIsVisible(false);
-  };
+
   const ChangeAvatar = async () => {
     const avatar = await handlePickImage();
     if (avatar != 'Error') {
-      setIsVisible(false);
-      setImage(avatar);
+      setImage(avatar.uri);
+      setFile(avatar);
     }
   };
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer style={{justifyContent: 'center'}}>
-        <Pressable
-          onPress={() => {
-            setIsVisible(true);
-          }}
-          style={{
-            width: 100,
-            height: 100,
-            backgroundColor: COLORS.secondaryWhite,
-            borderRadius: 50,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
+        <Pressable onPress={ChangeAvatar} style={styles._avatar}>
           {image.length != 0 ? (
-            <Avatar.Image
-              source={{uri: image || images.imageLoading}}
-              size={80}
-            />
+            <Avatar.Image source={{uri: image}} size={80} />
           ) : (
             <Icon name="person-circle-outline" size={84} color={COLORS.black} />
           )}
@@ -179,24 +155,7 @@ const CreateProfile = ({navigation, route}) => {
           style={{marginVertical: 44}}
           onPress={() => CheckValue()}
         />
-        <UIModals isVisible={isVisible} onClose={onClose}>
-          <View
-            style={{
-              height: 300,
-              backgroundColor: 'white',
-              alignItems: 'center',
-              paddingVertical: 10,
-            }}>
-            <Button mode="contained" onPress={ChangeAvatar}>
-              Chọn từ thư viện
-            </Button>
-            <ListAvatar
-              isVisible={isVisible}
-              onClose={onClose}
-              setImage={setImage}
-            />
-          </View>
-        </UIModals>
+        
         <Loading isVisible={isLoading} />
       </PageContainer>
     </SafeAreaView>
@@ -204,3 +163,14 @@ const CreateProfile = ({navigation, route}) => {
 };
 
 export default CreateProfile;
+
+const styles = StyleSheet.create({
+  _avatar: {
+    width: 100,
+    height: 100,
+    backgroundColor: COLORS.secondaryWhite,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

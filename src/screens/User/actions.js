@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {db} from '../../firebase/firebaseConfig';
+import {db, storage} from '../../firebase/firebaseConfig';
 import {firebase} from '@react-native-firebase/firestore';
 import {Alert} from 'react-native';
 
-export const handleActions = async (action, id) => {
+const handleActions = async (action, id) => {
   const userId = await AsyncStorage.getItem('userId');
 
   switch (action) {
@@ -125,3 +125,36 @@ const updateSentRequests = (id, data, action) => {
   }
 };
 
+const getFiles = async (id, callback) => {
+  try {
+    const storageRef = storage().ref(`Users/${id}/Files/`);
+    const fileUrls = await listFilesAndDirectories(storageRef);
+    callback(fileUrls);
+  } catch (error) {
+    console.error(error);
+    callback([]);
+  }
+};
+
+async function listFilesAndDirectories(reference, pageToken) {
+  let fileUrls = [];
+
+  const result = await reference.list({pageToken});
+
+  // Loop over each item
+  for (const ref of result.items) {
+    const url = await ref.getDownloadURL();
+    fileUrls.push(url);
+  }
+
+  if (result.nextPageToken) {
+    const nextPageUrls = await listFilesAndDirectories(
+      reference,
+      result.nextPageToken,
+    );
+    fileUrls = fileUrls.concat(nextPageUrls);
+  }
+
+  return fileUrls;
+}
+export {handleActions, getFiles};

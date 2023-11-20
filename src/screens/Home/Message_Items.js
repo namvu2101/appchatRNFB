@@ -25,6 +25,7 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
   React.useLayoutEffect(() => {
     if (!item.message) {
       setMessageText(`Hãy gửi lời chào đến ${item.name}`);
+      console.log(item.message);
     } else if (userId == item.message?.id) {
       setMessageText(`Bạn: ${item.message?.messageText}`);
     } else {

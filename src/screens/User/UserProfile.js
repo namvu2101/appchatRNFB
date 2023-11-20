@@ -17,58 +17,73 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
 import {authStore, profileStore} from '../../store';
 import {db, storage} from '../../firebase/firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import UIModals from '../../components/UIModals';
-import ListAvatar from '../../components/ListAvatar';
+
 import {handlePickImage} from '../../components/ImagePicker';
-import uuid from 'react-native-uuid';
-import DatePicker from 'react-native-date-picker';
+
 import Loading from '../Dialog/Loading';
 import {CheckBox, Dialog, ListItem} from '@rneui/themed';
+import DatePick from '../Dialog/Date';
+import ListAvatar from '../../components/ListAvatar';
+import {getFiles} from './actions';
 
 export default function UserProfile() {
   const navigation = useNavigation();
   const {profile, updateProfile} = profileStore();
-  const [isVisible, setisVisible] = React.useState(false);
   const [image, setImage] = useState(profile.image);
   const [date, setDate] = useState(new Date());
-  const [isVisible6, setisVisible6] = React.useState(false);
+  const [isVisible, setisVisible] = React.useState(false);
   const [selectedSex, setSex] = React.useState(0);
+  const [files, setFiles] = useState([]);
   const [imageBG, setImageBG] = useState(
     profile?.backgroundImage || images.imageBackground,
   );
   const [newDate, setnewDate] = useState(
     profile.date ? profile.date : 'Chưa cập nhật',
   );
+  const [type, settype] = useState('');
   const {userId} = authStore();
   const docRef = db.collection('users').doc(userId);
-
   const [isLoading, setIsLoading] = useState(false);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
+    getFiles(userId, data => {
+      setFiles(data);
+    });
   }, []);
 
-  const ChangImage = async type => {
-    const chooseImage = await handlePickImage();
-
-    if (chooseImage === 'Error') {
-      return; // Handle the error or exit the function
-    }
-
-    const {uri: imageUri, fileName} = chooseImage;
-
-    if (type === 'avatar') {
-      profile.image = imageUri;
-      setImage(imageUri);
-      const newImage = await uploadImage(fileName, imageUri);
-      await docRef.update({image: newImage});
-    } else {
-      profile.backgroundImage = imageUri;
-      setImageBG(imageUri);
-      const newBG = await uploadImage(fileName, imageUri);
-      await docRef.update({backgroundImage: newBG});
+  const ChangeImage = async type => {
+    try {
+      const chooseImage = await handlePickImage();
+      if (chooseImage === 'Error') {
+        return; // Handle the error or exit the function
+      }
+      setIsLoading(true);
+      const {uri: imageUri, fileName} = chooseImage;
+      if (type === 'avatar') {
+        profile.image = imageUri;
+        setImage(imageUri);
+        const newImage = await uploadImage(fileName, imageUri);
+        await docRef
+          .update({image: newImage})
+          .then(() =>
+            Alert.alert('Thông báo !', 'Cập nhật ảnh đại diện thành công'),
+          );
+        setIsLoading(false);
+      } else {
+        profile.backgroundImage = imageUri;
+        setImageBG(imageUri);
+        const newBG = await uploadImage(fileName, imageUri);
+        await docRef
+          .update({backgroundImage: newBG})
+          .then(() =>
+            Alert.alert('Thông báo !', 'Cập nhật ảnh bìa thành công'),
+          );
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Có lỗi xảy ra', error);
     }
   };
 
@@ -166,23 +181,15 @@ export default function UserProfile() {
     }
   };
 
-  const updateDateofBirth = () => {
-    const dateFormat = `${date.getDate()}/${
-      date.getMonth() + 1
-    }/${date.getFullYear()}`;
-    setnewDate(dateFormat);
-    onClose();
-  };
   return (
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <Pressable
-          onPress={() => ChangImage('backgroud')}
-          style={{
-            width: SIZES.width,
-            height: SIZES.height / 3,
-            position: 'absolute',
-          }}>
+          onPress={() => {
+            settype('background');
+            setisVisible(true);
+          }}
+          style={styles._backgroundImage}>
           <Image
             source={{
               uri: imageBG,
@@ -209,7 +216,8 @@ export default function UserProfile() {
         </View>
         <Pressable
           onPress={() => {
-            ChangImage('avatar');
+            settype('avatar');
+            setisVisible(true);
           }}
           style={styles.profileSection}>
           <Avatar.Image
@@ -263,118 +271,123 @@ export default function UserProfile() {
               </View>
             ))}
             <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
-              Ngày sinh
+              Thông tin khác
             </Text>
-            <Pressable
-              style={{
-                height: 44,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-              onPress={() => {
-                setisVisible(true);
-              }}>
-              <Text
-                style={{
-                  ...FONTS.h4,
-                  paddingHorizontal: 15,
-                  height: '100%',
-                  textAlignVertical: 'center',
-                }}>
+            <View style={styles._infor}>
+              <Button
+                onPress={() => {
+                  settype('date');
+                  setisVisible(true);
+                }}
+                icon="calendar"
+                mode="text"
+                contentStyle={{
+                  flexDirection: 'row-reverse',
+                }}
+                textColor="black">
                 {newDate}
-              </Text>
-              <MaterialCommunityIcons
-                name={'calendar'}
-                size={30}
-                color="black"
-              />
-            </Pressable>
+              </Button>
+              <Button
+                onPress={() => {
+                  settype('sex');
+                  setisVisible(true);
+                }}
+                icon={profile.sex == 'Nam' ? 'gender-female' : 'gender-male'}
+                mode="text"
+                contentStyle={{
+                  flexDirection: 'row-reverse',
+                }}
+                textColor="black">
+                Giới tính: {profile.sex}
+              </Button>
+            </View>
+
             <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
-              Giới tính
+              Files Phương Tiện
             </Text>
-            <Pressable
-              style={{
-                height: 44,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-              onPress={() => {
-                setisVisible6(true);
-              }}>
-              <Text
-                style={{
-                  ...FONTS.h4,
-                  paddingHorizontal: 15,
-                  height: '100%',
-                  textAlignVertical: 'center',
-                }}>
-                {profile.sex}
-              </Text>
-              <MaterialCommunityIcons name={'pencil'} size={30} color="black" />
-            </Pressable>
             <View style={styles.mediaShared}>
-              <Text>Media Shared</Text>
+              {files.map(f => (
+                <Pressable
+                  key={f}
+                  onPress={() =>
+                    navigation.navigate('MediaScreen', {
+                      uri: f,
+                      mediaType: 'photo',
+                    })
+                  }>
+                  <Image source={{uri: f}} style={styles._files} />
+                </Pressable>
+              ))}
             </View>
           </ScrollView>
         </View>
         <Loading isVisible={isLoading} />
-        <Dialog
-          isVisible={isVisible6}
-          onBackdropPress={() => setisVisible6(false)}>
-          <Dialog.Title title="Chọn giới tính" titleStyle={{color: 'black'}} />
-          {sexs.map(l => (
-            <View key={l} style={{flexDirection: 'row', alignItems: 'center'}}>
-              <CheckBox
-                checked={selectedSex === l}
-                onPress={() => setSex(l)}
-                checkedIcon="dot-circle-o"
-                uncheckedIcon="circle-o"
-              />
-              <Text style={FONTS.h3}>{l}</Text>
-            </View>
-          ))}
-          <Button
-            textColor="#2C6BED"
-            onPress={() => {
-              profile.sex = selectedSex;
-              setisVisible6(false);
-            }}>
-            Lưu
-          </Button>
-        </Dialog>
-        <UIModals isVisible={isVisible} onClose={onClose}>
-          <View
-            style={{
-              backgroundColor: '#fff',
-              alignItems: 'center',
-              paddingVertical: 20,
-            }}>
-            <DatePicker
-              textColor="black"
-              mode="date"
-              locale="vn"
-              date={date}
-              onDateChange={setDate}
-              androidVariant="nativeAndroid"
-              onConfirm={date => {
-                setDate(date);
-              }}
-            />
-            <View
-              style={{
-                flexDirection: 'row',
-                width: '100%',
-                justifyContent: 'flex-end',
-              }}>
-              <Button textColor="#2C6BED" onPress={onClose}>
-                Hủy
-              </Button>
-              <Button textColor="#2C6BED" onPress={updateDateofBirth}>
+        <Dialog isVisible={isVisible} onBackdropPress={onClose}>
+          <Dialog.Title
+            title={
+              type == 'sex'
+                ? 'Chọn giới tính'
+                : type == 'date'
+                ? 'Chọn ngày sinh'
+                : 'Chọn ảnh đại diện'
+            }
+            titleStyle={{color: 'black'}}
+          />
+          {type == 'date' ? (
+            <DatePick setnewDate={setnewDate} onClose={onClose} />
+          ) : type == 'sex' ? (
+            <>
+              {sexs.map(l => (
+                <View
+                  key={l}
+                  style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <CheckBox
+                    checked={selectedSex === l}
+                    onPress={() => setSex(l)}
+                    checkedIcon="dot-circle-o"
+                    uncheckedIcon="circle-o"
+                  />
+                  <Text style={FONTS.h3}>{l}</Text>
+                </View>
+              ))}
+              <Button
+                textColor="#2C6BED"
+                onPress={() => {
+                  profile.sex = selectedSex;
+                  setisVisible(false);
+                }}>
                 Lưu
               </Button>
+            </>
+          ) : (
+            <View style={{alignItems: 'center', height: 365}}>
+              <Button
+                mode="contained"
+                textColor="white"
+                onPress={() => {
+                  if (type == 'avatar') {
+                    ChangeImage('avatar');
+                  } else {
+                    ChangeImage('background');
+                  }
+                  setisVisible(false);
+                }}>
+                Chọn từ thư viện
+              </Button>
+              <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
+                Files Phương Tiện của bạn
+              </Text>
+              <ListAvatar
+                setLoading={setIsLoading}
+                docRef={docRef}
+                setImage={type == 'avatar' ? setImage : setImageBG}
+                onClose={onClose}
+                data={files}
+                type={type}
+              />
             </View>
-          </View>
-        </UIModals>
+          )}
+        </Dialog>
       </PageContainer>
     </SafeAreaView>
   );
@@ -385,6 +398,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
     alignItems: 'center',
+  },
+  _backgroundImage: {
+    width: SIZES.width,
+    height: SIZES.height / 3,
+    position: 'absolute',
   },
   backButton: {
     width: SIZES.width,
@@ -411,8 +429,10 @@ const styles = StyleSheet.create({
   },
 
   mediaShared: {
-    color: '#000',
-    height: 300,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginVertical: 10,
+    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -423,4 +443,11 @@ const styles = StyleSheet.create({
     width: SIZES.width,
   },
   text: {...FONTS.h3, color: COLORS.white, textAlign: 'center'},
+  _infor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'space-around',
+  },
+  _files: {height: 90, width: 90, margin: 5, borderRadius: 8},
 });

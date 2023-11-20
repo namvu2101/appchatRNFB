@@ -17,6 +17,7 @@ import Animated, {
   Easing,
   withSpring,
 } from 'react-native-reanimated';
+import {firebase} from '@react-native-firebase/auth';
 
 const Splash = ({navigation}) => {
   const isFocused = useIsFocused();
@@ -47,7 +48,7 @@ const Splash = ({navigation}) => {
           await setUserId(userId);
           const promises = [
             startAnimation(),
-            getConversations(),
+            getConversations(userId),
             setFriends(userId),
             setFriendRequest(userId),
             setSentRequest(userId),
@@ -86,18 +87,25 @@ const Splash = ({navigation}) => {
       setUsers(data.filter(i => i.id != id));
     });
   };
-  const getConversations = () => {
+  const getConversations = async id => {
     db.collection('Conversations')
       .orderBy('last_message', 'desc')
-      .onSnapshot(doc => {
-        const res = doc.docs.map(i => {
-          return {
-            id: i.id,
-            data: i.data(),
-          };
-        });
-        setUserConversations(res);
-      });
+      .onSnapshot(
+        snapshot => {
+          const res = snapshot.docs.filter(
+            i => i.data()?.senderID == id || i.data()?.member_id?.includes(id),
+          );
+          const data = res.map(doc => ({
+            id: doc.id,
+            data: doc.data(),
+          }));
+        
+          setUserConversations(data);
+        },
+        error => {
+          console.error('Lỗi khi lấy dữ liệu cuộc trò chuyện: ', error);
+        },
+      );
   };
   const size = useSharedValue(92);
   const increasing = useSharedValue(1);

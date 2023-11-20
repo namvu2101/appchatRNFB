@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import {db} from './firebase/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { images } from './constants';
+import {images} from './constants';
 const authStore = create(set => ({
   userId: null,
   setUserId: userID => {
@@ -37,8 +37,9 @@ const profileStore = create(set => ({
           date: doc.data()?.date,
           status: doc.data()?.status,
           service: doc.data()?.service,
-          sex:doc.data()?.sex || 'Chưa chọn Giới tính',
-          backgroundImage:doc.data()?.backgroundImage || images.imageBackground
+          sex: doc.data()?.sex || 'Chưa chọn Giới tính',
+          backgroundImage:
+            doc.data()?.backgroundImage || images.imageBackground,
         };
         set({profile: user});
       });
@@ -64,4 +65,32 @@ const conversationStore = create(set => ({
   setConversations: createActions(set, 'conversations'),
 }));
 
-export {authStore, profileStore, conversationStore, HistoryStore};
+const messagesStore = create(set => ({
+  list_messages: [],
+  getConversationMessages: async id => {
+    await db
+      .collection('Conversations')
+      .doc(id)
+      .collection('messages')
+      .orderBy('timeSend', 'desc')
+      .get()
+      .then(querySnapshot => {
+        const data = [];
+        querySnapshot.forEach(documentSnapshot => {
+          const message = {
+            id: documentSnapshot.id,
+            data: documentSnapshot.data(),
+          };
+          data.push(message);
+        });
+        set({list_messages: data});
+      });
+  },
+}));
+export {
+  authStore,
+  profileStore,
+  conversationStore,
+  HistoryStore,
+  messagesStore,
+};

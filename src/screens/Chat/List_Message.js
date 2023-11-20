@@ -141,6 +141,7 @@ export default function List_Message({
               ...styles.timestampText,
               textAlign: item?.senderId === userId ? 'right' : 'left',
               color: textColor,
+              marginHorizontal: 8
             }}>
             {formatTime(item.timeSend)}
           </Text>
@@ -319,8 +320,8 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   image: {
-    width: SIZES.width / 2.5,
-    height: SIZES.height / 3.5,
+    width: SIZES.width / 2.3,
+    height: SIZES.height / 3.2,
     borderRadius: 8,
   },
   userInfoContainer: {

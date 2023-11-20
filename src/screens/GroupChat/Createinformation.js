@@ -40,7 +40,6 @@ export default function Createinformation({route}) {
     }
   };
   const handleCreate = async () => {
-    const idImage = uuid.v4();
     const docRef = db.collection('Conversations');
     const userId = await AsyncStorage.getItem('userId');
     if (input.length == 0) {

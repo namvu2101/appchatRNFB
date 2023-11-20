@@ -25,7 +25,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import {FONTS, COLORS, images, SIZES} from '../../constants';
 import {contacts} from '../../constants/data';
 import UISearch from '../../components/UISearch';
-import {authStore, conversationStore, profileStore} from '../../store';
+import {
+  authStore,
+  conversationStore,
+  messagesStore,
+  profileStore,
+} from '../../store';
 import Message_Items from './Message_Items';
 import {UserType} from '../../contexts/UserContext';
 import Friend_Item from './Friend_Item';
@@ -41,7 +46,8 @@ const Messages = ({navigation}) => {
   const [message, setMessage] = useState([]);
   const {profile, friends} = profileStore();
   const {userId} = authStore();
-  const {conversations} = conversationStore();
+  const {getConversationMessages} = messagesStore();
+
   useEffect(() => {
     AppState.addEventListener('change', _handleAppStateChange);
     return () => {
@@ -75,7 +81,7 @@ const Messages = ({navigation}) => {
   }, [friends, users]);
 
   useLayoutEffect(() => {
-    getConversations();
+    // getConversations();
   }, [userConversations]);
   const gettingMessage = () => {
     const currentTime = new Date().getHours();
@@ -87,12 +93,12 @@ const Messages = ({navigation}) => {
       return 'Chào buổi tối 🌛';
     }
   };
-  const getConversations = async () => {
-    const filter = userConversations.filter(
-      i => i.data?.senderID == userId || i.data?.member_id?.includes(userId),
-    );
-    setMessage(filter);
-  };
+  // const getConversations = async () => {
+  //   const filter = userConversations.filter(
+  //     i => i.data?.senderID == userId || i.data?.member_id?.includes(userId),
+  //   );
+  //   setMessage(filter);
+  // };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -100,7 +106,6 @@ const Messages = ({navigation}) => {
       setRefreshing(false);
     }, 200);
   }, []);
-  const [open, setOpen] = React.useState(false);
   const messageText = gettingMessage();
   return (
     <SafeAreaView style={styles._container}>
@@ -119,7 +124,7 @@ const Messages = ({navigation}) => {
             />
           </View>
           <ListItem.Content>
-            <ListItem.Title style={{fontWeight: 'bold', ...FONTS.h3}}>
+            <ListItem.Title style={{fontWeight: 'bold', ...FONTS.h2}}>
               {messageText}
             </ListItem.Title>
           </ListItem.Content>
@@ -160,18 +165,19 @@ const Messages = ({navigation}) => {
             />
           </View>
 
-          {message.length == 0 && (
+          {userConversations.length == 0 && (
             <Text style={{...FONTS.h3, color: COLORS.black}}>
               Chưa có tin nhắn
             </Text>
           )}
-          {message.map((item, index) => (
+          {userConversations.map((item, index) => (
             <Message_Items
               key={item.id}
               item={item.data}
               conversation_id={item.id}
               index={index}
-              onPress={() => {
+              onPress={async () => {
+                // await getConversationMessages(item.id);
                 navigation.navigate('Chats', {
                   item: item.data,
                   type: item?.data?.type,

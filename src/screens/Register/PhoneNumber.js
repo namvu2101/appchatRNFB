@@ -261,12 +261,23 @@ export default function PhoneNumber({navigation, route}) {
                 borderRadius: SIZES.padding,
                 paddingLeft: SIZES.padding,
                 height: 48,
-                fontSize: 12,
+                fontSize: 16,
                 color: '#111',
+
               }}
               placeholder="Nhập SĐT của bạn"
               placeholderTextColor={COLORS.secondaryGray}
               inputMode="numeric"
+              onSubmitEditing={() => {
+                switch (action) {
+                  case 'changepass':
+                    handleSend();
+                    break;
+                  default:
+                    checkPhonenumber();
+                    break;
+                }
+              }}
             />
           </View>
           <Text
@@ -306,8 +317,9 @@ export default function PhoneNumber({navigation, route}) {
             title="Nhập mã code"
             value={verificationCode}
             onChangeText={setVerificationCode}
-            style={{textAlign: 'center'}}
+            style={{textAlign: 'center',...FONTS.h3}}
             inputMode="numeric"
+
           />
           <View
             style={{

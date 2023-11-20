@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import React, {useContext} from 'react';
-import {Avatar, Button} from 'react-native-paper';
+import {Avatar, Button, Icon} from 'react-native-paper';
 import {useNavigation} from '@react-navigation/native';
 import {COLORS, SIZES, FONTS} from '../../constants';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -19,7 +19,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {authStore, conversationStore, profileStore} from '../../store';
 import SettingItems from './SettingItems';
 import {UserType} from '../../contexts/UserContext';
-import { db, timestamp } from '../../firebase/firebaseConfig';
+import {db, timestamp} from '../../firebase/firebaseConfig';
+import {ListItem} from '@rneui/themed';
 
 export default function More() {
   const navigation = useNavigation();
@@ -61,49 +62,40 @@ export default function More() {
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <View style={styles.container}>
-          <Pressable
-            onPress={() => navigation.navigate('UserProfile')}
-            style={{
-              height: 100,
-              flexDirection: 'row',
-              alignItems: 'center',
-              width: 300,
-            }}>
+          <ListItem
+            style={{width: SIZES.width * 0.9}}
+            onPress={() => navigation.navigate('UserProfile')}>
             <Avatar.Image source={{uri: profile?.image}} size={66} />
-            <View style={{width: 180, marginHorizontal: 10}}>
-              <Text style={{...FONTS.h3}}>{profile?.name}</Text>
-              <Text style={{...FONTS.h4}}>{profile?.phone}</Text>
-            </View>
-            <MaterialCommunityIcons
-              name="qrcode-scan"
-              size={20}
-              color={'#000'}
-            />
-          </Pressable>
+            <ListItem.Content>
+              <ListItem.Title style={{...FONTS.h3, fontWeight: 'bold'}}>
+                {profile?.name}
+              </ListItem.Title>
+              <ListItem.Subtitle style={FONTS.h4}>
+                {profile?.phone}
+              </ListItem.Subtitle>
+            </ListItem.Content>
+            <Icon source="qrcode-scan" size={20} color={'#000'} />
+          </ListItem>
 
           <ScrollView>
             {listItem.map((i, index) => (
-              <TouchableOpacity
+              <ListItem
+                bottomDivider
                 key={index}
-                onPress={i.onPress}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  width: SIZES.width * 0.8,
-                  paddingVertical: 10,
-                  borderBottomColor: COLORS.gray,
-                  borderBottomWidth: 1,
-                }}>
+                style={{width: SIZES.width * 0.9}}
+                onPress={i.onPress}>
                 <Avatar.Icon icon={i.icon} size={50} color={'#FFFFFF'} />
-                <View style={{marginHorizontal: 10, justifyContent: 'center'}}>
-                  <Text style={{...FONTS.h3}}>{i.name}</Text>
-                  {i.dec && (
-                    <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
-                      {i.dec}
-                    </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
+                <ListItem.Content>
+                  <ListItem.Title style={{...FONTS.h3}}>
+                    {i.name}
+                  </ListItem.Title>
+                  <ListItem.Subtitle
+                    numberOfLines={1}
+                    style={{...FONTS.h4, color: COLORS.secondaryGray}}>
+                    {i.dec}
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+              </ListItem>
             ))}
           </ScrollView>
         </View>

@@ -21,7 +21,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import {db, timestamp} from '../../firebase/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {profileStore} from '../../store';
-import {handleActions} from './actions';
+import {getFiles, handleActions} from './actions';
 import UIModals from '../../components/UIModals';
 import ImageModals from '../Modals/ImageModals';
 
@@ -34,10 +34,14 @@ export default function Information({route}) {
   const [status, setStatus] = useState('');
   const {friends, sentRequestFriends, friendRequests} = profileStore();
   const [icon, setIcon] = useState('');
+  const [files, setFiles] = useState([]);
 
   useLayoutEffect(() => {
     navigation.setOptions({headerTitle: 'Thông tin người dùng'});
     getData();
+    getFiles(id, data => {
+      setFiles(data);
+    });
     setTimeout(() => {
       setisLoading(true);
     }, 300);
@@ -104,18 +108,19 @@ export default function Information({route}) {
       editable: false,
       inputMode: 'numeric',
     },
-    
   ];
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <PageContainer style={{paddingHorizontal: 22, paddingBottom: 30}}>
+      <PageContainer>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{alignItems: 'center'}}>
           <View
             style={{
               alignItems: 'center',
               width: SIZES.width,
-              height: '40%',
+              height: SIZES.height / 3,
             }}>
             <Pressable
               style={{width: '100%', height: '80%'}}
@@ -189,8 +194,9 @@ export default function Information({route}) {
               Nhắn tin
             </Button>
           </View>
+
           {isLoading ? (
-            <>
+            <View style={{width: SIZES.width, paddingHorizontal: 22}}>
               {list.map((field, index) => (
                 <View key={index} style={{width: '100%', marginBottom: 10}}>
                   <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
@@ -209,14 +215,39 @@ export default function Information({route}) {
                   </View>
                 </View>
               ))}
-            </>
+              <Text style={{...FONTS.h4, color: COLORS.secondaryGray}}>
+                Files Phương Tiện
+              </Text>
+              <View style={styles.mediaShared}>
+                {files.map(f => (
+                  <Pressable
+                    key={f}
+                    onPress={() =>
+                      navigation.navigate('MediaScreen', {
+                        uri: f,
+                        mediaType: 'photo',
+                      })
+                    }>
+                    <Image source={{uri: f}} style={styles._files} />
+                  </Pressable>
+                ))}
+              </View>
+            </View>
           ) : (
             <ActivityIndicator size={30} color="black" />
           )}
-        </PageContainer>
-      </ScrollView>
+        </ScrollView>
+      </PageContainer>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  mediaShared: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginVertical: 10,
+    justifyContent: 'center',
+  },
+  _files: {height: 90, width: 90, margin: 5, borderRadius: 8},
+});

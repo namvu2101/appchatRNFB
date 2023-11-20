@@ -16,20 +16,18 @@ import UIButton from '../../components/UIButton';
 import {Button, TextInput} from 'react-native-paper';
 import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import {url} from '../../components/configURL';
-import {UserType} from '../../contexts/UserContext';
+
 import {db} from '../../firebase/firebaseConfig';
+import {SocialIcon} from '@rneui/themed';
 
 export default function Login() {
   const navigation = useNavigation();
-  const {setUserID, setUserProfile} = useContext(UserType);
   const [account, setAccount] = useState('0974046550');
   const [password, setPassword] = useState('123456');
   const [secure, setSecure] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [isdisable, setIsdisable] = useState(true);
-  const icons_social = [images.gg, images.fb, images.ap];
+  const icons_social = ['facebook', 'google', 'twitter'];
   const [hideKeyboard, setHideKeyboard] = useState(true);
   useEffect(() => {
     Keyboard.addListener('keyboardDidHide', () => {
@@ -81,8 +79,7 @@ export default function Login() {
             Đăng nhập Chatbox
           </Text>
           <Text style={{...FONTS.h3, color: COLORS.black, textAlign: 'center'}}>
-            Chào mừng trở lại! Đăng nhập bằng tài khoản xã hội hoặc tài khoản
-            của bạn
+            Đăng nhập bằng tài khoản xã hội hoặc tài khoản của bạn
           </Text>
           <View>
             <UITextInput
@@ -104,18 +101,18 @@ export default function Login() {
                 />
               }
             />
-            <Button textColor={COLORS.red} style={{alignItems: 'flex-end'}}>
+            <Button
+              textColor={COLORS.red}
+              style={{alignItems: 'flex-end'}}
+              onPress={() =>
+                Alert.alert(
+                  'Thông báo !',
+                  'Mật khẩu mới sẽ được gửi đến SĐT của bạn',
+                )
+              }>
               Quên mật khẩu ?
             </Button>
-            <Text
-              style={{
-                ...FONTS.h4,
-                color: 'red',
-                marginBottom: 10,
-                textAlign: 'center',
-              }}>
-              {errorMessage}
-            </Text>
+            <Text style={styles._err_mess}>{errorMessage}</Text>
           </View>
 
           {hideKeyboard && (
@@ -139,35 +136,20 @@ export default function Login() {
                   }}
                 />
               </View>
-              <Text
-                style={{...FONTS.h3, color: COLORS.black, textAlign: 'center'}}>
-                Đăng nhập bằng tài khoản
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  height: 60,
-                  width: SIZES.width * 0.6,
-                  justifyContent: 'space-around',
-                }}>
+              <Text style={FONTS.h3}>Đăng nhập bằng tài khoản</Text>
+              <View style={styles._social}>
                 {icons_social.map(item => (
-                  <Pressable
+                  <SocialIcon
+                    underlayColor="white"
                     key={item}
-                    style={{
-                      height: 60,
-                      width: 60,
-                      borderColor: COLORS.black,
-                      borderWidth: 1,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 30,
-                    }}>
-                    <Image
-                      source={item}
-                      style={{height: 40, width: 40, borderRadius: 25}}
-                      resizeMode="cover"
-                    />
-                  </Pressable>
+                    type={item}
+                    onPress={() =>
+                      Alert.alert(
+                        'Thông báo !',
+                        'Tài khoản chưa liên kết với tài khoản xã hội',
+                      )
+                    }
+                  />
                 ))}
               </View>
             </>
@@ -196,5 +178,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: COLORS.white,
     paddingHorizontal: 22,
+  },
+  _social: {
+    flexDirection: 'row',
+    height: 60,
+    width: SIZES.width * 0.6,
+    justifyContent: 'space-around',
+  },
+  _social_ic: {
+    height: 60,
+    width: 60,
+    borderColor: COLORS.black,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 30,
+  },
+  _image_ic: {
+    height: 50,
+    width: 50,
+    borderColor: COLORS.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  _err_mess: {
+    ...FONTS.h4,
+    color: 'red',
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });
