@@ -64,7 +64,7 @@ const Contacts = ({navigation}) => {
           contentContainerStyle={{
             width: SIZES.width,
             paddingHorizontal: 10,
-            backgroundColor: COLORS.secondaryWhite,
+            backgroundColor: COLORS.white,
             borderRadius:20
           }}
           keyExtractor={item => item.id.toString()}

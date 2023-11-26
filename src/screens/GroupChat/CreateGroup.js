@@ -1,4 +1,12 @@
-import {StyleSheet, Text, View, Pressable, FlatList, Alert} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  FlatList,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useEffect, useState, useContext} from 'react';
 import Animated, {useSharedValue, withSpring} from 'react-native-reanimated';
 import {Avatar, Button, Checkbox, TextInput} from 'react-native-paper';
@@ -103,7 +111,7 @@ export default function CreateGroup({route}) {
   }, [member]);
   const renderItem = ({item}) => {
     return (
-      <View style={styles.memberItem}>
+      <Pressable onPress={() => onPress(item)} style={styles.memberItem}>
         <View
           style={{
             height: 50,
@@ -133,7 +141,7 @@ export default function CreateGroup({route}) {
           checked={member.some(m => m.id === item.id) ? true : false}
           onPress={() => onPress(item)}
         />
-      </View>
+      </Pressable>
     );
   };
 

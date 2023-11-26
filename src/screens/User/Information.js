@@ -54,7 +54,7 @@ export default function Information({route}) {
     const userId = await AsyncStorage.getItem('userId');
     navigation.navigate('Chats', {
       item: data,
-      type: data?.type || 'Person',
+      type: 'Person',
       conversation_id: `${userId}-${id}`,
       recipientId: id,
     });

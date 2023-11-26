@@ -4,6 +4,7 @@ import {profileStore} from '../../store';
 const docRef = db.collection('Conversations');
 
 const updateConversation = (id, messageText, name, userId) => {
+
   return docRef.doc(id).update({
     last_message: new Date(),
     message: {

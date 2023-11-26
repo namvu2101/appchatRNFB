@@ -53,6 +53,11 @@ export default function List_Message({
       : 'white';
   const list = [
     {
+      icon: 'share-outline',
+      onPress: () => {},
+    },
+
+    {
       icon: item.messageType === 'text' ? 'content-copy' : 'arrow-down-thin',
       onPress: () => {
         switch (item.messageType) {
@@ -141,7 +146,7 @@ export default function List_Message({
               ...styles.timestampText,
               textAlign: item?.senderId === userId ? 'right' : 'left',
               color: textColor,
-              marginHorizontal: 8
+              marginHorizontal: 8,
             }}>
             {formatTime(item.timeSend)}
           </Text>
@@ -276,7 +281,7 @@ export default function List_Message({
         <View style={styles._bottomSheet}>
           {list.map(i => (
             <TouchableOpacity onPress={i.onPress} key={i.icon}>
-              <Avatar.Icon icon={i.icon} size={40} color="white" />
+              <Avatar.Icon icon={i.icon} size={40} color="white" style={{backgroundColor:backgroundColor}}/>
             </TouchableOpacity>
           ))}
         </View>
@@ -336,7 +341,6 @@ const styles = StyleSheet.create({
   _video: {
     width: SIZES.width / 2,
     height: SIZES.width / 2,
-    
   },
   _document: {
     width: SIZES.width / 2,
@@ -356,10 +360,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   _bottomSheet: {
-    height: 100,
-    backgroundColor: 'white',
-    borderColor: COLORS.gray,
-    borderWidth: 1,
+    height: 66,
+    backgroundColor: COLORS.secondaryWhite,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',

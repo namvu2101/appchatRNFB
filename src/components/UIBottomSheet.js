@@ -3,7 +3,7 @@ import React from 'react';
 import {BottomSheet, Icon, ListItem} from '@rneui/themed';
 import {COLORS, FONTS} from '../constants';
 
-export default function UIBottomSheet({isVisible, setIsVisible, data}) {
+export default function UIBottomSheet({isVisible, setIsVisible, data, type}) {
   return (
     <BottomSheet
       modalProps={{

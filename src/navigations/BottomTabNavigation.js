@@ -9,6 +9,7 @@ import More from '../screens/Setting/More';
 import Index from '../screens/FriendRequest/Index';
 import Notifycation from '../screens/Notifycation';
 import {profileStore} from '../store';
+import { COLORS } from '../constants';
 const Tab = createBottomTabNavigator();
 
 const MyTabs = () => {
@@ -20,6 +21,9 @@ const MyTabs = () => {
         tabBarShowLabel: false,
         headerShown: false,
         tabBarHideOnKeyboard: true,
+        tabBarActiveTintColor:'blue',
+        tabBarInactiveTintColor:'grey',
+        tabBarStyle:{backgroundColor:COLORS.secondaryWhite}
       }}>
       <Tab.Screen
         name="Messages"

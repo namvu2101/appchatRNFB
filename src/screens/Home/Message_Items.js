@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Pressable,
 } from 'react-native';
 import React, {useEffect} from 'react';
 import {FONTS, COLORS, images, SIZES} from '../../constants';
@@ -14,6 +15,9 @@ import {authStore} from '../../store';
 import {Avatar} from '@rneui/base/dist/Avatar/Avatar';
 import {ListItem} from '@rneui/themed';
 import UIBottomSheet from '../../components/UIBottomSheet';
+import {UserType} from '../../contexts/UserContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { firebase } from '@react-native-firebase/firestore';
 
 export default function Message_Items({item, index, onPress, conversation_id}) {
   const [chatmessages, setChatMessages] = React.useState([]);
@@ -21,28 +25,29 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
   const [isLoading, setisLoading] = React.useState(false);
   const {userId} = authStore();
   const [isVisible, setIsVisible] = React.useState(false);
+  const {userConversations, setUserConversations} = React.useContext(UserType);
 
   React.useLayoutEffect(() => {
     if (!item.message) {
       setMessageText(`Hãy gửi lời chào đến ${item.name}`);
-      console.log(item.message);
     } else if (userId == item.message?.id) {
       setMessageText(`Bạn: ${item.message?.messageText}`);
     } else {
       setMessageText(`${item.message?.name}: ${item.message?.messageText}`);
     }
-  }, [item?.message]);
+  }, [item.message?.messageText]);
   const handleDelete = () => {
     Alert.alert(
       'Thông báo',
       'Bạn muốn xóa đoạn chat này ?',
       [
         {
-          text: 'OK',
+          text: 'Đồng ý',
           onPress: async () => {
-            setisLoading(true);
             await removeChat(conversation_id);
-            setisLoading(false);
+            setUserConversations(
+              userConversations.filter(i => i.id != conversation_id),
+            );
           },
         },
         {text: 'Huỷ', style: 'cancel'},
@@ -66,12 +71,39 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
       console.error('Error deleting messages:', error);
     }
   };
+  const outConversation = async id => {
+    db.collection('Conversations')
+      .doc(id)
+      .update({
+        member_id: firebase.firestore.FieldValue.arrayRemove(`${userId}`),
+      });
+  };
   const list = [
     {
       icon: 'delete-off-outline',
-      title: 'Xóa',
+      title: item.type == 'Person' ? 'Xóa' : 'Rời nhóm',
       onPress: () => {
-        handleDelete();
+        if (item.type == 'Person') {
+          handleDelete();
+        } else {
+          Alert.alert(
+            'Thông báo',
+            'Bạn muốn rời đoạn chat này ?',
+            [
+              {
+                text: 'Đồng ý',
+                onPress: async () => {
+                  outConversation(conversation_id);
+                  setUserConversations(
+                    userConversations.filter(i => i.id != conversation_id),
+                  );
+                },
+              },
+              {text: 'Huỷ', style: 'cancel'},
+            ],
+            {cancelable: true},
+          );
+        }
         setIsVisible(false);
       },
     },
@@ -102,7 +134,7 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
     },
   ];
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       onLongPress={() => setIsVisible(true)}
       style={{paddingHorizontal: 10, width: SIZES.width}}>
@@ -138,15 +170,16 @@ export default function Message_Items({item, index, onPress, conversation_id}) {
         isVisible={isVisible}
         setIsVisible={setIsVisible}
         data={list}
+        type={item.type}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   _items: {
     height: 80,
-    backgroundColor: COLORS.secondaryWhite,
+    backgroundColor: COLORS.white,
     marginVertical: 5,
     borderRadius: 12,
     shadowColor: '#000',
@@ -156,6 +189,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 20,
+    elevation: 10,
   },
   _image: {
     borderColor: 'blue',

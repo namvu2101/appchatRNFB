@@ -37,7 +37,7 @@ const profileStore = create(set => ({
           date: doc.data()?.date,
           status: doc.data()?.status,
           service: doc.data()?.service,
-          sex: doc.data()?.sex || 'Chưa chọn Giới tính',
+          sex: doc.data()?.sex || 'Chọn',
           backgroundImage:
             doc.data()?.backgroundImage || images.imageBackground,
         };
@@ -86,6 +86,7 @@ const messagesStore = create(set => ({
         set({list_messages: data});
       });
   },
+  update: newMessages => set({list_messages: newMessages}),
 }));
 export {
   authStore,

@@ -38,7 +38,9 @@ export default function ChatSettings({route}) {
   const listIcon = getIconItems(item.type, isNotify);
   const docRef = db.collection('Conversations').doc(conversation_id);
   const {userConversations, setUserConversations} = React.useContext(UserType);
-  const [bgColor, setBgColor] = useState(route.params.backgroundColor);
+  const [bgColor, setBgColor] = useState(
+    route.params.backgroundColor || COLORS.black,
+  );
   useLayoutEffect(() => {
     docRef.onSnapshot(doc => {
       if (doc.exists) {
@@ -149,19 +151,10 @@ export default function ChatSettings({route}) {
         );
         break;
       case 2:
-        if (data.type == 'Person') {
-          navigation.navigate('Information', {
-            id: item.recipientId,
-          });
-        } else if (data.type == 'Group') {
-          navigation.navigate('CreateGroup', {
-            data: item.member_id,
-            id: conversation_id,
-          });
-        } else {
+        if (data.type == 'Service') {
           Alert.alert(
             'Thông tin',
-            `Dịch vụ thông tin: ${data.name}`,
+            `Thông tin: ${data.name}`,
             [
               {
                 text: 'OK',
@@ -171,6 +164,15 @@ export default function ChatSettings({route}) {
               cancelable: true,
             },
           );
+        } else if (data.type == 'Group') {
+          navigation.navigate('CreateGroup', {
+            data: item.member_id,
+            id: conversation_id,
+          });
+        } else {
+          navigation.navigate('Information', {
+            id: route.params.recipientId,
+          });
         }
         break;
       case 3:
@@ -220,7 +222,9 @@ export default function ChatSettings({route}) {
       const newImage = await handlePickImage();
       if (newImage != 'Error') {
         setisLoading(true);
-        const reference = storage().ref(`Conversations/Group/${doc.id}/Avatar/${newImage.fileName}`);
+        const reference = storage().ref(
+          `Conversations/Group/${doc.id}/Avatar/${newImage.fileName}`,
+        );
         await reference.putFile(newImage.uri);
         const downloadURL = await reference.getDownloadURL();
         await doc
@@ -239,13 +243,7 @@ export default function ChatSettings({route}) {
         style={styles.items}
         onPress={() => handleItemClick(item.title)}>
         <Text style={{...FONTS.h4}}>{item.title}</Text>
-        {item.icon && (
-          <Icon
-            size={25}
-            source={item.icon}
-            color={item?.color || bgColor}
-          />
-        )}
+        {item.icon && <Icon size={25} source={item.icon} color={bgColor} />}
       </TouchableOpacity>
     );
   };
@@ -276,11 +274,7 @@ export default function ChatSettings({route}) {
                 onPress={() => handleIconClick(index)}
                 key={item.icon}
                 style={{alignItems: 'center'}}>
-                <Icon
-                  source={item.icon}
-                  size={25}
-                  color={bgColor}
-                />
+                <Icon source={item.icon} size={25} color={bgColor} />
 
                 <Text style={{...FONTS.h4, textAlign: 'center'}}>
                   {item.title}

@@ -32,7 +32,7 @@ export default function Index({route}) {
   const [input, setInput] = useState('');
   const {users} = useContext(UserType);
   const [conversation_exists, setConversation_exists] = useState(false);
-  const {list_messages} = messagesStore();
+  const {list_messages, update} = messagesStore();
   const [messages, setMessages] = useState([]);
   const recipient = route.params.item;
   const recipientId = route.params.recipientId;
@@ -42,6 +42,7 @@ export default function Index({route}) {
   const {profile} = profileStore();
   const {userId} = authStore();
   const [sendSuccess, setSendSuccess] = useState(true);
+
   useLayoutEffect(() => {
     checkConversation_exists();
     getConversationMessages(conversation_id, data => {
@@ -74,12 +75,11 @@ export default function Index({route}) {
       });
   };
 
-  const onSendMessage = async (Type, url) => {
-    setSendSuccess(false);
+  const onSendMessage = async (Type, url, name, file) => {
     const id = uuid.v4();
     let messageType = '';
     let messageText = '';
-
+    setInput('');
     switch (Type) {
       case 'image':
         messageType = 'image';
@@ -103,7 +103,7 @@ export default function Index({route}) {
         messageType = 'doc';
         messageText = 'đã gửi tệp';
         photo = '';
-        uri = url;
+        uri = file;
         break;
     }
     const formData = {
@@ -112,42 +112,49 @@ export default function Index({route}) {
       senderImage: profile.image,
       name: profile.name,
       messageType,
-      messageText: (messageType = 'text' && input),
+      messageText: messageType == 'text' && input,
       recipientId: type === 'Person' && recipientId,
       photo,
       uri,
     };
-    if (messageType === 'text' || 'doc') {
-      setMessages([{id: id, data: formData}, ...messages]);
-    }
-    await checkMessage(type, formData, messageText);
-    setInput('');
+    setSendSuccess(false);
+    setMessages(prevMessages => [{id: id, data: formData}, ...prevMessages]);
+    await checkMessage(type, formData, messageText, Type, url, name);
   };
-  const checkMessage = async (type, formData, messageText) => {
+  const checkMessage = async (type, formData, messageText, Type, url, name) => {
+    switch (Type) {
+      case 'doc':
+        formData.uri.fileCopyUri = await uploadToStorage(url, name, 'doc');
+        break;
+      case 'text':
+        break;
+      default:
+        formData.photo = await uploadToStorage(url, name);
+        break;
+    }
     switch (type) {
       case 'Person':
         await sendPersonMessages(formData, messageText);
         break;
       default:
-        sendGroup(formData, messageText, conversation_id, profile.name, userId);
+        sendGroup(formData, formData.messageText, conversation_id, profile.name, userId);
         setSendSuccess(true);
         break;
     }
   };
   const sendPersonMessages = async (formData, messageText) => {
-    setSendSuccess(false);
     const conversationIds = [
       `${userId}-${recipientId}`,
       `${recipientId}-${userId}`,
     ];
-    conversationIds.forEach(conversationId => {
+    conversationIds.forEach(async conversationId => {
       try {
         if (conversation_exists) {
-          updateConversation(conversationId, messageText, profile.name, userId);
+          updateConversation(conversationId, formData.messageText, profile.name, userId);
         } else {
-          createConversation(conversationId, messageText);
+          createConversation(conversationId, formData.messageText);
         }
-        sendPerson(conversationId, formData);
+        await sendPerson(conversationId, formData);
         setSendSuccess(true);
       } catch (error) {
         console.error(error);
@@ -181,84 +188,51 @@ export default function Index({route}) {
       });
   };
 
-  // const sendGroup = async (formData, type, messageText) => {
-  //   try {
-  //     const collectionRef = db
-  //       .collection('Conversations')
-  //       .doc(conversation_id)
-  //       .collection('messages');
-
-  //     await db
-  //       .collection('Conversations')
-  //       .doc(conversation_id)
-  //       .update({
-  //         last_message: timestamp,
-  //         message: {
-  //           messageText,
-  //           name: profile.name,
-  //           id: userId,
-  //         },
-  //       });
-
-  //     await collectionRef.add(formData);
-
-  //     setSendSuccess(true);
-  //   } catch (error) {
-  //     console.error('Gửi không thành công', error);
-  //   }
-  // };
   const sendImage = async () => {
-    setSendSuccess(false);
     Keyboard.dismiss();
     try {
       const newImagePath = await handlePickImage('message');
       if (newImagePath != 'Error') {
         const mediaType = newImagePath.type === 'video/mp4' ? 'video' : 'image';
-        sendPhotoBackgroud(mediaType, newImagePath.uri);
-        const reference = storage().ref(
-          `Conversations/Files/${newImagePath.fileName}`,
-        );
-        await reference.putFile(newImagePath.uri);
-        const downloadURL = await reference.getDownloadURL();
-        if (downloadURL != true || false) {
-          await onSendMessage(mediaType, downloadURL);
-        }
+        onSendMessage(mediaType, newImagePath.uri, newImagePath.fileName);
       }
     } catch (error) {
       console.log('error', error);
     }
   };
-  const sendPhotoBackgroud = (mediaType, image) => {
-    const formData = {
-      timeSend: new Date(),
-      senderId: userId,
-      senderImage: profile.image,
-      name: profile.name,
-      messageType: mediaType === 'image' ? 'image' : 'video',
-      messageText: mediaType === 'image' ? 'đã gửi hình ảnh' : 'đã gửi video',
-      photo: image,
-    };
-    setMessages(prevMessages => [{id: image, data: formData}, ...prevMessages]);
+
+  const uploadToStorage = async (uri, name, typeDoc) => {
+    let reference;
+    try {
+      if (typeDoc === 'doc') {
+        reference = storage().ref(`Conversations/Documents/${name}`);
+        await reference.putFile(uri);
+      } else {
+        reference = storage().ref(`Conversations/Files/${name}`);
+        await reference.putFile(uri);
+      }
+
+      const downloadURL = await reference.getDownloadURL();
+      return downloadURL;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const sendDocument = async () => {
-    setSendSuccess(false);
-    const newDoc = await pickDocument();
-    if (newDoc != 'Error') {
-      const reference = storage().ref(`Conversations/Documents/${newDoc.name}`);
-      await reference.putFile(newDoc.fileCopyUri);
-      const downLoadUrl = await reference.getDownloadURL();
-
-      if (newDoc.type.includes('image')) {
-        sendPhotoBackgroud('image', newDoc.fileCopyUri);
-        await onSendMessage('image', downLoadUrl);
-      } else if (newDoc.type.includes('video')) {
-        sendPhotoBackgroud('video', newDoc.fileCopyUri);
-        await onSendMessage('video', downLoadUrl);
-      } else {
-        newDoc.fileCopyUri = downLoadUrl;
-        await onSendMessage('doc', newDoc);
+    try {
+      const newDoc = await pickDocument();
+      if (newDoc != 'Error') {
+        if (newDoc.type.indexOf('image') !== -1) {
+          onSendMessage('image', newDoc.fileCopyUri, newDoc.name);
+        } else if (newDoc.type === 'video/mp4') {
+          onSendMessage('video', newDoc.fileCopyUri, newDoc.name);
+        } else {
+          onSendMessage('doc', newDoc.fileCopyUri, newDoc.name, newDoc);
+        }
       }
+    } catch (error) {
+      console.error(error);
     }
   };
   const list_icon = [
@@ -303,6 +277,7 @@ export default function Index({route}) {
           item: recipient,
           id: conversation_id,
           backgroundColor: conversationData?.bgColor || COLORS.primary,
+          recipientId: recipientId,
         });
       },
     },
@@ -312,8 +287,11 @@ export default function Index({route}) {
     <SafeAreaView style={{flex: 1}}>
       <PageContainer>
         <ListItem bottomDivider containerStyle={styles.header}>
-          <Pressable onPress={() => navigation.replace('BottomTabs')}>
-            <Icon source={'arrow-left'} size={25} color="#000000" />
+          <Pressable
+            onPressIn={() => {
+              navigation.goBack();
+            }}>
+            <Icon source={'arrow-left'} size={28} color="#000000" />
           </Pressable>
 
           <View style={styles.avatar}>
@@ -348,6 +326,7 @@ export default function Index({route}) {
                 navigation.navigate('ChatSettings', {
                   item: recipient,
                   id: conversation_id,
+                  
                 });
               }}>
               <Icon source={'text-long'} size={30} color={'#000'} />
@@ -374,6 +353,7 @@ export default function Index({route}) {
           showsVerticalScrollIndicator={false}
           data={messages}
           style={{width: SIZES.width, paddingHorizontal: 10}}
+          keyExtractor={item => item.id}
           renderItem={({item, index}) => (
             <List_Message
               index={index}
@@ -398,7 +378,7 @@ export default function Index({route}) {
           </TouchableOpacity>
           <TextInput
             value={input}
-            onChangeText={setInput}
+            onChangeText={text => setInput(text)}
             style={styles._input}
             onSubmitEditing={() => onSendMessage('text')}
           />

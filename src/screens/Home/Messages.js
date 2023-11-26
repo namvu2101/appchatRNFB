@@ -38,6 +38,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {db, timestamp} from '../../firebase/firebaseConfig';
 import UIBottomSheet from '../../components/UIBottomSheet';
 import {ListItem, SpeedDial} from '@rneui/themed';
+import {getConversations} from '../../firebase/api';
 
 const Messages = ({navigation}) => {
   const {setUserFriends, userFriends, users, userConversations} =
@@ -80,9 +81,7 @@ const Messages = ({navigation}) => {
     getData();
   }, [friends, users]);
 
-  useLayoutEffect(() => {
-    // getConversations();
-  }, [userConversations]);
+  useLayoutEffect(() => {}, []);
   const gettingMessage = () => {
     const currentTime = new Date().getHours();
     if (currentTime < 12) {
@@ -93,16 +92,10 @@ const Messages = ({navigation}) => {
       return 'Chào buổi tối 🌛';
     }
   };
-  // const getConversations = async () => {
-  //   const filter = userConversations.filter(
-  //     i => i.data?.senderID == userId || i.data?.member_id?.includes(userId),
-  //   );
-  //   setMessage(filter);
-  // };
+ 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
-      // getConversations();
       setRefreshing(false);
     }, 200);
   }, []);
@@ -148,7 +141,7 @@ const Messages = ({navigation}) => {
           }>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('Search', {conversations: message})
+              navigation.navigate('Search', {conversations: userConversations})
             }>
             <UISearch editable={false} />
           </TouchableOpacity>
@@ -177,7 +170,6 @@ const Messages = ({navigation}) => {
               conversation_id={item.id}
               index={index}
               onPress={async () => {
-                // await getConversationMessages(item.id);
                 navigation.navigate('Chats', {
                   item: item.data,
                   type: item?.data?.type,
@@ -213,7 +205,7 @@ const Messages = ({navigation}) => {
       <TouchableOpacity
         onPress={() =>
           navigation.navigate('AddChat', {
-            group: message.filter(i => i.data.type == 'Group'),
+            group: userConversations.filter(i => i.data.type == 'Group'),
           })
         }
         style={styles._button_add}>

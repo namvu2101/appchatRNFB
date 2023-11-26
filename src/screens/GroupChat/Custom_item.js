@@ -10,8 +10,8 @@ export default function Custom_item({item, index}) {
   const onPress = () => {
     navigation.navigate('Chats', {
       item: item.data,
-      type: 'Person',
-      conversation_id: `${userId}-${item.id}`,
+      type: item.data?.type || 'Person',
+      conversation_id: item.data?.type ? item.id : `${userId}-${item.id}`,
       recipientId: item.id,
     });
   };
@@ -22,7 +22,6 @@ export default function Custom_item({item, index}) {
         titleStyle={{...FONTS.h3}}
         description={item.data.phone}
         titleNumberOfLines={1}
-
         descriptionStyle={{
           marginTop: 5,
           color: COLORS.secondaryGray,

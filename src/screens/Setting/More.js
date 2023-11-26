@@ -35,7 +35,7 @@ export default function More() {
       'Bạn muốn đăng xuất?',
       [
         {
-          text: 'Ok',
+          text: 'Đồng ý',
           onPress: () => {
             updateOnlineStatus(userId);
             AsyncStorage.setItem('userId', '');
@@ -63,7 +63,20 @@ export default function More() {
       <PageContainer>
         <View style={styles.container}>
           <ListItem
-            style={{width: SIZES.width * 0.9}}
+            containerStyle={{
+              backgroundColor: COLORS.secondaryWhite,
+              width: SIZES.width * 0.9,
+              borderRadius: 15,
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: 10,
+              },
+              shadowOpacity: 0.5,
+              shadowRadius: 5,
+              elevation: 10,
+              marginVertical: 10,
+            }}
             onPress={() => navigation.navigate('UserProfile')}>
             <Avatar.Image source={{uri: profile?.image}} size={66} />
             <ListItem.Content>
@@ -116,7 +129,6 @@ export default function More() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginTop: 20,
-    height: SIZES.height * 0.8,
+    height: SIZES.height / 1.2,
   },
 });

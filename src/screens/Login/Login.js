@@ -16,7 +16,6 @@ import UIButton from '../../components/UIButton';
 import {Button, TextInput} from 'react-native-paper';
 import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import {db} from '../../firebase/firebaseConfig';
 import {SocialIcon} from '@rneui/themed';
 
@@ -76,7 +75,7 @@ export default function Login() {
       <PageContainer>
         <View style={styles.container}>
           <Text style={{...FONTS.h2, color: COLORS.black, fontWeight: 'bold'}}>
-            Đăng nhập Chatbox
+            Đăng nhập Chat VPN
           </Text>
           <Text style={{...FONTS.h3, color: COLORS.black, textAlign: 'center'}}>
             Đăng nhập bằng tài khoản xã hội hoặc tài khoản của bạn

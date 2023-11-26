@@ -2,13 +2,13 @@ import React, {useLayoutEffect, useEffect, useContext} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
-import {Avatar, ProgressBar} from 'react-native-paper';
+import {Avatar, Button, ProgressBar} from 'react-native-paper';
 import {authStore, conversationStore, profileStore} from '../store';
 import NetInfo from '@react-native-community/netinfo';
 import {db, timestamp} from '../firebase/firebaseConfig';
 import {UserType} from '../contexts/UserContext';
-import {COLORS} from '../constants';
-import {Text, View} from 'react-native';
+import {COLORS, SIZES} from '../constants';
+import {Alert, Text, View} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,6 +18,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import {firebase} from '@react-native-firebase/auth';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const Splash = ({navigation}) => {
   const isFocused = useIsFocused();
@@ -35,6 +36,10 @@ const Splash = ({navigation}) => {
           state => state.isConnected,
         );
         if (!isConnected) {
+          Alert.alert(
+            'Thông báo',
+            'Không có kết nối internet',
+          );
           console.error('Không có kết nối internet');
           return;
         }
@@ -64,6 +69,10 @@ const Splash = ({navigation}) => {
           }, 3000);
         }
       } catch (error) {
+        Alert.alert(
+          'Thông báo',
+          'Đã xảy ra lỗi lấy dữ liệu người dùng. Hãy thử lại sau ít phút',
+        );
         console.error(error);
       }
     }
@@ -99,7 +108,7 @@ const Splash = ({navigation}) => {
             id: doc.id,
             data: doc.data(),
           }));
-        
+
           setUserConversations(data);
         },
         error => {
@@ -134,17 +143,28 @@ const Splash = ({navigation}) => {
     justifyContent: 'center',
   }));
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#208FE9',
-      }}>
-      <Animated.View style={animatedStyle}>
-        <Avatar.Image source={require('../assets/iconapp.jpg')} size={88} />
-      </Animated.View>
-    </View>
+    <SafeAreaView
+      style={{flex: 1, justifyContent: 'flex-end', alignItems: 'center'}}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#208FE9',
+          width: SIZES.width,
+        }}>
+        <Animated.View style={animatedStyle}>
+          <Avatar.Image source={require('../assets/iconapp.jpg')} size={88} />
+        </Animated.View>
+      </View>
+      <Button
+        style={{
+          position: 'absolute',
+        }}
+        textColor="white">
+        VPN 2023
+      </Button>
+    </SafeAreaView>
   );
 };
 

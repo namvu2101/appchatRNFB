@@ -292,11 +292,12 @@ export default function UserProfile() {
                   settype('sex');
                   setisVisible(true);
                 }}
-                icon={profile.sex == 'Nam' ? 'gender-female' : 'gender-male'}
+                icon={profile.sex == 'Nam' ? 'gender-male' : 'gender-female'}
                 mode="text"
                 contentStyle={{
-                  flexDirection: 'row-reverse',
+                  flexDirection: 'row-reverse'
                 }}
+                
                 textColor="black">
                 Giới tính: {profile.sex}
               </Button>
