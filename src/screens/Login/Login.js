@@ -58,7 +58,9 @@ export default function Login() {
             item => item.data().password === password,
           );
           if (user_pass) {
-            handleLogin(user_pass.id);
+            if (user_pass.data().status == false) {
+              setErrorMessage('Tài khoản đã bị khóa');
+            } else handleLogin(user_pass.id);
           } else {
             setErrorMessage('Lỗi: Mật khẩu không đúng');
           }
@@ -114,7 +116,7 @@ export default function Login() {
             <Text style={styles._err_mess}>{errorMessage}</Text>
           </View>
 
-          {hideKeyboard && (
+          {/* {hideKeyboard && (
             <>
               <View style={{flexDirection: 'row', alignItems: 'center'}}>
                 <View
@@ -152,7 +154,7 @@ export default function Login() {
                 ))}
               </View>
             </>
-          )}
+          )} */}
 
           <UIButton
             title="Đăng nhập"

@@ -112,7 +112,7 @@ export default function Index({route}) {
       senderImage: profile.image,
       name: profile.name,
       messageType,
-      messageText: messageType == 'text' && input,
+      messageText,
       recipientId: type === 'Person' && recipientId,
       photo,
       uri,

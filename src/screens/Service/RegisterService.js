@@ -25,10 +25,12 @@ import {db, storage} from '../../firebase/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {firebase} from '@react-native-firebase/auth';
 import {profileStore} from '../../store';
+import Loading from '../Dialog/Loading';
 
 export default function RegisterService({setIndex}) {
   const {profile, updateService} = profileStore();
   const [service, setService] = useState(profile.service);
+  const [isLoading, setisLoading] = useState(false);
   const [state, setState] = useState([
     {
       name: 'Tên Dịch vụ',
@@ -70,7 +72,7 @@ export default function RegisterService({setIndex}) {
   const ChangeAvatar = async () => {
     const avatar = await handlePickImage();
     if (avatar != 'Error') {
-      setImage(avatar);
+      setImage(avatar.uri);
     }
   };
   const handleRegister = async () => {
@@ -80,6 +82,7 @@ export default function RegisterService({setIndex}) {
     }/${date.getFullYear()}`;
     const idImage = uuid.v4();
     try {
+      setisLoading(true);
       const reference = storage().ref(`Service/Avatar/${idImage}`);
       const avatarUrl = await uploadImage(reference, image);
       const userId = await AsyncStorage.getItem('userId');
@@ -109,6 +112,7 @@ export default function RegisterService({setIndex}) {
             {
               text: 'Xác nhận',
               onPress: () => {
+                setisLoading(false);
                 updateService(service, profile);
                 setIndex(2);
               },
@@ -158,6 +162,7 @@ export default function RegisterService({setIndex}) {
         ))}
       </Animated.View>
       <UIButton title="Đăng ký" onPress={handleRegister} />
+      <Loading isVisible={isLoading} />
     </PageContainer>
   );
 }

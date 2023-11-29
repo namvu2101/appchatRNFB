@@ -23,6 +23,7 @@ export default function UITextInput(props) {
       right={props.right}
       onSubmitEditing={props.onSubmit}
       underlineColor={props.underlineColor}
+      
     />
   );
 }

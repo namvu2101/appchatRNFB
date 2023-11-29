@@ -218,7 +218,58 @@ export default function List_Message({
         </ListItem.Content>
       </ListItem>
     );
+    const renderCard = () => {
+      return (
+        <View
+          style={{
+            alignItems: 'center',
+            height: SIZES.height / 2,
+            backgroundColor: 'white',
+            margin: 22,
+            borderRadius: 25,
+            shadowColor: '#000',
+            shadowOffset: {
+              width: 0,
+              height: 10,
+            },
+            shadowOpacity: 0.3,
+            shadowRadius: 20,
+            elevation: 10,
+          }}>
+          <Image
+            source={{uri: item.card.image}}
+            style={{
+              height: '50%',
+              width: '100%',
+              borderTopLeftRadius: 25,
+              borderTopRightRadius: 25,
+            }}
+          />
 
+          <Text
+            style={{
+              ...FONTS.h3,
+              fontWeight: 'bold',
+              alignSelf: 'flex-start',
+              padding: 10,
+              width: '100%',
+            }}
+            numberOfLines={2}>
+            {item.card.title}
+          </Text>
+          <Text
+            style={{
+              ...FONTS.h4,
+              alignSelf: 'flex-start',
+              padding: 10,
+              width: '100%',
+            }}
+            numberOfLines={3}>
+            {item.card.detail}
+          </Text>
+        </View>
+      );
+    };
     switch (item.messageType) {
       case 'text':
         return renderTextMessage();
@@ -229,7 +280,7 @@ export default function List_Message({
       case 'doc':
         return renderDocMessage();
       default:
-        return null;
+        return renderCard();
     }
   };
 
@@ -281,7 +332,12 @@ export default function List_Message({
         <View style={styles._bottomSheet}>
           {list.map(i => (
             <TouchableOpacity onPress={i.onPress} key={i.icon}>
-              <Avatar.Icon icon={i.icon} size={40} color="white" style={{backgroundColor:backgroundColor}}/>
+              <Avatar.Icon
+                icon={i.icon}
+                size={40}
+                color="white"
+                style={{backgroundColor: backgroundColor}}
+              />
             </TouchableOpacity>
           ))}
         </View>
