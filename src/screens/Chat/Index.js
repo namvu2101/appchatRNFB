@@ -137,7 +137,13 @@ export default function Index({route}) {
         await sendPersonMessages(formData, messageText);
         break;
       default:
-        sendGroup(formData, formData.messageText, conversation_id, profile.name, userId);
+        sendGroup(
+          formData,
+          formData.messageText,
+          conversation_id,
+          profile.name,
+          userId,
+        );
         setSendSuccess(true);
         break;
     }
@@ -150,7 +156,12 @@ export default function Index({route}) {
     conversationIds.forEach(async conversationId => {
       try {
         if (conversation_exists) {
-          updateConversation(conversationId, formData.messageText, profile.name, userId);
+          updateConversation(
+            conversationId,
+            formData.messageText,
+            profile.name,
+            userId,
+          );
         } else {
           createConversation(conversationId, formData.messageText);
         }
@@ -314,7 +325,7 @@ export default function Index({route}) {
               {conversationData?.name}
             </ListItem.Title>
             <ListItem.Subtitle
-              style={{color: recipient?.isOnline ? 'red' : 'black'}}>
+              style={{color: recipient?.isOnline ? COLORS.green : 'black'}}>
               {recipient?.isOnline
                 ? 'Đang hoạt động'
                 : `${formatTime(recipient?.last_active_at)}`}
@@ -326,7 +337,6 @@ export default function Index({route}) {
                 navigation.navigate('ChatSettings', {
                   item: recipient,
                   id: conversation_id,
-                  
                 });
               }}>
               <Icon source={'text-long'} size={30} color={'#000'} />
@@ -367,51 +377,52 @@ export default function Index({route}) {
             />
           )}
         />
-
-        <View style={styles._input_box}>
-          <TouchableOpacity onPress={sendDocument}>
-            <Icon
-              source="paperclip"
-              size={25}
-              color={conversationData?.bgColor || COLORS.primary}
-            />
-          </TouchableOpacity>
-          <TextInput
-            value={input}
-            onChangeText={text => setInput(text)}
-            style={styles._input}
-            onSubmitEditing={() => onSendMessage('text')}
-          />
-
-          {input.length != 0 ? (
-            <TouchableOpacity
-              onPress={() => onSendMessage('text')}
-              disabled={input.length != 0 ? false : true}>
-              <MaterialCommunityIcons
-                name="send-circle"
-                size={44}
+        {type != 'Service' && (
+          <View style={styles._input_box}>
+            <TouchableOpacity onPress={sendDocument}>
+              <Icon
+                source="paperclip"
+                size={25}
                 color={conversationData?.bgColor || COLORS.primary}
               />
             </TouchableOpacity>
-          ) : (
-            <>
-              <TouchableOpacity style={{marginRight: 10}} onPress={sendImage}>
+            <TextInput
+              value={input}
+              onChangeText={text => setInput(text)}
+              style={styles._input}
+              onSubmitEditing={() => onSendMessage('text')}
+            />
+
+            {input.length != 0 ? (
+              <TouchableOpacity
+                onPress={() => onSendMessage('text')}
+                disabled={input.length != 0 ? false : true}>
                 <MaterialCommunityIcons
-                  name="camera-outline"
-                  size={25}
+                  name="send-circle"
+                  size={44}
                   color={conversationData?.bgColor || COLORS.primary}
                 />
               </TouchableOpacity>
-              <TouchableOpacity>
-                <MaterialCommunityIcons
-                  name="microphone"
-                  size={25}
-                  color={conversationData?.bgColor || COLORS.primary}
-                />
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+            ) : (
+              <>
+                <TouchableOpacity style={{marginRight: 10}} onPress={sendImage}>
+                  <MaterialCommunityIcons
+                    name="camera-outline"
+                    size={25}
+                    color={conversationData?.bgColor || COLORS.primary}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <MaterialCommunityIcons
+                    name="microphone"
+                    size={25}
+                    color={conversationData?.bgColor || COLORS.primary}
+                  />
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
       </PageContainer>
     </SafeAreaView>
   );

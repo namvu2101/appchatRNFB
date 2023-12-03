@@ -1,4 +1,12 @@
-import {StyleSheet, Text, View, TextInput, Image} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Image,
+  KeyboardAvoidingView,
+  Keyboard,
+} from 'react-native';
 import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -32,12 +40,31 @@ export default function ServiceChat({route}) {
   const [title, setTitle] = React.useState('');
   const [detail, setDetail] = React.useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isKeyboardShowing, setIsKeyboardShowing] = useState(false);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
   }, []);
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setIsKeyboardShowing(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setIsKeyboardShowing(false);
+      },
+    );
 
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
   const handleSend = async messageType => {
     const messageText = messageType == 'card' ? 'đã gửi thông điệp' : input;
     const formData = {
@@ -145,53 +172,57 @@ export default function ServiceChat({route}) {
             iconStyle={{borderRadius: 50}}
           />
         </ListItem>
-        <Card>
-          <TextInput
-            style={{
-              height: 50,
-              borderBottomColor: 'grey',
-              borderBottomWidth: 2,
-              paddingHorizontal: 10,
-              color: 'black',
-            }}
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Tiêu đề"
-            placeholderTextColor={'black'}
-          />
-          <Card.Divider />
-          <Card.Image
-            onPress={ChangeImage}
-            style={{padding: 0}}
-            source={{
-              uri: image,
-            }}
-          />
-          <TextInput
-            style={{
-              height: 50,
-              width: SIZES.width * 0.8,
-              borderBottomColor: 'grey',
-              borderBottomWidth: 2,
-              paddingHorizontal: 10,
-              color: 'black',
-            }}
-            value={detail}
-            onChangeText={setDetail}
-            placeholder="Nội dung"
-            placeholderTextColor={'black'}
-          />
-          <Button
-            onPress={() => setisVisible(true)}
-            buttonStyle={{
-              borderRadius: 0,
-              marginLeft: 0,
-              marginRight: 0,
-              marginBottom: 0,
-            }}
-            title="Xem trước"
-          />
-        </Card>
+        <KeyboardAvoidingView>
+          {!isKeyboardShowing && (
+            <Card>
+              <TextInput
+                style={{
+                  height: 50,
+                  borderBottomColor: 'grey',
+                  borderBottomWidth: 2,
+                  paddingHorizontal: 10,
+                  color: 'black',
+                }}
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Tiêu đề"
+                placeholderTextColor={'black'}
+              />
+              <Card.Divider />
+              <Card.Image
+                onPress={ChangeImage}
+                style={{padding: 0}}
+                source={{
+                  uri: image,
+                }}
+              />
+              <TextInput
+                style={{
+                  height: 50,
+                  width: SIZES.width * 0.8,
+                  borderBottomColor: 'grey',
+                  borderBottomWidth: 2,
+                  paddingHorizontal: 10,
+                  color: 'black',
+                }}
+                value={detail}
+                onChangeText={setDetail}
+                placeholder="Nội dung"
+                placeholderTextColor={'black'}
+              />
+              <Button
+                onPress={() => setisVisible(true)}
+                buttonStyle={{
+                  borderRadius: 0,
+                  marginLeft: 0,
+                  marginRight: 0,
+                  marginBottom: 0,
+                }}
+                title="Xem trước"
+              />
+            </Card>
+          )}
+        </KeyboardAvoidingView>
         <View style={styles.footer}>
           <Icon
             name="image"
