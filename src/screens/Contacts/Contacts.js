@@ -14,6 +14,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import UISearch from '../../components/UISearch';
 import Custom_items from './Custom_items';
 import {UserType} from '../../contexts/UserContext';
+import {Icon} from 'react-native-paper';
 
 const Contacts = ({navigation}) => {
   const [search, setSearch] = useState('');
@@ -44,9 +45,19 @@ const Contacts = ({navigation}) => {
             width: SIZES.width,
           }}>
           <Text style={{...FONTS.h2, color: COLORS.black}}>Liên hệ</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('AddContact')}>
-            <AntDesign name="plus" size={25} color={COLORS.secondaryBlack} />
-          </TouchableOpacity>
+          <View
+            style={{
+              flexDirection: 'row',
+              width: 80,
+              justifyContent: 'space-between',
+            }}>
+            <TouchableOpacity onPress={() => navigation.navigate('QRscan')}>
+              <Icon source={'line-scan'} size={25} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('AddContact')}>
+              <AntDesign name="plus" size={25} color={COLORS.secondaryBlack} />
+            </TouchableOpacity>
+          </View>
         </View>
         <UISearch
           value={search}
@@ -65,7 +76,7 @@ const Contacts = ({navigation}) => {
             width: SIZES.width,
             paddingHorizontal: 10,
             backgroundColor: COLORS.white,
-            borderRadius:20
+            borderRadius: 20,
           }}
           keyExtractor={item => item.id.toString()}
         />

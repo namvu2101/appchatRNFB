@@ -92,7 +92,7 @@ const Messages = ({navigation}) => {
       return 'Chào buổi tối 🌛';
     }
   };
- 
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -130,6 +130,7 @@ const Messages = ({navigation}) => {
           </TouchableOpacity>
         </ListItem>
         <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{alignItems: 'center'}}
           refreshControl={
             <RefreshControl

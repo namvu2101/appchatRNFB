@@ -23,6 +23,8 @@ import Service from '../screens/Service/Service';
 import ServiceChat from '../screens/Service/ServiceChat';
 import ViewMember from '../screens/GroupChat/MemberOfGroup';
 import MediaScreen from '../screens/Chat/MediaScreen';
+import Qrcode from '../screens/Setting/QRcode';
+import QRscan from '../screens/Contacts/QRscan';
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
 
@@ -71,6 +73,12 @@ const StackNavigator = () => {
           component={Index}
           options={{headerShown: false}}
         />
+           <Stack.Screen
+          name="QRcode"
+          component={Qrcode}
+          options={{headerShown: false}}
+        />
+          <Stack.Screen name="QRscan" component={QRscan} />
         <Stack.Screen name="Information" component={Information} />
         <Stack.Screen name="AddContact" component={AddContact} />
         <Stack.Screen name="AddChat" component={AddChat} />

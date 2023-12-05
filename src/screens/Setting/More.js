@@ -87,7 +87,9 @@ export default function More() {
                 {profile?.phone}
               </ListItem.Subtitle>
             </ListItem.Content>
-            <Icon source="qrcode-scan" size={20} color={'#000'} />
+            <Pressable onPress={() => navigation.navigate('QRcode')}>
+              <Icon source="qrcode-scan" size={20} color={'#000'} />
+            </Pressable>
           </ListItem>
 
           <ScrollView>
