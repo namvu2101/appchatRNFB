@@ -7,28 +7,29 @@ import {
   Alert,
   Keyboard,
 } from 'react-native';
-import React, {useState, useEffect, useContext} from 'react';
-import {useNavigation} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {COLORS, SIZES, FONTS, images} from '../../constants';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS, SIZES, FONTS, images } from '../../constants';
 import UITextInput from '../../components/UITextInput';
 import UIButton from '../../components/UIButton';
-import {Button, TextInput} from 'react-native-paper';
+import { Button, TextInput } from 'react-native-paper';
 import PageContainer from '../../components/PageContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {db} from '../../firebase/firebaseConfig';
-import {SocialIcon} from '@rneui/themed';
+import { db } from '../../firebase/firebaseConfig';
+import { SocialIcon } from '@rneui/themed';
 
 export default function Login() {
-  const navigation = useNavigation();
-  const [account, setAccount] = useState('0974046550');
-  const [password, setPassword] = useState('123456');
+  const navigation = useNavigation(); 
+  const [account, setAccount] = useState('');
+  const [password, setPassword] = useState('');
   const [secure, setSecure] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [isdisable, setIsdisable] = useState(true);
   const icons_social = ['facebook', 'google', 'twitter'];
   const [hideKeyboard, setHideKeyboard] = useState(true);
   useEffect(() => {
+    phoneAuth()
     Keyboard.addListener('keyboardDidHide', () => {
       setHideKeyboard(true);
     });
@@ -36,6 +37,10 @@ export default function Login() {
       setHideKeyboard(false);
     });
   }, []);
+  const phoneAuth = async () => {
+    const oldAccount = await AsyncStorage.getItem('account')
+    setAccount(oldAccount)
+  }
 
   useEffect(() => {
     setErrorMessage('');
@@ -62,6 +67,7 @@ export default function Login() {
               setErrorMessage('Tài khoản đã bị khóa');
             } else handleLogin(user_pass.id);
           } else {
+            setPassword('')
             setErrorMessage('Lỗi: Mật khẩu không đúng');
           }
         }
@@ -69,17 +75,18 @@ export default function Login() {
   };
   const handleLogin = userId => {
     AsyncStorage.setItem('userId', userId);
+    AsyncStorage.setItem('account', account);
     navigation.replace('Splash');
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{ flex: 1 }}>
       <PageContainer>
         <View style={styles.container}>
-          <Text style={{...FONTS.h2, color: COLORS.black, fontWeight: 'bold'}}>
+          <Text style={{ ...FONTS.h2, color: COLORS.black, fontWeight: 'bold' }}>
             Đăng nhập Chat VPN
           </Text>
-          <Text style={{...FONTS.h3, color: COLORS.black, textAlign: 'center'}}>
+          <Text style={{ ...FONTS.h3, color: COLORS.black, textAlign: 'center' }}>
             Đăng nhập bằng tài khoản xã hội hoặc tài khoản của bạn
           </Text>
           <View>
@@ -104,7 +111,7 @@ export default function Login() {
             />
             <Button
               textColor={COLORS.red}
-              style={{alignItems: 'flex-end'}}
+              style={{ alignItems: 'flex-end' }}
               onPress={() =>
                 Alert.alert(
                   'Thông báo !',
@@ -116,9 +123,9 @@ export default function Login() {
             <Text style={styles._err_mess}>{errorMessage}</Text>
           </View>
 
-          {/* {hideKeyboard && (
+          {hideKeyboard && (
             <>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View
                   style={{
                     height: 2,
@@ -126,7 +133,7 @@ export default function Login() {
                     backgroundColor: COLORS.gray,
                   }}
                 />
-                <Text style={{color: COLORS.black, marginHorizontal: 10}}>
+                <Text style={{ color: COLORS.black, marginHorizontal: 10 }}>
                   Hoặc
                 </Text>
                 <View
@@ -154,7 +161,7 @@ export default function Login() {
                 ))}
               </View>
             </>
-          )} */}
+          )}
 
           <UIButton
             title="Đăng nhập"

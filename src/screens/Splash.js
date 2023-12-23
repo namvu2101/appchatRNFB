@@ -36,10 +36,7 @@ const Splash = ({navigation}) => {
           state => state.isConnected,
         );
         if (!isConnected) {
-          Alert.alert(
-            'Thông báo',
-            'Không có kết nối internet',
-          );
+          Alert.alert('Thông báo', 'Không có kết nối internet');
           console.error('Không có kết nối internet');
           return;
         }
@@ -96,7 +93,8 @@ const Splash = ({navigation}) => {
       setUsers(data.filter(i => i.id != id));
     });
   };
-  const getConversations = async id => {
+  const getConversations = async () => {
+    const id = await AsyncStorage.getItem('userId');
     db.collection('Conversations')
       .orderBy('last_message', 'desc')
       .onSnapshot(

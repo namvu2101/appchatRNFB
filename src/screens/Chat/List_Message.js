@@ -10,18 +10,18 @@ import {
   Linking,
 } from 'react-native';
 import React from 'react';
-import {Avatar, Icon, IconButton} from 'react-native-paper';
-import {COLORS, FONTS, SIZES, images} from '../../constants';
+import { Avatar, Icon, IconButton } from 'react-native-paper';
+import { COLORS, FONTS, SIZES, images } from '../../constants';
 import UIModals from '../../components/UIModals';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {db} from '../../firebase/firebaseConfig';
+import { db } from '../../firebase/firebaseConfig';
 import ImageModals from '../Modals/ImageModals';
-import {firebase} from '@react-native-firebase/firestore';
+import { firebase } from '@react-native-firebase/firestore';
 import Video from 'react-native-video';
-import {useNavigation} from '@react-navigation/native';
-import {BottomSheet, ListItem} from '@rneui/themed';
-import {BgColors, LIGHT_COLORS} from '../../constants/colors';
-import {downloadFile} from '../../components/DownFile';
+import { useNavigation } from '@react-navigation/native';
+import { BottomSheet, ListItem } from '@rneui/themed';
+import { BgColors, LIGHT_COLORS } from '../../constants/colors';
+import { downloadFile } from '../../components/DownFile';
 export default function List_Message({
   item,
   userId,
@@ -40,10 +40,10 @@ export default function List_Message({
   const formatTime = time => {
     if (time instanceof firebase.firestore.Timestamp) {
       const jsDate = time.toDate();
-      const options = {hour: 'numeric', minute: 'numeric'};
+      const options = { hour: 'numeric', minute: 'numeric' };
       return new Date(jsDate).toLocaleString('en-US', options);
     } else {
-      const options = {hour: 'numeric', minute: 'numeric'};
+      const options = { hour: 'numeric', minute: 'numeric' };
       return new Date(time).toLocaleString('en-US', options);
     }
   };
@@ -54,7 +54,7 @@ export default function List_Message({
   const list = [
     {
       icon: 'share-outline',
-      onPress: () => {},
+      onPress: () => { },
     },
 
     {
@@ -81,7 +81,7 @@ export default function List_Message({
     },
     {
       icon: 'pin-outline',
-      onPress: () => {},
+      onPress: () => { },
     },
     {
       icon: 'delete-outline',
@@ -102,9 +102,9 @@ export default function List_Message({
             deletleMessage();
           },
         },
-        {text: 'Huỷ', style: 'cancel'},
+        { text: 'Huỷ', style: 'cancel' },
       ],
-      {cancelable: true},
+      { cancelable: true },
     );
   };
   const deletleMessage = () => {
@@ -118,10 +118,10 @@ export default function List_Message({
   const messageContainerStyle =
     item?.senderId === userId
       ? {
-          ...styles.senderMessageContainer,
-          backgroundColor: backgroundColor,
-          color: textColor,
-        }
+        ...styles.senderMessageContainer,
+        backgroundColor: backgroundColor,
+        color: textColor,
+      }
       : styles.receiverMessageContainer;
   const renderMessageContent = () => {
     const navigateToMediaScreen = (uri, mediaType) => {
@@ -137,7 +137,7 @@ export default function List_Message({
 
     const renderTextMessage = () => (
       <Pressable {...commonProps} onPress={() => setisSelected(!isSelected)}>
-        <Text style={{...messageContainerStyle, margin: 8}}>
+        <Text style={{ ...messageContainerStyle, margin: 8 }}>
           {item?.messageText}
         </Text>
         {isSelected && (
@@ -157,7 +157,10 @@ export default function List_Message({
     const renderPhotoMessage = () => (
       <Pressable
         {...commonProps}
-        onPress={() => navigateToMediaScreen(item.photo, 'photo')}>
+        onPress={() => {
+          console.log('type:', item.messageType);
+          navigateToMediaScreen(item.photo, 'photo');
+        }}>
         <Image
           source={{
             uri: item?.photo || images.imageLoading,
@@ -170,12 +173,12 @@ export default function List_Message({
     const renderVideoMessage = () => (
       <Pressable
         {...commonProps}
-        onPress={() => navigateToMediaScreen(item.photo, 'video')}>
-        <Image
-          source={require('../../assets/images/video.png')}
-          style={styles._video}
-          resizeMode="stretch"
-        />
+        onPress={() => {
+          console.log('type:', item.messageType);
+          navigateToMediaScreen(item.photo, 'video');
+        }}>
+        <Icon source={'television-play'} size={150} color={textColor} />
+
       </Pressable>
     );
 
@@ -189,17 +192,17 @@ export default function List_Message({
             item.uri.name.includes('.doc')
               ? 'file-word'
               : item.uri.name.includes('.pdf')
-              ? 'file-pdf-box'
-              : 'file-download'
+                ? 'file-pdf-box'
+                : 'file-download'
           }
           size={30}
           color={textColor}
         />
         <ListItem.Content>
-          <ListItem.Title numberOfLines={1} style={{color: textColor}}>
+          <ListItem.Title numberOfLines={1} style={{ color: textColor }}>
             {item.uri.name}
           </ListItem.Title>
-          <ListItem.Subtitle style={{color: textColor}}>
+          <ListItem.Subtitle style={{ color: textColor }}>
             {item.uri.size > 1048575
               ? `${(item.uri.size / 1000000).toFixed(2)} MB`
               : `${(item.uri.size / 1000).toFixed(1)} KB`}
@@ -237,7 +240,7 @@ export default function List_Message({
             elevation: 10,
           }}>
           <Image
-            source={{uri: item.card.image}}
+            source={{ uri: item.card.image }}
             style={{
               height: '50%',
               width: '100%',
@@ -263,8 +266,9 @@ export default function List_Message({
               alignSelf: 'flex-start',
               padding: 10,
               width: '100%',
+
             }}
-            numberOfLines={3}>
+            numberOfLines={4}>
             {item.card.detail}
           </Text>
         </View>
@@ -323,7 +327,7 @@ export default function List_Message({
         />
       </UIModals>
       <BottomSheet
-        containerStyle={{backgroundColor: null}}
+        containerStyle={{ backgroundColor: null }}
         modalProps={{
           animationType: 'slide',
         }}
@@ -336,7 +340,7 @@ export default function List_Message({
                 icon={i.icon}
                 size={40}
                 color="white"
-                style={{backgroundColor: backgroundColor}}
+                style={{ backgroundColor: backgroundColor }}
               />
             </TouchableOpacity>
           ))}

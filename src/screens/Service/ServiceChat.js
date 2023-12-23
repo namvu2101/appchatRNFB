@@ -6,9 +6,10 @@ import {
   Image,
   KeyboardAvoidingView,
   Keyboard,
+  Alert,
 } from 'react-native';
-import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import React, { useContext, useEffect, useLayoutEffect, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   Avatar,
   Button,
@@ -19,19 +20,19 @@ import {
   ListItem,
 } from '@rneui/themed';
 import LinearGradient from 'react-native-linear-gradient';
-import {COLORS, SIZES, FONTS, images} from '../../constants';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { COLORS, SIZES, FONTS, images } from '../../constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PageContainer from '../../components/PageContainer';
-import {db} from '../../firebase/firebaseConfig';
+import { db } from '../../firebase/firebaseConfig';
 import dispath from './dispath';
 import CardDrive from '../Dialog/CardService';
 import UIModals from '../../components/UIModals';
 import UITextInput from '../../components/UITextInput';
 import CardService from '../Dialog/CardService';
-import {handlePickImage} from '../../components/ImagePicker';
+import { handlePickImage } from '../../components/ImagePicker';
 import Loading from '../Dialog/Loading';
 
-export default function ServiceChat({route}) {
+export default function ServiceChat({ route }) {
   const navigation = useNavigation();
   const [input, setInput] = useState('');
   const [isVisible, setisVisible] = useState(false);
@@ -50,13 +51,13 @@ export default function ServiceChat({route}) {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       () => {
-        setIsKeyboardShowing(true);
+        setIsKeyboardShowing(false);
       },
     );
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
       () => {
-        setIsKeyboardShowing(false);
+        setIsKeyboardShowing(true);
       },
     );
 
@@ -88,7 +89,6 @@ export default function ServiceChat({route}) {
       await setIsLoading(true);
       await service.data.follower.map(i => {
         const docRef = db.collection('Conversations').doc(`${i}-${service.id}`);
-
         docRef
           .set({
             type: 'Service',
@@ -106,7 +106,7 @@ export default function ServiceChat({route}) {
               id: service.id,
             },
           })
-          .then(() => console.log('Thong bao thanh cong'))
+          .then(() => Alert.alert('Thông báo!', 'Đăng tin thành công'))
           .catch(e => console.log('loi update', e));
 
         dispath(docRef, formData);
@@ -127,15 +127,15 @@ export default function ServiceChat({route}) {
     }
   };
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <PageContainer style={{justifyContent: 'space-between'}}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <PageContainer style={{ justifyContent: 'space-between' }}>
         <ListItem
           linearGradientProps={{
             colors: [COLORS.green, COLORS.primary],
-            start: {x: 1, y: 0},
-            end: {x: 0.3, y: 0},
+            start: { x: 1, y: 0 },
+            end: { x: 0.3, y: 0 },
           }}
-          style={{width: SIZES.width}}
+          style={{ width: SIZES.width }}
           ViewComponent={LinearGradient}>
           <Icon
             color={'white'}
@@ -144,21 +144,21 @@ export default function ServiceChat({route}) {
             onPress={() => {
               navigation.goBack();
             }}
-            iconStyle={{borderRadius: 50}}
+            iconStyle={{ borderRadius: 50 }}
           />
           <Avatar
             rounded
-            source={{uri: service.data.image}}
+            source={{ uri: service.data.image }}
             size={50}
-            avatarStyle={{resizeMode: 'contain'}}
+            avatarStyle={{ resizeMode: 'contain' }}
           />
           <ListItem.Content>
             <ListItem.Title
-              style={{color: 'white', fontWeight: 'bold'}}
+              style={{ color: 'white', fontWeight: 'bold' }}
               numberOfLines={1}>
               {service.data.name}
             </ListItem.Title>
-            <ListItem.Subtitle style={{color: 'white'}} numberOfLines={1}>
+            <ListItem.Subtitle style={{ color: 'white' }} numberOfLines={1}>
               {service.data.organization}
             </ListItem.Subtitle>
           </ListItem.Content>
@@ -169,59 +169,59 @@ export default function ServiceChat({route}) {
             onPress={() => {
               navigation.goBack();
             }}
-            iconStyle={{borderRadius: 50}}
+            iconStyle={{ borderRadius: 50 }}
           />
         </ListItem>
         <KeyboardAvoidingView>
-          {!isKeyboardShowing && (
-            <Card>
-              <TextInput
-                style={{
-                  height: 50,
-                  borderBottomColor: 'grey',
-                  borderBottomWidth: 2,
-                  paddingHorizontal: 10,
-                  color: 'black',
-                }}
-                value={title}
-                onChangeText={setTitle}
-                placeholder="Tiêu đề"
-                placeholderTextColor={'black'}
-              />
-              <Card.Divider />
-              <Card.Image
-                onPress={ChangeImage}
-                style={{padding: 0}}
-                source={{
-                  uri: image,
-                }}
-              />
-              <TextInput
-                style={{
-                  height: 50,
-                  width: SIZES.width * 0.8,
-                  borderBottomColor: 'grey',
-                  borderBottomWidth: 2,
-                  paddingHorizontal: 10,
-                  color: 'black',
-                }}
-                value={detail}
-                onChangeText={setDetail}
-                placeholder="Nội dung"
-                placeholderTextColor={'black'}
-              />
-              <Button
-                onPress={() => setisVisible(true)}
-                buttonStyle={{
-                  borderRadius: 0,
-                  marginLeft: 0,
-                  marginRight: 0,
-                  marginBottom: 0,
-                }}
-                title="Xem trước"
-              />
-            </Card>
-          )}
+
+          <Card>
+            <TextInput
+              style={{
+                height: 50,
+                borderBottomColor: 'grey',
+                borderBottomWidth: 2,
+                paddingHorizontal: 10,
+                color: 'black',
+              }}
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Tiêu đề"
+              placeholderTextColor={'black'}
+            />
+            <Card.Divider />
+            <Card.Image
+              onPress={ChangeImage}
+              style={{ padding: 0 }}
+              source={{
+                uri: image,
+              }}
+            />
+            <TextInput
+              style={{
+                height: 50,
+                width: SIZES.width * 0.8,
+                borderBottomColor: 'grey',
+                borderBottomWidth: 2,
+                paddingHorizontal: 10,
+                color: 'black',
+              }}
+              value={detail}
+              onChangeText={setDetail}
+              placeholder="Nội dung"
+              placeholderTextColor={'black'}
+            />
+            <Button
+              onPress={() => setisVisible(true)}
+              buttonStyle={{
+                borderRadius: 0,
+                marginLeft: 0,
+                marginRight: 0,
+                marginBottom: 0,
+              }}
+              title="Xem trước"
+            />
+          </Card>
+
         </KeyboardAvoidingView>
         <View style={styles.footer}>
           <Icon
@@ -232,7 +232,7 @@ export default function ServiceChat({route}) {
             onPress={() => {
               setisVisible(true);
             }}
-            iconStyle={{padding: 10, borderRadius: 50}}
+            iconStyle={{ padding: 10, borderRadius: 50 }}
           />
           <TextInput
             value={input}
@@ -258,7 +258,7 @@ export default function ServiceChat({route}) {
             onPress={() => {
               handleSend('text');
             }}
-            iconStyle={{padding: 10, borderRadius: 50}}
+            iconStyle={{ padding: 10, borderRadius: 50 }}
           />
         </View>
       </PageContainer>

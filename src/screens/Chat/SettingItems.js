@@ -64,11 +64,11 @@ export function getInitialItems(type) {
       color: '#000',
       title: 'Xóa đoạn chat',
     },
-    {
-      icon: 'magnify',
-      color: '#000',
-      title: 'Tìm kiếm trong đoạn chat',
-    },
+    // {
+    //   icon: 'magnify',
+    //   color: '#000',
+    //   title: 'Tìm kiếm trong đoạn chat',
+    // },
    
   ];
   if (type === 'Service') {

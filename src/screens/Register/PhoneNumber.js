@@ -90,7 +90,6 @@ export default function PhoneNumber({navigation, route}) {
   };
   const handleSend = async () => {
     setVisible(true);
-
     const phone = selectedArea.callingCode + phoneNumber;
     await auth()
       .verifyPhoneNumber(phone)
@@ -105,6 +104,7 @@ export default function PhoneNumber({navigation, route}) {
         console.error(e);
       });
   };
+
   const confirmCode = async () => {
     try {
       if (code == otp) {

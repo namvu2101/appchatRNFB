@@ -7,9 +7,9 @@ import {
   Keyboard,
   Alert,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
-import {COLORS, SIZES, images, FONTS} from '../../constants';
-import {Avatar, TextInput} from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { COLORS, SIZES, images, FONTS } from '../../constants';
+import { Avatar, TextInput } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import UITextInput from '../../components/UITextInput';
 import UIButton from '../../components/UIButton';
@@ -20,15 +20,15 @@ import Animated, {
   useAnimatedKeyboard,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import {handlePickImage} from '../../components/ImagePicker';
-import {db, storage} from '../../firebase/firebaseConfig';
+import { handlePickImage } from '../../components/ImagePicker';
+import { db, storage } from '../../firebase/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {firebase} from '@react-native-firebase/auth';
-import {profileStore} from '../../store';
+import { firebase } from '@react-native-firebase/auth';
+import { profileStore } from '../../store';
 import Loading from '../Dialog/Loading';
 
-export default function RegisterService({setIndex}) {
-  const {profile, updateService} = profileStore();
+export default function RegisterService({ setIndex }) {
+  const { profile, updateService } = profileStore();
   const [service, setService] = useState(profile.service);
   const [isLoading, setisLoading] = useState(false);
   const [state, setState] = useState([
@@ -36,32 +36,36 @@ export default function RegisterService({setIndex}) {
       name: 'Tên Dịch vụ',
       value: 'Nhập tên dịch vụ',
       inputMode: 'text',
+      input: ''
     },
     {
       name: 'Địa chỉ email',
       value: 'Nhập email',
       inputMode: 'email',
+      input: ''
     },
     {
       name: 'Địa chỉ',
       value: 'Nhập địa chỉ',
       inputMode: 'text',
+      input: ''
     },
     {
       name: 'Tên tổ chức',
       value: 'Nhập...',
       inputMode: 'text',
+      input: ''
     },
   ]);
   const keyboard = useAnimatedKeyboard();
   const translateStyle = useAnimatedStyle(() => {
     return {
-      transform: [{translateY: -keyboard.height.value}],
+      transform: [{ translateY: -keyboard.height.value }],
     };
   });
   const onChangeText = (index, text) => {
     const updatedFields = [...state];
-    updatedFields[index].value = text;
+    updatedFields[index].input = text;
     setState(updatedFields);
   };
   const [image, setImage] = useState('');
@@ -75,11 +79,22 @@ export default function RegisterService({setIndex}) {
       setImage(avatar.uri);
     }
   };
+  const onCheckData = () => {
+    if (image.length == 0) {
+      Alert.alert('Thông báo!', 'Chưa chọn ảnh đại diện');
+    }
+    else if (state[0].input.length == 0 || state[0].input.length == 0 || state[0].input.length == 0 ||
+      state[0].input.length == 0) {
+      Alert.alert('Thông báo!', 'Hãy điền đủ thông tin');
+    }
+    else {
+      handleRegister()
+    }
+  };
   const handleRegister = async () => {
     const date = new Date();
-    const newDate = `${date.getDate()}/${
-      date.getMonth() + 1
-    }/${date.getFullYear()}`;
+    const newDate = `${date.getDate()}/${date.getMonth() + 1
+      }/${date.getFullYear()}`;
     const idImage = uuid.v4();
     try {
       setisLoading(true);
@@ -90,10 +105,10 @@ export default function RegisterService({setIndex}) {
         .collection('Service')
         .add({
           image: avatarUrl,
-          name: state[0].value,
-          email: state[1].value,
-          address: state[2].value,
-          organization: state[3].value,
+          name: state[0].input,
+          email: state[1].input,
+          address: state[2].input,
+          organization: state[3].input,
           follower: [],
           date: newDate,
           status: false,
@@ -106,7 +121,7 @@ export default function RegisterService({setIndex}) {
               {
                 service: firebase.firestore.FieldValue.arrayUnion(doc.id),
               },
-              {merge: true},
+              { merge: true },
             );
           Alert.alert('Thông báo!', 'Dịch vụ của bạn đang chờ xác nhận', [
             {
@@ -121,6 +136,7 @@ export default function RegisterService({setIndex}) {
         });
     } catch (error) {
       Alert.alert('Thông báo!', 'Đã xảy ra lỗi');
+      setisLoading(false);
       console.log(error);
     }
   };
@@ -129,7 +145,7 @@ export default function RegisterService({setIndex}) {
       style={{
         justifyContent: 'space-evenly',
       }}>
-      <Text style={{...FONTS.h2}}>Đăng ký dịch vụ mới</Text>
+      <Text style={{ ...FONTS.h2 }}>Đăng ký dịch vụ mới</Text>
       <Pressable
         onPress={ChangeAvatar}
         style={{
@@ -142,7 +158,7 @@ export default function RegisterService({setIndex}) {
         }}>
         {image.length != 0 ? (
           <Avatar.Image
-            source={{uri: image || images.imageLoading}}
+            source={{ uri: image || images.imageLoading }}
             size={80}
           />
         ) : (
@@ -152,16 +168,17 @@ export default function RegisterService({setIndex}) {
       <Animated.View style={translateStyle}>
         {state.map((item, index) => (
           <UITextInput
-            style={{width: SIZES.width, paddingHorizontal: 22}}
+            style={{ width: SIZES.width, paddingHorizontal: 22 }}
             title={item.name}
-            value={item.value}
+            value={item.input}
+            placeholder={item.value}
             key={item.name}
             inputMode={item.inputMode}
             onChangeText={text => onChangeText(index, text)}
           />
         ))}
       </Animated.View>
-      <UIButton title="Đăng ký" onPress={handleRegister} />
+      <UIButton title="Đăng ký" onPress={onCheckData} />
       <Loading isVisible={isLoading} />
     </PageContainer>
   );
